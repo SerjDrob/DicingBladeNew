@@ -1,0 +1,84 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <AssemblyTitle>DicingBlade</AssemblyTitle>
+    <Product>DicingBlade</Product>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ApplicationIcon>7863776561600002497-48.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Classes\Process2.cs" />
+    <Compile Remove="Classes\Process3.cs" />
+    <Compile Remove="Classes\Spindle.cs" />
+    <Compile Remove="Classes\Spindle2.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Views\7863776561600002497-48.png" />
+    <None Remove="Views\cutshift.png" />
+    <None Remove="Views\learning.png" />
+    <None Remove="Views\settings.png" />
+    <None Remove="Views\size1.png" />
+    <None Remove="Views\size3.png" />
+    <None Remove="Views\techniology.png" />
+    <None Remove="Views\videoscale.png" />
+    <None Remove="Views\wafer.png" />
+    <None Remove="Views\wafer2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="AdvMotAPI, Version=2.0.2.5, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>.\AdvMotAPI.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Notes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ViewModels\FodyWeavers.xml" />
+    <Resource Include="Views\7863776561600002497-48.png" />
+    <Resource Include="Views\Sources\cutshift.png" />
+    <Resource Include="Views\Sources\learning.png" />
+    <Resource Include="Views\Sources\settings.png" />
+    <Resource Include="Views\Sources\size1.png" />
+    <Resource Include="Views\Sources\size3.png" />
+    <Resource Include="Views\Sources\techniology.png" />
+    <Resource Include="Views\Sources\videoscale.png" />
+    <Resource Include="Views\Sources\wafer.png" />
+    <Resource Include="Views\Sources\wafer2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AForge.Imaging" Version="2.2.5" />
+    <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
+    <PackageReference Include="AMWD.Modbus.Serial" Version="1.0.3" />
+    <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
+    <PackageReference Include="Expression.Blend.Sdk.WPF" Version="1.0.1" />
+    <PackageReference Include="FluentModbus" Version="3.0.1" />
+    <PackageReference Include="FluentValidation" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Workspace" Version="16.3.43" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
+    <PackageReference Include="netDXF" Version="2.2.0.1" />
+    <PackageReference Include="NModbus4" Version="2.1.0" />
+    <PackageReference Include="PropertyChanged.Fody" Version="3.3.3" />
+    <PackageReference Include="System.Security.AccessControl" Version="5.0.0" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+</Project>
