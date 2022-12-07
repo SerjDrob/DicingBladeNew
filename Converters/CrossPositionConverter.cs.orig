@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
-using System.Globalization;
 
 namespace DicingBlade.Converters
 {
@@ -18,8 +13,9 @@ namespace DicingBlade.Converters
                 double length = System.Convert.ToDouble(values[0]);
                 int pointNum = System.Convert.ToInt32(values[1]);
                 double lengthRatio = System.Convert.ToDouble(parameter);
-                switch (pointNum)
+                return pointNum switch
                 {
+<<<<<<< HEAD:DicingBlade/Converters/CrossPositionConverter.cs
                     case 1: return length * (1 - lengthRatio) / 2;
                     case 2: return length * (1 + lengthRatio) / 2;
                     default:
@@ -31,6 +27,16 @@ namespace DicingBlade.Converters
                 return System.Convert.ToDouble(values[0]) / 2;
             }
 
+=======
+                    1 => length * (1 - lengthRatio) / 2,
+                    2 => length * (1 + lengthRatio) / 2,
+                    _ => 0,
+                };
+            }
+
+            return System.Convert.ToDouble(values[0]) / 2;
+
+>>>>>>> a76f3da (Big commit):Converters/CrossPositionConverter.cs
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

@@ -4,6 +4,8 @@ using System.Linq;
 using Advantech.Motion;
 using System.Threading.Tasks;
 using System.Windows;
+using MachineClassLibrary.Machine.MotionDevices;
+using MachineClassLibrary.Machine;
 
 namespace DicingBlade.Classes
 {

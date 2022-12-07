@@ -3,6 +3,7 @@ using System.IO.Ports;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using FluentModbus;
+using MachineClassLibrary.SFC;
 using Modbus.Device;
 
 namespace DicingBlade.Classes
@@ -140,16 +141,13 @@ namespace DicingBlade.Classes
                     //GetSpindleState?.Invoke(freq * 6, (double)current / 10, onFreq);
                     GetSpindleState?.Invoke(
                         null,
-                        new SpindleEventArgs()
-                        {
-                            Rpm=freq*6,
-                            Current = (double)current/10,
-                            Accelerating=acc,
-                            Deccelarating=dec,
-                            OnFreq=onFreq,
-                            Stop=stop
-                        }
-                        );
+                        new SpindleEventArgs(
+                            rpm: freq*6,
+                            current: (double)current/10,
+                            onFreq: acc,
+                            accelerating: dec,
+                            deccelarating: onFreq,
+                            stop: stop));
                 }
                 catch (ModbusException)
                 {

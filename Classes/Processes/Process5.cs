@@ -7,7 +7,8 @@ using PropertyChanged;
 using Microsoft.VisualStudio.Workspace;
 using System.Windows;
 using DicingBlade.ViewModels;
-
+using MachineClassLibrary.Machine;
+using MachineClassLibrary.Classes;
 
 namespace DicingBlade.Classes.BehaviourTrees
 {

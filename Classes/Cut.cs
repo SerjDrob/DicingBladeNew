@@ -1,15 +1,17 @@
-﻿using netDxf.Entities;
-using netDxf;
+﻿//using netDxf.Entities;
+//using netDxf;
+
+using System.Windows;
 
 namespace DicingBlade.Classes
 {
-    public class Cut : Line
+    public class Cut //: Line2D
     {
         public Cut(Cut cut)
         {
             //this.Clone = cut;
         }
-        public Cut(Vector3 startpoint, Vector3 endpoint)
+        public Cut(Point startpoint, Point endpoint)
         {
             StartPoint = startpoint;
             EndPoint = endpoint;
@@ -18,6 +20,12 @@ namespace DicingBlade.Classes
             Offset = 0;
             CutDirection = Directions.Direct;
         }
+
+        public Cut(Line2D line) : this(line.Start, line.End)
+        {
+
+        }
+        
 
         /// <summary>
         /// направление резки - встречная, попутная, встречно-попутная        
@@ -31,25 +39,26 @@ namespace DicingBlade.Classes
             get => CurrentCut / CutCount == 1 ? false : true;
             private set { }
         }
-        public bool NextCut()
-        {
-            if (Status)
-            {
-                CurrentCut++;
-            }
-            return Status;
-        }
+        //public bool NextCut()
+        //{
+        //    if (Status)
+        //    {
+        //        CurrentCut++;
+        //    }
+        //    return Status;
+        //}
         public int CutCount { get; set; }
-        public double CutRatio => (double)(CurrentCut + 1) / CutCount;
+        //public double CutRatio => (double)(CurrentCut + 1) / CutCount;
         private int CurrentCut { get; set; } = 0;
         public double Offset { get; set; }
-
-        public void ResetCut()
-        {
-            CurrentCut = 0;
-            Offset = 0;
-            Status = true;
-        }
+        public Point StartPoint { get; private set; }
+        public Point EndPoint { get; private set; }
+        //public void ResetCut()
+        //{
+        //    CurrentCut = 0;
+        //    Offset = 0;
+        //    Status = true;
+        //}
     }
     public enum Directions
     {

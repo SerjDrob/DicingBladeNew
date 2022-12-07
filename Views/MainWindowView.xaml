@@ -1,4 +1,4 @@
-﻿<Window
+﻿<hc:GlowWindow
     x:Class="DicingBlade.Views.MainWindowView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,16 +6,17 @@
     xmlns:converters="clr-namespace:DicingBlade.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:local="clr-namespace:DicingBlade.Classes"
+    xmlns:mcl="clr-namespace:MachineClassLibrary.Machine;assembly=MachineClassLibrary" 
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:DicingBlade.ViewModels"
-    xmlns:uc="clr-namespace:DicingBlade.UserControls"
+    xmlns:uc="clr-namespace:MachineControlsLibrary.Controls;assembly=MachineControlsLibrary"
+    xmlns:hc="https://handyorg.github.io/handycontrol" 
     Title="ЭМ-225"
     Icon="/Views/7863776561600002497-48.png"
-    Width="1280"
-    Height="1024"
+    ActiveGlowColor="{DynamicResource PrimaryColor}" 
+   
     d:DataContext="{d:DesignInstance model:MainViewModel, IsDesignTimeCreatable=True}"
-    Background="#FFE8E8EC"
+    
     WindowStartupLocation="CenterScreen"
     WindowState="Maximized"
     mc:Ignorable="d" MinWidth="1280" MinHeight="1024">
@@ -31,7 +32,8 @@
             <System:Double x:Key="Hundred">100</System:Double>
             <System:Double x:Key="Ycoor">69.515</System:Double>
             <System:Double x:Key="CutStrokeThickness">0.002</System:Double>
-
+            <System:Boolean x:Key="TRUE">True</System:Boolean>
+            <System:Boolean x:Key="FALSE">False</System:Boolean>
             <Storyboard x:Key="PathAnimation">
                 <DoubleAnimation
                 By="{Binding WvAngle}"
@@ -76,18 +78,36 @@
                 Storyboard.TargetProperty="RenderTransform.Children[1].Angle"
                 Duration="0"/>
             </Storyboard>
+
+            <Style x:Key="ToolBorder" TargetType="Border">
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="4"/>
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="Background" Value="{DynamicResource DarkMaskBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
     <Window.InputBindings>
-        <KeyBinding Command="{Binding ToTeachCutShiftCmd}" Key="F6"/>
+        <KeyBinding Command="{Binding ToTeachCutShiftCommand}" Key="F6"/>
     </Window.InputBindings>
     <i:Interaction.Triggers>
+        
         <i:EventTrigger EventName="KeyDown">
-            <i:InvokeCommandAction Command="{Binding KeyDownCmd, Mode=OneWay}" PassEventArgsToCommand="True" />
+            <i:InvokeCommandAction Command="{Binding TestKeyCommand, Mode=OneWay}" 
+                                   PassEventArgsToCommand="True"
+                                   EventArgsConverter="{StaticResource KeyProcessorArgsConverter}"
+                                   EventArgsConverterParameter="{StaticResource TRUE}"/>
         </i:EventTrigger>
+       
         <i:EventTrigger EventName="KeyUp">
-            <i:InvokeCommandAction Command="{Binding KeyUpCmd, Mode=OneWay}" PassEventArgsToCommand="True" />
+            <i:InvokeCommandAction Command="{Binding TestKeyCommand, Mode=OneWay}" 
+                                   PassEventArgsToCommand="True"
+                                   EventArgsConverter="{StaticResource KeyProcessorArgsConverter}"
+                                   EventArgsConverterParameter="{StaticResource FALSE}"
+                                   />
         </i:EventTrigger>
+        
         <i:PropertyChangedTrigger Binding="{Binding WvRotate}">
             <i:ControlStoryboardAction Storyboard="{StaticResource ResourceKey=PathAnimation}" />
         </i:PropertyChangedTrigger>
@@ -104,45 +124,92 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Menu Height="22" Grid.ColumnSpan="3">
-            <MenuItem Header="Приводы" Command="{Binding MachineSettingsCmd}"/>
-            <MenuItem Header="Подложка" Command="{Binding WaferSettingsCmd}"/>
-            <MenuItem Header="Технология" Command="{Binding TechnologySettingsCmd}"/>
+        <Menu Grid.ColumnSpan="3">
+            <MenuItem Header="Приводы" Command="{Binding MachineSettingsCommand}"/>
+            <MenuItem Header="Подложка" Command="{Binding WaferSettingsCommand}"/>
+            <MenuItem Header="Технология" Command="{Binding TechnologySettingsCommand}"/>
             <MenuItem Header="Обучение">
-                <MenuItem Command="{Binding ToTeachVideoScaleCmd}" Header="_Масштаб видео" />
-                <MenuItem Command="{Binding ToTeachChipSizeCmd}" Header="_Размер кристалла" />
+                <MenuItem Command="{Binding ToTeachVideoScaleCommand}" Header="_Масштаб видео" />
+                <MenuItem Command="{Binding ToTeachChipSizeCommand}" Header="_Размер кристалла" />
             </MenuItem>
         </Menu>
         <ToolBarTray Grid.Row="1" Orientation="Vertical">
             <ToolBar>
-                <Button Command="{Binding WaferSettingsCmd}">
+                <Button hc:IconElement.Geometry="{StaticResource SpurGearGeometry}"
+                        hc:IconElement.Width="15"
+                        Command="{Binding MachineSettingsCommand}" 
+                        HorizontalAlignment="Stretch">
                     <Button.ToolTip>
-                        Параметры пластины
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Настройки приводов"/>
+                            <TextBlock Foreground="Blue" FontWeight="DemiBold"  Text=" H"/>
+                        </StackPanel>
                     </Button.ToolTip>
-                    <Image Source="/Views/Sources/wafer2.png" Height="20"/>
                 </Button>
-                <Button Command="{Binding MachineSettingsCmd}">
+                <Button hc:IconElement.Geometry="{StaticResource RoundWaferGeometry}"
+                        hc:IconElement.Width="15"
+                        Command="{Binding WaferSettingsCommand}" 
+                        HorizontalAlignment="Stretch">
                     <Button.ToolTip>
-                        Настройки машины
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Подложка"/>
+                            <TextBlock Foreground="Blue" FontWeight="DemiBold"  Text=" H"/>
+                        </StackPanel>
                     </Button.ToolTip>
-                    <Image Source="/Views/Sources/settings.png" Height="20"/>
                 </Button>
-                <Button Command="{Binding TechnologySettingsCmd}">
+                <Button hc:IconElement.Geometry="{StaticResource TechnologyGeometry}"
+                        hc:IconElement.Width="15"
+                        Command="{Binding TechnologySettingsCommand}" 
+                        HorizontalAlignment="Stretch"
+                        >
                     <Button.ToolTip>
-                        Технология
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Технология"/>
+                            <TextBlock Foreground="Blue" FontWeight="DemiBold"  Text=" H"/>
+                        </StackPanel>
                     </Button.ToolTip>
-                    <Image Source="/Views/Sources/techniology.png" Height="20"/>
                 </Button>
-
+                
                 <Separator/>
-                <Menu ToolTip="Обучение">
+                <hc:SplitButton hc:IconElement.Geometry="{StaticResource AcademicHatGeometry}" HorizontalAlignment="Stretch">
+                    <hc:SplitButton.DropDownContent>
+                        <StackPanel>
+                            <MenuItem Command="{Binding ToTeachChipSizeCommand}">
+                                <MenuItem.Icon>
+                                    <Image Source="/Views/Sources/size1.png" Height="20"/>
+                                </MenuItem.Icon>
+                                <MenuItem.Header>
+                                    <TextBlock Text="Размер кристалла"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Command="{Binding ToTeachVideoScaleCommand}">
+                                <MenuItem.Icon>
+                                    <Image Source="/Views/Sources/videoscale.png" Height="20"/>
+                                </MenuItem.Icon>
+                                <MenuItem.Header>
+                                    <TextBlock Text="Масштаб видео"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Command="{Binding ToTeachCutShiftCommand}" InputGestureText="F6">
+                                <MenuItem.Icon>
+                                    <Image Source="/Views/Sources/cutshift.png" Height="20"/>
+                                </MenuItem.Icon>
+                                <MenuItem.Header>
+                                    <TextBlock Text="Смещение реза от ТВ"/>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </StackPanel>
+                    </hc:SplitButton.DropDownContent>
+                    <!--<Image Source="Sources/learning.png"/>-->
+                </hc:SplitButton>
+                <!--<Menu ToolTip="Обучение">
                     <MenuItem>
                         <MenuItem.Header>
                             <StackPanel>
                                 <Image Source="/Views/Sources/learning.png" Height="20"/>
                             </StackPanel>
                         </MenuItem.Header>
-                        <MenuItem Command="{Binding ToTeachChipSizeCmd}">
+                        <MenuItem Command="{Binding ToTeachChipSizeCommand}">
                             <MenuItem.Icon>
                                 <Image Source="/Views/Sources/size1.png" Height="20"/>
                             </MenuItem.Icon>
@@ -150,7 +217,7 @@
                                 <TextBlock Text="Размер кристалла"/>
                             </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem Command="{Binding ToTeachVideoScaleCmd}">
+                        <MenuItem Command="{Binding ToTeachVideoScaleCommand}">
                             <MenuItem.Icon>
                                 <Image Source="/Views/Sources/videoscale.png" Height="20"/>
                             </MenuItem.Icon>
@@ -158,7 +225,7 @@
                                 <TextBlock Text="Масштаб видео"/>
                             </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem Command="{Binding ToTeachCutShiftCmd}" InputGestureText="F6">
+                        <MenuItem Command="{Binding ToTeachCutShiftCommand}" InputGestureText="F6">
                             <MenuItem.Icon>
                                 <Image Source="/Views/Sources/cutshift.png" Height="20"/>
                             </MenuItem.Icon>
@@ -167,10 +234,112 @@
                             </MenuItem.Header>
                         </MenuItem>
                     </MenuItem>
-                </Menu>
+                </Menu>-->
+            </ToolBar>
+            <ToolBar>
+                <StackPanel>
+                    <StackPanel.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Setter Property="CornerRadius" Value="4"/>
+                            <Setter Property="Padding" Value="5"/>
+                            <Setter Property="Background" Value="{DynamicResource DarkMaskBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                        </Style>
+                    </StackPanel.Resources>
+                    <uc:AxisState CoordinateName="X" Coordinate="{Binding XView}" MotionDone="{Binding XMotDoneView}" LmtNeg="{Binding XnLmtView}" LmtPos="{Binding XpLmtView}"/>
+                    <uc:AxisState CoordinateName="Y" Coordinate="{Binding YView}" MotionDone="{Binding YMotDoneView}" LmtNeg="{Binding YnLmtView}" LmtPos="{Binding YpLmtView}"/>
+                    <uc:AxisState CoordinateName="Z" Coordinate="{Binding ZView}" MotionDone="{Binding ZMotDoneView}" LmtNeg="{Binding ZnLmtView}" LmtPos="{Binding ZpLmtView}"/>
+                    <uc:AxisState CoordinateName="U" Coordinate="{Binding UView}" MotionDone="{Binding UMotDoneView}" LmtNeg="{Binding UnLmtView}" LmtPos="{Binding UpLmtView}"/>
+                </StackPanel>
+                <DockPanel>
+                    <Border
+                        DockPanel.Dock="Top"
+                        Height="60"
+                        Style="{StaticResource ToolBorder}"
+                        >
+
+                        <Grid>
+                            <Grid>
+                                <i:Interaction.Triggers>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Fast}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Visible"/>
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Slow}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
+                                </i:Interaction.Triggers>
+                                <Path Data="{StaticResource HighSpeedGeometry}" 
+                              Fill="Red"
+                              Stretch="Uniform"
+                              RenderTransformOrigin="0.5, 0.5"
+                              >
+                                    <Path.RenderTransform>
+                                        <ScaleTransform ScaleY="-1"/>
+                                    </Path.RenderTransform>
+                                </Path>
+                                <Path Data="{StaticResource HighSpeedArrowGeometry}" 
+                              Fill="{StaticResource InfoBrush}"
+                                  Stretch="UniformToFill"
+                              RenderTransformOrigin="0.5, 0.5"
+                              >
+                                    <Path.RenderTransform>
+                                        <ScaleTransform ScaleY="-1"/>
+                                    </Path.RenderTransform>
+                                </Path>
+                            </Grid>
+                            <Grid>
+                                <i:Interaction.Triggers>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Fast}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Slow}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Visible"/>
+                                    </i:DataTrigger>
+                                </i:Interaction.Triggers>
+                                <Path Data="{StaticResource LowSpeedGeometry}" 
+                              Fill="Green"
+                              Stretch="Uniform"
+                              RenderTransformOrigin="0.5, 0.5"
+                              >
+                                    <Path.RenderTransform>
+                                        <ScaleTransform ScaleY="-1"/>
+                                    </Path.RenderTransform>
+                                </Path>
+                                <Path Data="{StaticResource LowSpeedArrowGeometry}" 
+                              Fill="{StaticResource InfoBrush}"
+                                  Stretch="UniformToFill"
+                              RenderTransformOrigin="0.5, 0.5"
+                              >
+                                    <Path.RenderTransform>
+                                        <ScaleTransform ScaleY="-1"/>
+                                    </Path.RenderTransform>
+                                </Path>
+                            </Grid>
+                            <Grid>
+                                <i:Interaction.Triggers>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Fast}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Slow}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Step}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Visible"/>
+                                    </i:DataTrigger>
+                                </i:Interaction.Triggers>
+                                <Label Content="ШАГ"
+                                       Foreground="red"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
+                                       />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </DockPanel>
             </ToolBar>
         </ToolBarTray>
-        <Grid Grid.Row="1" Grid.Column="1">
+        <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource DarkDefaultBrush}">
             <Grid.Resources>
                 <Style x:Key="Rec1" TargetType="Rectangle">
                     <Setter Property="Margin" Value="3" />
@@ -298,9 +467,10 @@
                                             HorizontalAlignment="Center"
                                             Maximum="40000"
                                             Minimum="0"
-                                            Value="{Binding SpindleFreqView}" />
+                                            Value="{Binding SpindleFreqView}"
+                                            Style="{StaticResource ProgressBarFlat}"/>
                                         <TextBlock Text="{Binding StringFormat={}{0} Об/мин,Path=SpindleFreqView}"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                   Style="{StaticResource TextBlockDefaultInfo}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Grid>
                                     <Grid>
                                         <ProgressBar
@@ -310,16 +480,23 @@
                                             HorizontalAlignment="Center"
                                             Maximum="12"
                                             Minimum="0"
-                                            Value="{Binding SpindleCurrentView}" />
+                                            Value="{Binding SpindleCurrentView}"
+                                            Style="{StaticResource ProgressBarFlat}"/>
                                         <TextBlock Text="{Binding StringFormat={}{0} A,Path=SpindleCurrentView}"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                   Style="{StaticResource TextBlockDefaultInfo}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Grid>
 
                                 </StackPanel>
                             </DockPanel>
                         </GroupBox>
                         <GroupBox Header="СОЖ">
-                            <uc:Indicator Width="150" Height="30" CurrentLevel="{Binding Flow}" MinLevel="0" MaxLevel="2" Units="л/мин" NoLessLevel="1"/>
+                            <uc:Indicator Width="150" 
+                                          Height="30" 
+                                          CurrentLevel="{Binding Flow}" 
+                                          MinLevel="0" 
+                                          MaxLevel="2" 
+                                          Units="л/мин" 
+                                          NoLessLevel="1"/>
                         </GroupBox>                        
                     </StackPanel>
                     <GroupBox Header="Процесс"  Grid.Row="1">
@@ -339,7 +516,7 @@
                                 <Setter Property="SensorOnColor"  Value="{StaticResource SignalGreen}"/>
                                 <Setter Property="Margin" Value="1"/>
                                 <Setter Property="FontFamily" Value="Noto Sans"/>
-                                <!--<Setter Property="MyBackground" Value="#2E8364"/>-->                                
+                                <Setter Property="MyBackground" Value="#2E8364"/>                                
                             </Style>
                         </StackPanel.Resources>                        
                         <uc:ValveStateButton ValveName="ОХЛАЖДЕНИЕ ШПИНДЕЛЯ" ValveIsOn="{Binding SpindleCoolantSensorView}" SensorIsOn="{Binding SpindleCoolantSensorView}"/>
@@ -347,27 +524,15 @@
                         <uc:ValveStateButton ValveName="ВАКУУМ" ValveIsOn="{Binding ChuckVacuumValveView}" SensorIsOn="{Binding ChuckVacuumSensorView}"/>
                         <uc:ValveStateButton ValveName="ОБДУВ" ValveIsOn="{Binding BlowingValveView}" SensorIsOn="{Binding AirSensorView}"/>                   
                     </StackPanel>
-                    <GroupBox Header="Перемещение" Grid.Row="1" Grid.Column="2" VerticalAlignment="Top">
-                        <DockPanel>
-                            <StackPanel DockPanel.Dock="Left">
-                                <StackPanel.Resources>
-                                    <Style TargetType="uc:AxisState">
-                                        <Setter Property="NegColor" Value="{StaticResource SignalRed}"/>
-                                        <Setter Property="PosColor" Value="{StaticResource SignalGreen}"/>
-                                    </Style>
-                                </StackPanel.Resources>
-                                <uc:AxisState CoordinateName="X" Coordinate="{Binding XView}" MotionDone="{Binding XMotDoneView}" LmtNeg="{Binding XnLmtView}" LmtPos="{Binding XpLmtView}"/>
-                                <uc:AxisState CoordinateName="Y" Coordinate="{Binding YView}" MotionDone="{Binding YMotDoneView}" LmtNeg="{Binding YnLmtView}" LmtPos="{Binding YpLmtView}"/>
-                                <uc:AxisState CoordinateName="Z" Coordinate="{Binding ZView}" MotionDone="{Binding ZMotDoneView}" LmtNeg="{Binding ZnLmtView}" LmtPos="{Binding ZpLmtView}"/>
-                                <uc:AxisState CoordinateName="U" Coordinate="{Binding UView}" MotionDone="{Binding UMotDoneView}" LmtNeg="{Binding UnLmtView}" LmtPos="{Binding UpLmtView}"/>                                
-                            </StackPanel>
+                    <!--<GroupBox Header="Перемещение" Grid.Row="1" Grid.Column="2" VerticalAlignment="Top">
+                        <DockPanel>                            
                             <Grid DockPanel.Dock="Right">
-                                <TextBlock Style="{StaticResource Text1}" Text="Быстро" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static local:Velocity.Fast}}" />
-                                <TextBlock Style="{StaticResource Text1}" Text="Медленно" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static local:Velocity.Slow}}" />
-                                <TextBlock Style="{StaticResource Text1}" Text="Шаг" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static local:Velocity.Step}}" />
+                                <TextBlock Style="{StaticResource Text1}" Text="Быстро" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static mcl:Velocity.Fast}}" />
+                                <TextBlock Style="{StaticResource Text1}" Text="Медленно" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static mcl:Velocity.Slow}}" />
+                                <TextBlock Style="{StaticResource Text1}" Text="Шаг" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static mcl:Velocity.Step}}" />
                             </Grid>
                         </DockPanel>                       
-                    </GroupBox>
+                    </GroupBox>-->
                 </Grid>
             </GroupBox>
             <Border
@@ -382,7 +547,7 @@
                 <Canvas
                 Margin="3"
                 VerticalAlignment="Stretch"
-                Background="White"
+                Background="{StaticResource DarkDefaultBrush}"
                 ClipToBounds="True">
                     <Ellipse Panel.ZIndex="1" Fill="AliceBlue">
                         <Ellipse.Visibility>
@@ -838,13 +1003,16 @@
                 </i:Interaction.Triggers>
             </Image>
             <Canvas
-            Grid.RowSpan="{Binding Rows[1]}"
-            Grid.Column="{Binding Cols[1]}"
-            Width="{Binding ElementName=VideoImg, Path=ActualWidth}"
-            Height="{Binding ElementName=VideoImg, Path=ActualHeight}"
-            Panel.ZIndex="1"
-            ClipToBounds="True">
-                <Grid Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}" Height="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}">
+                Grid.RowSpan="{Binding Rows[1]}"
+                Grid.Column="{Binding Cols[1]}"
+                Width="{Binding ElementName=VideoImg, Path=ActualWidth}"
+                Height="{Binding ElementName=VideoImg, Path=ActualHeight}"
+                Panel.ZIndex="1"
+                ClipToBounds="True">
+                <Grid Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}" 
+                      Height="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
+                      >
+
                     <TextBlock
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
@@ -888,12 +1056,12 @@
                     Text="{Binding Path=Process.CutOffset, StringFormat=Корректировка реза\, мм:  {0:N3}}"
                     TextAlignment="Center"
                     Visibility="{Binding Process.CutWidthMarkerVisibility}">
-                    <!--<TextBlock.Text>
-                        <MultiBinding Converter="{StaticResource GetRatioConverter}">
-                            <Binding Path="1" FallbackValue="10"/>
-                            <Binding Path="1" FallbackValue="20"/>
-                        </MultiBinding>
-                    </TextBlock.Text>-->
+                        <!--<TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource GetRatioConverter}">
+                                <Binding Path="1" FallbackValue="10"/>
+                                <Binding Path="1" FallbackValue="20"/>
+                            </MultiBinding>
+                        </TextBlock.Text>-->
                         <TextBlock.RenderTransform>
                             <TransformGroup>
                                 <ScaleTransform>
@@ -1074,4 +1242,4 @@
 
         </Grid>
     </Grid>
-</Window>
+</hc:GlowWindow>

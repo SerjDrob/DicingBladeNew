@@ -6,6 +6,8 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using netDxf;
+using MachineClassLibrary.Machine;
+using MachineClassLibrary.Classes;
 
 namespace DicingBlade.Classes
 {

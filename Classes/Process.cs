@@ -49,60 +49,6 @@ namespace DicingBlade.Classes
         Ending = 128,
         Pause = 256
     }
-    /// <summary>
-    /// Структура параметров процесса
-    /// </summary>
-    internal struct TempWafer2D
-    {
-        //public bool Round;
-        //public double XIndex;
-        //public double XShift;
-        //public double YIndex;
-        //public double YShift;
-        //public double XAngle;
-        //public double YAngle;
-        public bool FirstPointSet;
-        public double[] Point1;
-        public double[] Point2;
-        public double GetAngle()
-        {
-            var tan = (Point2[1] - Point1[1]) / (Point2[0] - Point1[0]);
-            var sign = Math.Sign(tan);
-            var angle = Math.Atan(Math.Abs(tan))*180/Math.PI;
-            return sign * angle;
-        }
-    }
-    struct CheckCutControl
-    {
-        int startCut;
-        int checkInterval;
-        int currentCut;
-        public bool Check;
-        public void addToCurrentCut()
-        {
-            int res = 0;
-            currentCut++;
-            if (currentCut >= startCut)
-            {
-                Math.DivRem(currentCut - startCut, checkInterval, out res);
-                Check = res == 0;
-            }
-            else
-            {
-                Check = false;
-            }
-        }
-        public void Reset()
-        {
-            currentCut = 0;
-        }
-        public void Set(int start, int interval)
-        {
-            currentCut = 0;
-            checkInterval = interval;
-            startCut = start;
-        }
-    }
     //public delegate void SetPause(bool pause);
     [AddINotifyPropertyChangedInterface]
     internal class Process

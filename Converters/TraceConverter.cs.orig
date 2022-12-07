@@ -61,8 +61,13 @@ namespace DicingBlade.Converters
             translateTransform2 = new TranslateTransform(actualWidth / 2, actualHeight / 2);
             scaleTransform = new ScaleTransform(wh / (1.4 * res), wh / (1.4 * res));
 
-            var startPoint = new Point(x, y + shift);
-            var endPoint = new Point(x1, y + shift);
+<<<<<<< HEAD:DicingBlade/Converters/TraceConverter.cs
+            Point StartPoint = new Point(x, y + shift);
+            Point EndPoint = new Point(x1, y + shift);
+=======
+            Point startPoint = new Point(x, y + shift);
+            Point endPoint = new Point(x1, y + shift);
+>>>>>>> a76f3da (Big commit):Converters/TraceConverter.cs
 
             startPoint = translateTransform2.Transform(scaleTransform.Transform(translateTransform1.Transform(startPoint)));
             endPoint = translateTransform2.Transform(scaleTransform.Transform(translateTransform1.Transform(endPoint)));

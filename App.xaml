@@ -4,10 +4,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:d1p1="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:hc="https://handyorg.github.io/handycontrol" 
     xmlns:local="clr-namespace:DicingBlade"
+    xmlns:controls="clr-namespace:MachineControlsLibrary.Controls;assembly=MachineControlsLibrary"
     d1p1:Ignorable="d"
-    Startup="HandleOnStartup"
-    Exit="HandleOnExit">
+    >
     <Application.Resources>
         <ResourceDictionary>
             <Style x:Key="Rec1" TargetType="Rectangle">
@@ -20,6 +21,16 @@
                     </DataTrigger>
                 </Style.Triggers>-->
             </Style>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="WizardDictionary.xaml"/>
+                <!--<ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinViolet.xaml"/>-->
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDark.xaml"/>
+
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/MachineControlsLibrary;component/Geometries.xaml"/>
+                <ResourceDictionary Source="Geometries.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
         </ResourceDictionary>
 
     </Application.Resources>

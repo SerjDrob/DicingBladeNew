@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Windows;
 using DicingBlade.ViewModels;
+using HandyControl.Controls;
 
 namespace DicingBlade.Views
 {
     /// <summary>
     /// Логика взаимодействия для MainWindowView.xaml
     /// </summary>
-    public partial class MainWindowView : Window
+    public partial class MainWindowView : GlowWindow
     {
         public MainWindowView(IMainViewModel viewModel)
         {
@@ -20,5 +21,6 @@ namespace DicingBlade.Views
             base.OnClosed(e);
             Environment.Exit(0);
         }
+
     }
 }

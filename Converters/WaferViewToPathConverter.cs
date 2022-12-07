@@ -17,10 +17,10 @@ namespace DicingBlade.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            ObservableCollection<Line> waferView = new ObservableCollection<Line>();
+            var waferView = new ObservableCollection<Line2D>();
             try
             {                
-                waferView = (ObservableCollection<Line>)value;
+                waferView = (ObservableCollection<Line2D>)value;
             }
             catch { }
             
@@ -28,8 +28,8 @@ namespace DicingBlade.Converters
             foreach (var line in waferView)
             {
                 geometryGroup.Children.Add(new LineGeometry(
-                    new System.Windows.Point(line.StartPoint.X, line.StartPoint.Y),
-                    new System.Windows.Point(line.EndPoint.X, line.EndPoint.Y)
+                    new System.Windows.Point(line.Start.X, line.Start.Y),
+                    new System.Windows.Point(line.End.X, line.End.Y)
                     ));
             }
 

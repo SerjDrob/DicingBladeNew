@@ -1,11 +1,12 @@
-﻿using System.Windows;
+﻿using HandyControl.Controls;
+using System.Windows;
 
 namespace DicingBlade.Views
 {
     /// <summary>
     /// Логика взаимодействия для MachineSettingsView.xaml
     /// </summary>
-    public partial class MachineSettingsView : Window
+    public partial class MachineSettingsView : GlowWindow
     {
         public MachineSettingsView()
         {

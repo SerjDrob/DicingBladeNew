@@ -1,4 +1,4 @@
-﻿<Window
+﻿<hc:GlowWindow
     x:Class="DicingBlade.Views.TechnologySettingsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,13 +8,13 @@
     xmlns:local="clr-namespace:DicingBlade.Classes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="[model ]clr-namespace:DicingBlade.ViewModels"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
     Title="Технология резки"
     Width="auto"
     Height="auto"
     ResizeMode="NoResize"
     SizeToContent="WidthAndHeight"
     WindowStartupLocation="CenterScreen"
-    WindowStyle="ToolWindow"
     mc:Ignorable="d">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
@@ -24,122 +24,102 @@
     <Window.Resources>
         <converters:RadioEnumConverter x:Key="RadioConverter" />
     </Window.Resources>
-    <Grid>
-        <Grid.Resources>
-            <Style TargetType="TextBox">
+    <StackPanel>
+        <StackPanel.Resources>
+            <Style TargetType="CheckBox" BasedOn="{StaticResource CheckBoxBaseStyle}">
+                <Setter Property="Margin" Value="3" />
+            </Style>
+            <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxBaseStyle}">
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="Width" Value="80" />
+                <Setter Property="HorizontalAlignment" Value="Right"/>
                 <Setter Property="Height" Value="25" />
                 <Setter Property="Margin" Value="3" />
-                <Style.Triggers>
-                    <Trigger Property="Validation.HasError" Value="True">
-                        <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
-            <Style TargetType="Label">
+            <Style TargetType="Label" BasedOn="{StaticResource LabelBaseStyle}">
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="FontFamily" Value="Arial" />
                 <Setter Property="FontWeight" Value="Bold" />
             </Style>
-            <Style TargetType="GroupBox">
-                <Setter Property="Margin" Value="5" />
+            <Style TargetType="GroupBox" BasedOn="{StaticResource GroupBoxBaseStyle}">
+                <Setter Property="Margin" Value="5,5,0,0" />
                 <Setter Property="HeaderTemplate">
                     <Setter.Value>
                         <DataTemplate>
                             <TextBlock
-                                FontStyle="Italic"
-                                FontWeight="Bold"
+                                Style="{StaticResource TextBlockDefaultBold}"
                                 Text="{Binding}" />
                         </DataTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
-            <Style TargetType="Button">
+            <Style TargetType="Button" BasedOn="{StaticResource ButtonDefault.Small}">
                 <Setter Property="Height" Value="25" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
             </Style>
-        </Grid.Resources>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Label Grid.Row="0" Content="Частота вращения шпинделя, об/мин" />
-        <Label Grid.Row="1" Content="Скорость резки, мм/с" />
-        <Label Grid.Row="2" Content="Подъём диска над пластиной, мм" />
-        <Label Grid.Row="3" Content="Толщина плёнки, мм" />
-        <Label Grid.Row="4" Content="Недорез, мм" />
-        <Label Grid.Row="5" Content="Количество проходов" />
-        <TextBox
-            Grid.Row="0"
-            Grid.Column="1"
+        </StackPanel.Resources>
+        <GroupBox Header="Параметры резки">
+            <StackPanel>
+                <hc:TextBox
+            hc:TitleElement.Title="Частота вращения шпинделя, об/мин"
+            hc:TitleElement.TitlePlacement="Left"
+            hc:TitleElement.TitleWidth="215"     
+            Width="300"
             Text="{Binding SpindleFreq, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBox
-            Grid.Row="1"
-            Grid.Column="1"
+                <hc:TextBox
+            hc:TitleElement.Title="Скорость резки, мм/с"
+            hc:TitleElement.TitlePlacement="Left"
+            hc:TitleElement.TitleWidth="215"
+            Width="300"
             Text="{Binding FeedSpeed, ValidatesOnDataErrors=True, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBox
-            Grid.Row="2"
-            Grid.Column="1"
+                <hc:TextBox
+            hc:TitleElement.Title="Подъём диска над пластиной, мм"
+            hc:TitleElement.TitlePlacement="Left"
+            hc:TitleElement.TitleWidth="215"            
+            Width="300"
             Text="{Binding WaferBladeGap, ValidatesOnDataErrors=True, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBox
-            Grid.Row="3"
-            Grid.Column="1"
+                <hc:TextBox
+            hc:TitleElement.Title="Толщина плёнки, мм"
+            hc:TitleElement.TitlePlacement="Left"
+            hc:TitleElement.TitleWidth="215"            
+            Width="300"
             Text="{Binding FilmThickness, ValidatesOnDataErrors=True, StringFormat=F2, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBox
-            Grid.Row="4"
-            Grid.Column="1"
+                <hc:TextBox
+            hc:TitleElement.Title="Недорез, мм"
+            hc:TitleElement.TitlePlacement="Left"
+            hc:TitleElement.TitleWidth="215"            
+            Width="300"
             Text="{Binding UnterCut, ValidatesOnDataErrors=True, StringFormat=F2, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBox
-            Grid.Row="5"
-            Grid.Column="1"
+                <hc:TextBox
+            hc:TitleElement.Title="Количество проходов"
+            hc:TitleElement.TitlePlacement="Left"
+            hc:TitleElement.TitleWidth="215"            
+            Width="300"
             Text="{Binding PassCount, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
-        <GroupBox
-            Grid.Row="6"
-            Grid.RowSpan="2"
-            Grid.ColumnSpan="2"
-            Header="Контроль реза">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Label Grid.Row="0" Content="Начиная с" />
-                <Label Grid.Row="1" Content="Через каждые" />
-                <TextBox
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Text="{Binding StartControlNum, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Text="{Binding ControlPeriod, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
-            </Grid>
+            </StackPanel>
         </GroupBox>
         <GroupBox
-            Grid.Row="8"
-            Grid.ColumnSpan="2"
+            Header="Контроль реза">
+            <StackPanel>
+                <hc:TextBox
+                    hc:TitleElement.Title="Начиная с"
+                    hc:TitleElement.TitlePlacement="Left"
+                    hc:TitleElement.TitleWidth="215"
+                    Width="300"
+                    Text="{Binding StartControlNum, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
+                <hc:TextBox
+                    hc:TitleElement.Title="Через каждые"
+                    hc:TitleElement.TitlePlacement="Left"
+                    hc:TitleElement.TitleWidth="215"
+                    Width="300"
+                    Text="{Binding ControlPeriod, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </GroupBox>
+        <GroupBox
             Header="Направление резки">
             <StackPanel Margin="3">
-                <RadioButton Content="Попутная">
+                <RadioButton Content="Попутная" HorizontalAlignment="Left">
                     <RadioButton.IsChecked>
                         <Binding
                             Converter="{StaticResource RadioConverter}"
@@ -147,7 +127,7 @@
                             Path="PassType" />
                     </RadioButton.IsChecked>
                 </RadioButton>
-                <RadioButton Content="Встречная">
+                <RadioButton Content="Встречная" HorizontalAlignment="Left">
                     <RadioButton.IsChecked>
                         <Binding
                             Converter="{StaticResource RadioConverter}"
@@ -155,7 +135,7 @@
                             Path="PassType" />
                     </RadioButton.IsChecked>
                 </RadioButton>
-                <RadioButton Content="Встречно-попутная">
+                <RadioButton Content="Встречно-попутная" HorizontalAlignment="Left">
                     <RadioButton.IsChecked>
                         <Binding
                             Converter="{StaticResource RadioConverter}"
@@ -166,15 +146,18 @@
             </StackPanel>
         </GroupBox>
         <DockPanel
-            Grid.Row="9"
-            Grid.ColumnSpan="2"
             Margin="3"
-            LastChildFill="False">
+            >
             <Label Content="Файл технологии:" DockPanel.Dock="Left" />
             <Label
                 HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
                 Content="{Binding FileName}"
+                FontStyle="Italic"
+                FontWeight="Light"
                 DockPanel.Dock="Left" />
+        </DockPanel>
+        <DockPanel>
             <Button
                 Margin="3"
                 Command="{Binding SaveFileAsCmd}"
@@ -186,5 +169,5 @@
                 Content="Открыть"
                 DockPanel.Dock="Right" />
         </DockPanel>
-    </Grid>
-</Window>
+    </StackPanel>
+</hc:GlowWindow>
