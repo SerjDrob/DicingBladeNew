@@ -243,10 +243,7 @@ namespace DicingBlade.Classes.Processes
 
             _stateMachine.Configure(State.GoingTransferingZ)
                 .SubstateOf(State.Processing)
-                .OnEntryAsync(async () =>
-                {
-                    await GoTransferingHeightZAsync();
-                }, "Transfer by Z into the safe position")
+                .OnEntryAsync(GoTransferingHeightZAsync, "Transfer by Z into the safe position")
                 .Ignore(Trigger.Teach)
                 .PermitDynamic(Trigger.Next, () =>
                 {
@@ -263,29 +260,20 @@ namespace DicingBlade.Classes.Processes
 
             _stateMachine.Configure(State.GoingNextCutXY)
                 .SubstateOf(State.Processing)
-                .OnEntryAsync(async () =>
-                {
-                    await GoNextCutXYAsync();
-                }, "Going a next cut by XY")
+                .OnEntryAsync(GoNextCutXYAsync, "Going a next cut by XY")
                 .Ignore(Trigger.Teach)
                 .Permit(Trigger.Next, State.GoingNextDepthZ);
 
             _stateMachine.Configure(State.GoingNextDepthZ)
                 .SubstateOf(State.Processing)
-                .OnEntryAsync(async () =>
-                {
-                    await GoNextDepthZAsync();
-                })
+                .OnEntryAsync(GoNextDepthZAsync)
                 .Ignore(Trigger.Teach)
                 .Permit(Trigger.Next, State.Cutting);
 
 
             _stateMachine.Configure(State.Cutting)
                 .SubstateOf(State.Processing)
-                .OnEntryAsync(async () =>
-                {
-                    await CuttingXAsync();
-                })
+                .OnEntryAsync(CuttingXAsync)
                 .PermitDynamicIf(Trigger.Next, () =>
                 {
                     if (_wafer.IncrementCut())
@@ -333,36 +321,68 @@ namespace DicingBlade.Classes.Processes
             
             _stateMachine.Configure(State.Correction)
               .SubstateOf(State.ProcessStarted)
-              .OnEntryAsync(async () =>
-              {
-                  await CorrectionAsync();
-              })
-              .PermitDynamic(Trigger.Next, () =>
-              {
-                  if (!_wafer.LastCutOfTheSide)
-                  {
-                      _afterCorrection = true;
-                      return State.GoingTransferingZ;
-                  }
-                  else if(!_wafer.IsLastSide && _wafer.LastCutOfTheSide)
-                  {
-                      return State.MovingNextSide;
-                  }
-                  return State.ProcessEnd;
-              })
+              .OnEntryAsync(CorrectionAsync)
+              //.PermitDynamic(Trigger.Next, () =>
+              //{
+              //    if (!_wafer.LastCutOfTheSide)
+              //    {
+              //        _afterCorrection = true;
+              //        return State.GoingTransferingZ;
+              //    }
+              //    else if(!_wafer.IsLastSide && _wafer.LastCutOfTheSide)
+              //    {
+              //        return State.MovingNextSide;
+              //    }
+              //    return State.ProcessEnd;
+              //})
               .Ignore(Trigger.Teach)
-              .OnExitAsync(() =>
-              { 
-                  EndCorrection();
-                  //if (!_wafer.LastCutOfTheSide)
-                  //{
-                  //    _wafer.IncrementCut();
-                  //}
-                  /*else*/ if (!_wafer.IsLastSide && _wafer.LastCutOfTheSide)
+              //.OnExitAsync(() =>
+              //{ 
+              //    EndCorrection();
+              //    //if (!_wafer.LastCutOfTheSide)
+              //    //{
+              //    //    _wafer.IncrementCut();
+              //    //}
+              //    /*else*/ if (!_wafer.IsLastSide && _wafer.LastCutOfTheSide)
+              //    {
+              //        _wafer.DecrementSide();
+              //    }
+              //    return Task.CompletedTask;
+              //})
+              .PermitDynamic(Trigger.Next,() => 
+              {
+                  if (CutOffset != 0)
                   {
-                      _wafer.DecrementSide();
+                      if (MsgBox.Ask($"Сместить следующие резы на {CutOffset} мм?", "Коррекция реза") == MessageBoxResult.OK)
+                      {
+                          _wafer.AddToSideShift(CutOffset);
+                      }
                   }
-                  return Task.CompletedTask;
+                  var nearestNum = _wafer.GetNearestNum(_yActual - _machine.GetGeometry(Place.CameraChuckCenter, Ax.Y));
+                  var thisSide = false;
+                  if (_wafer.CurrentCutNum != nearestNum)
+                  {
+                      if (MsgBox.Ask($"Изменить номер реза на {(nearestNum + 1).ToOrdinalWords(GrammaticalGender.Masculine)}?", "Коррекция реза") == MessageBoxResult.OK)
+                      {
+                          thisSide = _wafer.SetCurrentCutNum(nearestNum/* + 1*/);
+                      }
+                      else
+                      {
+                          thisSide = _wafer.IncrementCut();
+                      }
+                  }
+                  else
+                  {
+                      thisSide = _wafer.IncrementCut();
+                  }
+                  CutWidthMarkerVisibility = Visibility.Hidden;
+                  CutOffset = 0;
+                  _machine.FreezeCameraImage();
+                  _inspectX = _xActual;
+                  _afterCorrection = true;
+                  if (thisSide) return State.GoingTransferingZ;
+                  if (_wafer.DecrementSide()) return State.MovingNextSide;
+                  return State.ProcessEnd;
               });
 //-------------------------Ending and Interruption-------------------------
             _stateMachine.Configure(State.ProcessInterrupted)
@@ -383,6 +403,7 @@ namespace DicingBlade.Classes.Processes
                     _machine.OnAxisMotionStateChanged -= _machine_OnAxisMotionStateChanged;
                     _subject.OnCompleted();
                 });
+//---------------------------------------------------------------------------
 
             _stateMachine.OnUnhandledTrigger((s, t) => { });
             _stateMachine.OnTransitioned(tr => _subject.OnNext(new ProcessStateChanging(tr.Source, tr.Destination, tr.Trigger)));
