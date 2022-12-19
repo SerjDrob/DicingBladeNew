@@ -1,16 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <!--<OutputType>WinExe</OutputType>-->
     <TargetFramework>net6.0-windows</TargetFramework>
-    <AssemblyTitle>DicingBlade</AssemblyTitle>
-    <Product>DicingBlade</Product>
-    <UseWPF>true</UseWPF>
-    <UseWindowsForms>true</UseWindowsForms>
-    <LangVersion>9.0</LangVersion>
-    <Nullable>disable</Nullable>
+	<TargetPlatformVersion></TargetPlatformVersion>
+    <LangVersion>preview</LangVersion>
+	<Nullable>disable</Nullable>
+	<UseWPF>true</UseWPF>
 	<DefineConstants>TRACE;PCIInserted</DefineConstants>
-    <ApplicationIcon>7863776561600002497-48.ico</ApplicationIcon>
+	<ApplicationIcon>3xhumed-Mega-Games-Pack-36-SAW-TheGame-3.ico</ApplicationIcon>
+	<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+	
+	<AssemblyTitle>DicingBlade</AssemblyTitle>
+    <Product>DicingBlade</Product>
+    <StartupObject />
+    <OutputType>WinExe</OutputType>
+    
+    <!--<UseWindowsForms>true</UseWindowsForms>-->
+    
+    </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	<Prefer32Bit>true</Prefer32Bit>
+	<AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
+    
   <ItemGroup>
     <Compile Remove="DicingBlade\**" />
     <EmbeddedResource Remove="DicingBlade\**" />
@@ -28,6 +41,7 @@
     <Compile Remove="Classes\ISpindle.cs" />
     <Compile Remove="Classes\Machine.cs" />
     <Compile Remove="Classes\Machine4X.cs" />
+    <Compile Remove="Classes\MachineException.cs" />
     <Compile Remove="Classes\MFeatures.cs" />
     <Compile Remove="Classes\MotionDevice.cs" />
     <Compile Remove="Classes\MotionException.cs" />
@@ -63,6 +77,7 @@
     <None Include="Classes\Axis.cs" />
     <None Include="Classes\Axis2.cs" />
     <None Include="Classes\IAxis.cs" />
+    <None Include="Classes\MachineException.cs" />
     <None Include="Classes\MotionDevice.cs" />
     <None Include="Classes\Process.cs" />
     <None Include="Classes\Process4.cs" />
@@ -91,6 +106,7 @@
     <PackageReference Include="FluentModbus" Version="5.0.0" />
     <PackageReference Include="FluentValidation" Version="10.0.1" />
     <PackageReference Include="HandyControls.Lang.ru" Version="3.4.4" />
+    <PackageReference Include="Humanizer.Core.ru" Version="2.14.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Workspace" Version="16.3.43" />
@@ -136,7 +152,7 @@
     <None Include="Classes\Spindle3.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MachineClassLibrary\MachineClassLibrary.csproj" />
-    <ProjectReference Include="..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
+    <ProjectReference Include="..\..\MachineClassLibrary\MachineClassLibrary.csproj" />
+    <ProjectReference Include="..\..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
   </ItemGroup>
 </Project>

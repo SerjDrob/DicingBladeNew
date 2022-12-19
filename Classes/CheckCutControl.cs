@@ -25,6 +25,7 @@ namespace DicingBlade.Classes
                 Check = false;
             }
         }
+        public void Checked() => Check = false;
         public void Reset()
         {
             currentCut = 0;

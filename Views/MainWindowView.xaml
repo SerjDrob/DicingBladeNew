@@ -246,11 +246,31 @@
                             <Setter Property="Background" Value="{DynamicResource DarkMaskBrush}"/>
                             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
                         </Style>
+                        <Style TargetType="uc:AxisState">
+                            <Setter Property="PosColor" Value="{StaticResource SignalGreen}"/>
+                            <Setter Property="NegColor" Value="{StaticResource SignalRed}"/>
+                        </Style>
                     </StackPanel.Resources>
-                    <uc:AxisState CoordinateName="X" Coordinate="{Binding XView}" MotionDone="{Binding XMotDoneView}" LmtNeg="{Binding XnLmtView}" LmtPos="{Binding XpLmtView}"/>
-                    <uc:AxisState CoordinateName="Y" Coordinate="{Binding YView}" MotionDone="{Binding YMotDoneView}" LmtNeg="{Binding YnLmtView}" LmtPos="{Binding YpLmtView}"/>
-                    <uc:AxisState CoordinateName="Z" Coordinate="{Binding ZView}" MotionDone="{Binding ZMotDoneView}" LmtNeg="{Binding ZnLmtView}" LmtPos="{Binding ZpLmtView}"/>
-                    <uc:AxisState CoordinateName="U" Coordinate="{Binding UView}" MotionDone="{Binding UMotDoneView}" LmtNeg="{Binding UnLmtView}" LmtPos="{Binding UpLmtView}"/>
+                    <uc:AxisState CoordinateName="X" 
+                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XView}"
+                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XMotDoneView}" 
+                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XnLmtView}" 
+                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XpLmtView}"/>
+                    <uc:AxisState CoordinateName="Y" 
+                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YView}" 
+                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YMotDoneView}" 
+                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YnLmtView}" 
+                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YpLmtView}"/>
+                    <uc:AxisState CoordinateName="Z" 
+                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZView}" 
+                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZMotDoneView}" 
+                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZnLmtView}" 
+                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZpLmtView}"/>
+                    <uc:AxisState CoordinateName="U" 
+                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UView}" 
+                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UMotDoneView}" 
+                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UnLmtView}" 
+                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UpLmtView}"/>
                 </StackPanel>
                 <DockPanel>
                     <Border
@@ -266,6 +286,9 @@
                                         <i:ChangePropertyAction PropertyName="Visibility" Value="Visible"/>
                                     </i:DataTrigger>
                                     <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Slow}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Micro}">
                                         <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
                                     </i:DataTrigger>
                                 </i:Interaction.Triggers>
@@ -296,7 +319,11 @@
                                     <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Slow}">
                                         <i:ChangePropertyAction PropertyName="Visibility" Value="Visible"/>
                                     </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Micro}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
                                 </i:Interaction.Triggers>
+
                                 <Path Data="{StaticResource LowSpeedGeometry}" 
                               Fill="Green"
                               Stretch="Uniform"
@@ -327,8 +354,32 @@
                                     <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Step}">
                                         <i:ChangePropertyAction PropertyName="Visibility" Value="Visible"/>
                                     </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Micro}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
                                 </i:Interaction.Triggers>
                                 <Label Content="ШАГ"
+                                       Foreground="red"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
+                                       />
+                            </Grid>
+                            <Grid>
+                                <i:Interaction.Triggers>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Fast}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Slow}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Step}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Hidden"/>
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding VelocityRegime}" Value="{x:Static mcl:Velocity.Micro}">
+                                        <i:ChangePropertyAction PropertyName="Visibility" Value="Visible"/>
+                                    </i:DataTrigger>
+                                </i:Interaction.Triggers>
+                                <Label Content="МИКРО"
                                        Foreground="red"
                                        HorizontalAlignment="Stretch"
                                        VerticalAlignment="Stretch"
@@ -368,6 +419,11 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />                
             </Grid.RowDefinitions>
+
+            <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalAlignment="Right" Panel.ZIndex="2">
+                <StackPanel hc:Growl.GrowlParent="True" VerticalAlignment="Top" Margin="0,10,10,10"/>
+            </ScrollViewer>
+            
             <GroupBox
             Grid.Row="1"
             Grid.Column="1">
@@ -1055,7 +1111,7 @@
                     RenderTransformOrigin="0.5,-1"
                     Text="{Binding Path=Process.CutOffset, StringFormat=Корректировка реза\, мм:  {0:N3}}"
                     TextAlignment="Center"
-                    Visibility="{Binding Process.CutWidthMarkerVisibility}">
+                    Visibility="{Binding CutWidthMarkerVisibility, Converter={StaticResource Boolean2VisibilityConverter}}">
                         <!--<TextBlock.Text>
                             <MultiBinding Converter="{StaticResource GetRatioConverter}">
                                 <Binding Path="1" FallbackValue="10"/>
@@ -1088,34 +1144,22 @@
                     Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
                     Height="{Binding Path=CutWidthView}"
                     Stroke="ForestGreen"
-                    Visibility="{Binding Process.CutWidthMarkerVisibility, FallbackValue=Hidden}">
+                    Visibility="{Binding CutWidthMarkerVisibility, Converter={StaticResource Boolean2VisibilityConverter}}"
+                    RenderTransformOrigin="0 0.5"
+                    >
                     <Rectangle.StrokeThickness>
                         <MultiBinding Converter="{StaticResource GetRatioConverter}">
                             <Binding Source="{StaticResource CutStrokeThickness}" />
-                            <Binding Path="Machine.CameraScale" />
+                            <Binding Path="CameraScale" />
                         </MultiBinding>
                     </Rectangle.StrokeThickness>
                     <Rectangle.RenderTransform>
                         <TransformGroup>
-                            <ScaleTransform ScaleY="-1" />
-                            <TranslateTransform>
-                                <TranslateTransform.Y>
-                                    <MultiBinding Converter="{StaticResource TranslateConverterScheme}">
-                                        <Binding Path="CutWidthView" />
-                                    </MultiBinding>
-                                </TranslateTransform.Y>
-                            </TranslateTransform>
-                            <TranslateTransform Y="{Binding Path=Process.CutOffset}" />
-                            <ScaleTransform ScaleY="{Binding Path=Machine.CameraScale}" />
+                            <TranslateTransform Y="{Binding CutWidthView, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"/>
+                            <TranslateTransform Y="{Binding Path=CutOffsetView}" />
+                            <ScaleTransform ScaleY="{Binding Path=CameraScale}" />
                             <ScaleTransform ScaleY="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}" />
-
-                            <TranslateTransform>
-                                <TranslateTransform.Y>
-                                    <MultiBinding Converter="{StaticResource TranslateConverterScheme}">
-                                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
-                                    </MultiBinding>
-                                </TranslateTransform.Y>
-                            </TranslateTransform>
+                            <TranslateTransform Y="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=2}"/>
                         </TransformGroup>
                     </Rectangle.RenderTransform>
                 </Rectangle>
@@ -1123,35 +1167,23 @@
                     Name="RealCutWidth"
                     IsHitTestVisible="False"
                     Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
-                    Height="{Binding Path=RealCutWidthView}"
-                    Stroke="OrangeRed"
-                    Visibility="Visible">
+                    Height="{Binding RealCutWidthView}"
+                    Stroke="Blue"
+                    Visibility="Visible"
+                    RenderTransformOrigin="0 0.5"
+                    >
                     <Rectangle.StrokeThickness>
                         <MultiBinding Converter="{StaticResource GetRatioConverter}">
                             <Binding Source="{StaticResource CutStrokeThickness}" />
-                            <Binding Path="Machine.CameraScale" />
+                            <Binding Path="CameraScale" />
                         </MultiBinding>
                     </Rectangle.StrokeThickness>
                     <Rectangle.RenderTransform>
                         <TransformGroup>
-                            <ScaleTransform ScaleY="-1" />
-                            <TranslateTransform>
-                                <TranslateTransform.Y>
-                                    <MultiBinding Converter="{StaticResource TranslateConverterScheme}">
-                                        <Binding Path="RealCutWidthView" />
-                                    </MultiBinding>
-                                </TranslateTransform.Y>
-                            </TranslateTransform>
-                            <ScaleTransform ScaleY="{Binding Path=Machine.CameraScale}" />
-                            <ScaleTransform ScaleY="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}" />
-
-                            <TranslateTransform>
-                                <TranslateTransform.Y>
-                                    <MultiBinding Converter="{StaticResource TranslateConverterScheme}">
-                                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
-                                    </MultiBinding>
-                                </TranslateTransform.Y>
-                            </TranslateTransform>
+                            <TranslateTransform Y="{Binding RealCutWidthView, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"/>                    
+                            <ScaleTransform ScaleY="{Binding Path=CameraScale}"/>
+                            <ScaleTransform ScaleY="{Binding ElementName=VideoImg, Path=ActualHeight}"/>
+                            <TranslateTransform Y="{Binding ElementName=VideoImg, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=2}"/>
                         </TransformGroup>
                     </Rectangle.RenderTransform>
                 </Rectangle>
