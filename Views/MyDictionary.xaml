@@ -25,5 +25,7 @@
     <converters:MouseArgsConverter x:Key="MouseArgsConverter"/>
     <converters:MouseArgsCanvasConverter x:Key="MouseArgsCanvasConverter"/>
     <converters:DivideConverter x:Key="DivideConverter"/>
+    <converters:MulConvereter x:Key="MulConverter"/>
+    <converters:ScaleGridConverter x:Key="ScaleGridConverter"/>
     <commonconverters:KeyProcessorArgsConverter x:Key="KeyProcessorArgsConverter"/>
 </ResourceDictionary>
