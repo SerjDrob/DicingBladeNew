@@ -209,7 +209,7 @@ namespace DicingBlade.Classes
         public int CurrentCutNum { get; private set; } = 0;
         public bool SetCurrentCutNum(int num)
         {
-            if (num >= 0 && num < CurrentLinesCount)
+            if (num >= 0 && num <= CurrentLinesCount)
             {
                 CurrentCutNum = num;
                 return true;

@@ -286,7 +286,7 @@ namespace DicingBlade.Classes.Processes
                     }
                     return State.ProcessEnd;
                 },()=>!_checkCut.Check)
-                .PermitIf(Trigger.Next,State.Inspection,()=>_checkCut.Check);
+                .PermitIf(Trigger.Next,State.Inspection,()=>_checkCut.Check && !_repeatUntillCancell.IsCancellationRequested);
 
             _stateMachine.Configure(State.MovingNextSide)
                 .SubstateOf(State.Processing)
@@ -584,7 +584,6 @@ namespace DicingBlade.Classes.Processes
 
         public async Task EmergencyScript()
         {
-            //_rootSequence?.CancellAction(true);
             _machine.Stop(Ax.X);
             await _machine.MoveAxInPosAsync(Ax.Z, 0);
             _machine.StopSpindle();
@@ -649,6 +648,8 @@ namespace DicingBlade.Classes.Processes
             private readonly Func<Task> _next;
             private CancellationTokenSource _cacellationTokenSource;
             private CancellationTokenSource _cacellationTokenSourceForCancelling;
+
+            public bool IsCancellationRequested { get => _cacellationTokenSource?.IsCancellationRequested ?? false; }
 
             public RepeatUntillCancell(Func<Task> next)
             {

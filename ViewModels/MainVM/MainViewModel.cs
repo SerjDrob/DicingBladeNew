@@ -36,6 +36,7 @@ using MsgBox = HandyControl.Controls.MessageBox;
 
 namespace DicingBlade.ViewModels
 {
+
     [AddINotifyPropertyChangedInterface]
     internal partial class MainViewModel : IMainViewModel
     {
@@ -118,8 +119,16 @@ namespace DicingBlade.ViewModels
             _flowMeter = new FlowMeter("COM9");
             _flowMeter.GetData += _flowMeter_GetData;
             InitCommands();
+            ScaleGridView = new()
+            {
+                Index = 0.010,
+                StrokeThickness = 0.001,
+                SmallStrokeWidth = 0.01,
+                ScaleLength = 0.2
+            };
         }
 
+        public ScaleGrid ScaleGridView { get; private set; }
         public double Flow { get; set; }
         private void _flowMeter_GetData(decimal obj)
         {
@@ -198,7 +207,7 @@ namespace DicingBlade.ViewModels
         public double PointX { get; set; }
         public double PointY { get; set; }
         public double CutWidthView { get; set; } = 0.05;
-        public double RealCutWidthView { get; set; } = 0.01;
+        public double RealCutWidthView { get; set; } = 0.13;
         public Wafer Wafer { get; set; }
         public Wafer2D Substrate { get; private set; }
         public WaferView WaferView { get; set; }
@@ -736,7 +745,7 @@ namespace DicingBlade.ViewModels
                 },
                 () =>
                 {
-                    //completed actions
+                    _machine.StartCamera(0);
                 });
         }
 

@@ -311,6 +311,9 @@
                     </DockPanel>
                 </Grid>
             </TabItem>
+            <TabItem Header="Визиры">
+                <hc:PropertyGrid SelectedObject="{Binding ScaleGridView}"/>
+            </TabItem>
             <TabItem Header="Наладка">
                 <Grid>
                     <StackPanel>

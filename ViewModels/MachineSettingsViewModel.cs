@@ -1,11 +1,25 @@
-﻿using System.Windows.Input;
+﻿using System.ComponentModel;
+using System.Windows.Input;
 using DicingBlade.Classes;
 using DicingBlade.Properties;
 using PropertyChanged;
 namespace DicingBlade.ViewModels
 {
+
+    internal class ViewFindersVM:ScaleGrid
+    {
+        [Category("Полосы")]
+        [Description("Ширина полосы реза, мкм")]
+        public double RealCutWidth { get; set; }
+        [Category("Полосы")]
+        [Description("Ширина полосы корректировки, мкм")]
+        public double CorrectingCutWidth { get; set; }
+    }
+
+
+
     [AddINotifyPropertyChangedInterface]
-    public class MachineSettingsViewModel
+    internal class MachineSettingsViewModel
     {
         public ICommand XyObjectiveTeachCmd { get; set; }
         public ICommand XDiskTeachCmd { get; set; }
@@ -14,6 +28,7 @@ namespace DicingBlade.ViewModels
         private double _xCurrentPosition;
         private double _yCurrentPosition;
         private double _zCurrentPosition;
+        public ViewFindersVM ScaleGridView { get; set; } = new();
         internal MachineSettingsViewModel(double x, double y, double z)
         {
             //this.machine = new Machine(true);
