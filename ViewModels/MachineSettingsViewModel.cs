@@ -9,11 +9,11 @@ namespace DicingBlade.ViewModels
     internal class ViewFindersVM:ScaleGrid
     {
         [Category("Полосы")]
-        [Description("Ширина полосы реза, мкм")]
-        public double RealCutWidth { get; set; }
+        [DisplayName("Ширина полосы реза, мкм")]
+        public double RealCutWidth { get; set; } = 130;
         [Category("Полосы")]
-        [Description("Ширина полосы корректировки, мкм")]
-        public double CorrectingCutWidth { get; set; }
+        [DisplayName("Ширина полосы корректировки, мкм")]
+        public double CorrectingCutWidth { get; set; } = 100;
     }
 
 

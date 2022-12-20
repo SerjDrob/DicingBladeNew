@@ -119,13 +119,14 @@ namespace DicingBlade.ViewModels
             _flowMeter = new FlowMeter("COM9");
             _flowMeter.GetData += _flowMeter_GetData;
             InitCommands();
-            ScaleGridView = new()
-            {
-                Index = 0.010,
-                StrokeThickness = 0.001,
-                SmallStrokeWidth = 0.01,
-                ScaleLength = 0.2
-            };
+
+
+            var viewfinders = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(APP_SETTINGS_FOLDER, "Viewfinders.json")).DivideDoubles(1000);
+
+            ScaleGridView = viewfinders;
+            RealCutWidthView = viewfinders.RealCutWidth;
+            CutWidthView = viewfinders.CorrectingCutWidth;
+
         }
 
         public ScaleGrid ScaleGridView { get; private set; }

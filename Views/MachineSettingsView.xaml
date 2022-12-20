@@ -312,7 +312,7 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Визиры">
-                <hc:PropertyGrid SelectedObject="{Binding ScaleGridView}"/>
+                <hc:PropertyGrid MinTitleWidth="280" SelectedObject="{Binding ScaleGridView}"/>
             </TabItem>
             <TabItem Header="Наладка">
                 <Grid>

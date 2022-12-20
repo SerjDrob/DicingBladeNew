@@ -1,6 +1,7 @@
 ﻿using DicingBlade.Classes;
 using DicingBlade.Classes.Processes;
 using DicingBlade.Properties;
+using DicingBlade.Utility;
 using DicingBlade.Views;
 using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine;
@@ -177,6 +178,11 @@ namespace DicingBlade.ViewModels
                     AjustWaferTechnology();
                     Growl.Warning("Процесс экстренно прерван оператором.");
                 }, () => IsMachineInProcess)
+                .CreateKeyDownCommand(Key.H, () => { MachineSettings(); return Task.CompletedTask; }, () => true)
+                .CreateKeyDownCommand(Key.F3, () => { WaferSettings(); return Task.CompletedTask; }, () => true)
+                .CreateKeyDownCommand(Key.F4, () => { TechnologySettings(); return Task.CompletedTask; }, () => true)
+                .CreateKeyDownCommand(Key.F6, () => { ToTeachCutShift(); return Task.CompletedTask; }, () => true)
+
                 ;
 
             async Task moveAsync(KeyEventArgs key)
@@ -431,10 +437,21 @@ namespace DicingBlade.ViewModels
         [ICommand]
         private void MachineSettings()
         {
+            var settingsVM = new MachineSettingsViewModel(XView, YView, ZView);
             new MachineSettingsView
             {
-                DataContext = new MachineSettingsViewModel(XView, YView, ZView)
+                DataContext = settingsVM
             }.ShowDialog();
+
+
+            var viewfinders = settingsVM.ScaleGridView;
+
+            viewfinders.SerializeObject(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json"));
+
+            viewfinders = viewfinders.DivideDoubles(1000);
+            ScaleGridView = viewfinders;
+            RealCutWidthView = viewfinders.RealCutWidth;
+            CutWidthView = viewfinders.CorrectingCutWidth;
 
             Settings.Default.Save();
 
@@ -453,6 +470,10 @@ namespace DicingBlade.ViewModels
             }
         }
 
+        public int PassCountTechnology { get; set; } = 1;
+        public double FeedSpeedTechnology { get; set; } = 1.5;
+        public string WaferFileName { get; set; }
+
         [ICommand]
         private void TechnologySettings()
         {
@@ -465,6 +486,10 @@ namespace DicingBlade.ViewModels
 
             // TODO ASYNC
             _technology = StatMethods.DeSerializeObjectJson<Technology>(Settings.Default.TechnologyLastFile);
+
+            PassCountTechnology = _technology.PassCount;
+            FeedSpeedTechnology = _technology.FeedSpeed;
+
             _dicingProcess?.RefreshTechnology(_technology);
             //Process?.RefresfTechnology(_technology);
             Wafer?.SetPassCount(PropContainer.Technology.PassCount);
