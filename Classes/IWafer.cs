@@ -1,4 +1,6 @@
-﻿namespace DicingBlade.Classes
+﻿using DicingBlade.ViewModels;
+
+namespace DicingBlade.Classes
 {
     public interface IWafer
     {
@@ -12,6 +14,7 @@
         string FileName { get; set; }
         public void SetCurrentIndex(double index);
         public int CurrentSide { get; set; }
+        
     }
 
     public class TempWafer : IWafer

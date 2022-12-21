@@ -6,54 +6,16 @@ using DicingBlade.Properties;
 using System.IO;
 using Microsoft.Win32;
 using System;
+using Microsoft.Toolkit.Mvvm.Input;
 
 namespace DicingBlade.ViewModels
 {
-    public class WatchSettingsService
-    {
-        private object _settings;
-        public object Settings
-        {
-            set
-            {
-                if (value!=_settings)
-                {
-                    _settings = value;
-                    OnSettingsChangedEvent?.Invoke(this,new SettingsChangedEventArgs(_settings));
-                }
-
-            }
-        }
-
-        public event EventHandler<SettingsChangedEventArgs> OnSettingsChangedEvent;
-    }
-
-    public class SettingsChangedEventArgs : EventArgs
-    {
-        private object _settings;
-        public object Settings
-        {
-            get => _settings;
-        }
-        public SettingsChangedEventArgs(object settings)
-        {
-            _settings = settings;
-        }
-    }
 
     [AddINotifyPropertyChangedInterface]
-    internal class WaferSettingsViewModel : IWafer
+    public partial class WaferSettingsVM : IWafer
     {
-        private bool _isRound;
-        public bool IsRound
-        {
-            get => _isRound;
-            set
-            {
-                _isRound = value;
-                SquareVisibility = value ? Visibility.Collapsed : Visibility.Visible;
-            }
-        }
+        public bool IsRound { get; set; }
+        public bool IsSquare { get => !IsRound; }
         public double Width { get; set; }
         public double Height { get; set; }
         public double Thickness { get; set; }
@@ -61,20 +23,12 @@ namespace DicingBlade.ViewModels
         public double IndexH { get; set; }
         public double Diameter { get; set; }
         public string FileName { get; set; }
-        public Visibility SquareVisibility { get; set; }
+        public bool NewFileCreated { get;private set; }
         public Wafer Wafer { get; set; }
-        private readonly WatchSettingsService settingsService;
-        public WaferSettingsViewModel(WatchSettingsService settingsService)
+        public WaferSettingsVM(string filename)
         {
-            this.settingsService = settingsService;
-            CloseCmd = new Command(args => ClosingWnd());
-            OpenFileCmd = new Command(args => OpenFile());
-            SaveFileAsCmd = new Command(args => SaveFileAs());
-            ChangeShapeCmd = new Command(args => ChangeShape());
-            FileName = Settings.Default.WaferLastFile;
-            if (FileName == string.Empty | !File.Exists(FileName))
+            if (filename == string.Empty || !File.Exists(filename))
             {
-                SquareVisibility = Visibility.Visible;
                 Width = 30;
                 Height = 10;
                 Thickness = 1;
@@ -84,16 +38,14 @@ namespace DicingBlade.ViewModels
             }
             else
             {
+                FileName = filename;
                 ((IWafer)StatMethods.DeSerializeObjectJson<TempWafer>(FileName)).CopyPropertiesTo(this);
             }
         }
-
-        
-
-        public ICommand CloseCmd { get; set; }
-        public ICommand OpenFileCmd { get; set; }
-        public ICommand SaveFileAsCmd { get; set; }
-        public ICommand ChangeShapeCmd { get; set; }
+        public WaferSettingsVM(IWafer wafer)
+        {
+            wafer.CopyPropertiesTo(this);
+        }
         public void SetCurrentIndex(double index)
         {
             switch (CurrentSide)
@@ -109,25 +61,18 @@ namespace DicingBlade.ViewModels
             };
         }
         public int CurrentSide { get; set; }
-
-        private void ClosingWnd()
-        {
-            PropContainer.WaferTemp = this;
-            new TempWafer(PropContainer.WaferTemp).SerializeObjectJson(FileName);
-            Settings.Default.WaferLastFile = FileName;
-            Settings.Default.Save();
-            settingsService.Settings = this;
-        }
-
+               
+        [ICommand]
         private void ChangeShape()
         {
             IsRound ^= true;
         }
+        [ICommand]
         private void OpenFile()
         {
             var dialog = new OpenFileDialog
             {
-                Filter = "Файлы пластины (*.json)|*.json",
+                Filter = "Файлы пластины (*.waf)|*.waf",
             };
 
             var result = dialog.ShowDialog();
@@ -137,20 +82,30 @@ namespace DicingBlade.ViewModels
                 ((IWafer)StatMethods.DeSerializeObjectJson<TempWafer>(FileName)).CopyPropertiesTo(this);
             }
         }
+        [ICommand]
         private void SaveFileAs()
         {
             var dialog = new SaveFileDialog
             {
-                Filter = "Файлы пластины (*.json)|*.json",
+                Filter = "Файлы пластины (*.waf)|*.waf",
             };
 
             var result = dialog.ShowDialog();
             if (result.HasValue && result.Value)
             {
                 FileName = dialog.FileName;
-                ClosingWnd();
             }
+            this.SerializeObjectJson(FileName);
         }
-
+        [ICommand]
+        private void SaveFile()
+        {
+            if(HandyControl.Controls.MessageBox.Ask($"Сохранить изменения в файле {FileName}?") == MessageBoxResult.OK)
+            {
+                var content = File.ReadAllLines(FileName);
+                File.WriteAllLines(FileName, content);
+            }            
+        }
+       
     }
 }

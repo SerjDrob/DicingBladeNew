@@ -55,7 +55,6 @@ namespace DicingBlade.ViewModels
         private CancellationToken _tracingTaskCancellationToken;
 
         private CancellationTokenSource _tracingTaskCancellationTokenSource;
-        private WatchSettingsService _settingsService;
         public bool CutWidthMarkerVisibility { get; set; }
         //[Obsolete("Only for design data", true)]
         //public MainViewModel()
@@ -112,10 +111,25 @@ namespace DicingBlade.ViewModels
             {
                 MessageBox.Show(ex.Message, ex.StackTrace);
             }
-            
-            _settingsService = new();
-            _settingsService.OnSettingsChangedEvent += _settingsService_OnSettingsChangedEvent;
-            AjustWaferTechnology();
+
+            if (File.Exists(Settings.Default.WaferLastFile))
+            {
+                _currentWafer = ExtensionMethods.DeserilizeObject<TempWafer>(Settings.Default.WaferLastFile);
+
+            }
+            else
+            {
+                _currentWafer = new TempWafer
+                {
+                    Width = 60,
+                    Height = 48,
+                    IndexH = 2,
+                    IndexW = 3,
+                    Thickness = 0.5,
+                    IsRound = false
+                };
+            }
+            AjustWaferTechnology(_currentWafer);
             _flowMeter = new FlowMeter("COM9");
             _flowMeter.GetData += _flowMeter_GetData;
             InitCommands();
@@ -134,29 +148,6 @@ namespace DicingBlade.ViewModels
         private void _flowMeter_GetData(decimal obj)
         {
             Flow = (double)obj;
-        }
-
-        private void _settingsService_OnSettingsChangedEvent(object sender, SettingsChangedEventArgs eventArgs)
-        {
-
-            //if (eventArgs.Settings is IWafer)
-            //{
-            //    var wf = (IWafer)eventArgs.Settings;
-            //    var substrate = new Substrate2D(wf.IndexH, wf.IndexW, wf.Thickness, new Rectangle2D(wf.Height, wf.Width));
-            //    if (Process is null)
-            //    {
-            //        Substrate = substrate;
-            //    }
-            //    else
-            //    {
-            //        substrate.SetSide(Process.CurrentDirection);
-            //    }
-
-            //    var wfViewFactory = new WaferViewFactory(substrate);
-            //    ResetView ^= true;
-            //    WaferView = new();
-            //    WaferView.SetView(wfViewFactory);
-            //}
         }
 
         public Velocity VelocityRegime { get; set; } = Velocity.Fast;
@@ -239,6 +230,7 @@ namespace DicingBlade.ViewModels
         private DicingProcess _dicingProcess;
         private bool _isProcessInCorrection;
         private bool _isSingleCutAvaliable;
+        private IWafer _currentWafer;
 
         private void _machine_OnSpindleStateChanging(object? obj, SpindleEventArgs e)
         {
@@ -676,14 +668,14 @@ namespace DicingBlade.ViewModels
                         case State.ProcessEnd:
                             {
                                 ResetWaferView();
-                                AjustWaferTechnology();
+                                AjustWaferTechnology(_currentWafer);
                                 MsgBox.Success("Процесс завершён.", "Процесс");
                             }
                             break;
                         case State.ProcessInterrupted:
                             {
                                 ResetWaferView();
-                                AjustWaferTechnology();
+                                AjustWaferTechnology(_currentWafer);
                                 MsgBox.Fatal("Процесс прерван оператором.", "Процесс");
                             }
                             break;
@@ -1075,19 +1067,18 @@ namespace DicingBlade.ViewModels
             _machine.SetBridgeOnSensors(Sensors.SpindleCoolant, Settings.Default.SpindleCoolantSensorDsbl);
         }
 
-        private void AjustWaferTechnology(int side = -1)
+        private void AjustWaferTechnology(IWafer wafer)
         {
-            var fileName = Settings.Default.WaferLastFile;
-            var waf = new TempWafer();
+            _currentWafer = wafer;
+            //var fileName = Settings.Default.WaferLastFile;
+            //var waf = new TempWafer();
             var tech = new Technology();
 
-            if (File.Exists(fileName))
-            {
-                // TODO ASYNC
-                StatMethods.DeSerializeObjectJson<TempWafer>(fileName).CopyPropertiesTo(waf);
-                IShape shape = waf.IsRound ? new Circle2D(waf.Diameter) : new Rectangle2D(waf.Height, waf.Width);
-                Substrate = new Substrate2D(waf.IndexH, waf.IndexW, waf.Thickness, shape);
-            }
+            // TODO ASYNC
+            //StatMethods.DeSerializeObjectJson<TempWafer>(fileName).CopyPropertiesTo(waf);
+            IShape shape = wafer.IsRound ? new Circle2D(wafer.Diameter) : new Rectangle2D(wafer.Height, wafer.Width);
+            Substrate = new Substrate2D(wafer.IndexH, wafer.IndexW, wafer.Thickness, shape);
+
             TracesCollectionView = new ObservableCollection<TraceLine>();
             ControlPointsView = new ObservableCollection<TraceLine>();
             //ResetView ^= true;
@@ -1095,15 +1086,15 @@ namespace DicingBlade.ViewModels
             //ResetView ^= true;
             WaferView = new();
             WaferView.SetView(wfViewFactory);
-            WaferView.IsRound = waf.IsRound;
+            WaferView.IsRound = wafer.IsRound;
 
-            fileName = Settings.Default.TechnologyLastFile;
+            var fileName = Settings.Default.TechnologyLastFile;
             if (File.Exists(fileName))
             {
                 // TODO ASYNC
                 StatMethods.DeSerializeObjectJson<Technology>(fileName).CopyPropertiesTo(tech);
                 PropContainer.Technology = tech;
-                Thickness = waf.Thickness;
+                Thickness = wafer.Thickness;
             }
 
         }

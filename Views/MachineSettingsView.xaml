@@ -11,7 +11,7 @@
     Title="Настройки"
     Width="auto"
     Height="auto"
-    d:DataContext="{d:DesignInstance model:WaferSettingsViewModel,
+    d:DataContext="{d:DesignInstance model:WaferSettingsVM,
                                      IsDesignTimeCreatable=False}"
     xmlns:hc="https://handyorg.github.io/handycontrol"
     ResizeMode="NoResize"

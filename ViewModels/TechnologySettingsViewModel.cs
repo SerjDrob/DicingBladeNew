@@ -89,17 +89,7 @@ namespace DicingBlade.ViewModels
                 ClosingWnd();
             }
         }
-        public string Error =>
-            //if (validator != null)
-            //{
-            //    var results = validator.Validate(this);
-            //    if (results != null && results.Errors.Any())
-            //    {
-            //        var errors = string.Join(Environment.NewLine, results.Errors.Select(x => x.ErrorMessage).ToArray());
-            //        return errors;
-            //    }
-            //}
-            string.Empty;
+        public string Error =>  string.Empty;
 
         private readonly TechnologySettingsValidator _validator;
         public string this[string columnName]

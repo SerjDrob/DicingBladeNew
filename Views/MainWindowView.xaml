@@ -176,7 +176,11 @@
                         <StackPanel>
                             <MenuItem Command="{Binding ToTeachChipSizeCommand}">
                                 <MenuItem.Icon>
-                                    <Image Source="/Views/Sources/size1.png" Height="20"/>
+                                    <Path Data="{StaticResource ChipSizeGeometry}" RenderTransformOrigin="0.5 0.5" Fill="{StaticResource PrimaryTextBrush}" Stretch="Uniform">
+                                        <Path.RenderTransform>
+                                            <ScaleTransform ScaleY="-1"/>
+                                        </Path.RenderTransform>
+                                    </Path>
                                 </MenuItem.Icon>
                                 <MenuItem.Header>
                                     <TextBlock Text="Размер кристалла"/>
@@ -184,7 +188,11 @@
                             </MenuItem>
                             <MenuItem Command="{Binding ToTeachVideoScaleCommand}">
                                 <MenuItem.Icon>
-                                    <Image Source="/Views/Sources/videoscale.png" Height="20"/>
+                                    <Path Data="{StaticResource ScalingGeometry}" Fill="{StaticResource PrimaryTextBrush}" RenderTransformOrigin="0.5 0.5" Stretch="Uniform">
+                                        <Path.RenderTransform>
+                                            <ScaleTransform ScaleY="-1"/>
+                                        </Path.RenderTransform>
+                                    </Path>
                                 </MenuItem.Icon>
                                 <MenuItem.Header>
                                     <TextBlock Text="Масштаб видео"/>
@@ -192,7 +200,11 @@
                             </MenuItem>
                             <MenuItem Command="{Binding ToTeachCutShiftCommand}" InputGestureText="F6">
                                 <MenuItem.Icon>
-                                    <Image Source="/Views/Sources/cutshift.png" Height="20"/>
+                                    <Path Data="{StaticResource OffsetGeometry}" RenderTransformOrigin="0.5 0.5" Fill="{StaticResource PrimaryTextBrush}" Stretch="Uniform">
+                                        <Path.RenderTransform>
+                                            <ScaleTransform ScaleY="-1"/>
+                                        </Path.RenderTransform>
+                                    </Path>
                                 </MenuItem.Icon>
                                 <MenuItem.Header>
                                     <TextBlock Text="Смещение реза от ТВ"/>

@@ -14,79 +14,10 @@ using System.Windows;
 using Humanizer;
 using MsgBox = HandyControl.Controls.MessageBox;
 using DicingBlade.Classes;
+using DicingBlade.Utility;
 
 namespace DicingBlade.Classes.Processes
 {
-
-    public interface IProcessNotify { }
-    [Flags]
-    public enum State
-    {
-        ProcessStarted = 1,
-        TeachSides = 1<<1,
-        Processing = 1<<2,
-        Inspection = 1<<3,
-        ProcessInterrupted = 1<<4,
-        ProcessEnd = 1<<5,
-        Cutting = 1<<6,
-        GoingTransferingZ = 1<<7,
-        GoingNextCutXY = 1<<8,
-        GoingNextDepthZ = 1<<9,
-        MovingNextSide = 1<<10,
-        Correction = 1<<11,
-        MovingTeachNextDirection = 1<<12,
-        SingleCut = 1<<13
-    }
-    public enum Trigger
-    {
-        Next,
-        Pause,
-        Deny,
-        End,
-        NextCut,
-        NextSide,
-        Inspection,
-        Correction,
-        Teach,
-        DoSingleCut
-    }
-    /// <summary>
-    /// Invoked in the new state before invoking OnEntry methods
-    /// </summary>
-    /// <param name="SourceState">An old State</param>
-    /// <param name="DestinationState">A new State</param>
-    /// <param name="Trigger">A trigger caused the new State</param>
-    public record ProcessStateChanging(State SourceState, State DestinationState, Trigger Trigger):IProcessNotify;
-    /// <summary>
-    /// Invoked in the new state after invoking OnEntry methods
-    /// </summary>
-    /// <param name="SourceState">An old State</param>
-    /// <param name="DestinationState">A new State</param>
-    /// <param name="Trigger">A trigger caused the new State</param>
-    public record ProcessStateChanged(State SourceState, State DestinationState, Trigger Trigger) : IProcessNotify;
-    public record RotationStarted(double Angle, TimeSpan Duration) : IProcessNotify;
-    public record WaferAligningChanged():IProcessNotify;
-    public record ProcessMessage(MessageType MessageType, string Message):IProcessNotify;
-    public record CheckPointOccured() : IProcessNotify;
-
-    public enum MessageType
-    {
-        Info,
-        Warning,
-        Danger,
-        ToChangeCurrentStateTo
-    }
-
-    [Serializable]
-    public class ProcessInterruptedException : Exception
-    {
-        public ProcessInterruptedException() { }
-        public ProcessInterruptedException(string message) : base(message) { }
-        public ProcessInterruptedException(string message, Exception inner) : base(message, inner) { }
-        protected ProcessInterruptedException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
-    }
     public class DicingProcess : IProcess
     {
         private readonly DicingBladeMachine _machine;
@@ -95,30 +26,25 @@ namespace DicingBlade.Classes.Processes
         private ITechnology _technology;
         private StateMachine<State, Trigger> _stateMachine;
         private bool _inProcess = false;
-        private readonly double _waferThickness;
         private readonly ISubject<IProcessNotify> _subject;
         private double _xActual;
         private double _yActual;
         private double _zActual;
         private double _uActual;
         private double _bladeTransferGapZ = 4;
-        private bool _spindleWorking;
         private double _zRatio = 0;
-        private double _feedSpeed;
-        private double _undercut;
         private double _lastCutY;
         private double _inspectX;
         private bool _isWaitingToTeach = false;
-        //private Sensors _offSensors = 0;
         private CheckCutControl _checkCut;
         private RepeatUntillCancell _repeatUntillCancell;
         private bool _afterCorrection;
 
         private bool IsCutting { get; set; } = false;
-        public Visibility CutWidthMarkerVisibility { get; set; } = Visibility.Hidden;
         public double CutOffset { get; set; } = 0;
         public int ProcessPercentage { get; set; }
         private int _currentScore;
+        private bool _isCancelled;
         public bool ProcessEndOrDenied { get => (_stateMachine?.IsInState(State.ProcessEnd)??false) || (_stateMachine?.IsInState(State.ProcessInterrupted)??false); }
 
         public DicingProcess(DicingBladeMachine machine, Wafer2D wafer, Blade blade, ITechnology technology)
@@ -226,11 +152,14 @@ namespace DicingBlade.Classes.Processes
                 })
                 .OnExitAsync(async () =>
                 {
-                    await LearningAsync();
-                    if (_wafer.IncrementSide())
+                    if (!_isCancelled)
                     {
-                        await GoTransferingHeightZAsync();
-                        await MovingNextDirAsync();
+                        await LearningAsync();
+                        if (_wafer.IncrementSide())
+                        {
+                            await GoTransferingHeightZAsync();
+                            await MovingNextDirAsync();
+                        } 
                     }
                 }, "Moving next direction for learnig")
                 .Ignore(Trigger.Teach)
@@ -355,7 +284,6 @@ namespace DicingBlade.Classes.Processes
                   {
                       thisSide = _wafer.IncrementCut();
                   }
-                  CutWidthMarkerVisibility = Visibility.Hidden;
                   CutOffset = 0;
                   _machine.FreezeCameraImage();
                   _inspectX = _xActual;
@@ -415,39 +343,7 @@ namespace DicingBlade.Classes.Processes
             _machine.SwitchOnValve(Valves.Blowing);
             await Task.Delay(500);
             _machine.SwitchOffValve(Valves.Blowing);
-            CutWidthMarkerVisibility = Visibility.Visible;
             _machine.StartCamera(0);
-        }
-        private void EndCorrection()
-        {
-            if (CutOffset != 0)
-            {
-                if (MsgBox.Ask($"Сместить следующие резы на {CutOffset} мм?", "Коррекция реза") == MessageBoxResult.OK)
-                {
-                    _wafer.AddToSideShift(CutOffset);
-                } 
-            }
-            var nearestNum = _wafer.GetNearestNum(_yActual - _machine.GetGeometry(Place.CameraChuckCenter, Ax.Y));
-            if (_wafer.CurrentCutNum != nearestNum)
-            {
-                if (MsgBox.Ask($"Изменить номер реза на {(nearestNum + 1).ToOrdinalWords(GrammaticalGender.Masculine)}?", "Коррекция реза") == MessageBoxResult.OK)
-                {
-                    _wafer.SetCurrentCutNum(nearestNum/* + 1*/);
-                }
-                else
-                {
-                    _wafer.IncrementCut();
-                }
-            }
-            else
-            {
-                _wafer.IncrementCut();
-            }
-            CutWidthMarkerVisibility = Visibility.Hidden;
-            CutOffset = 0;
-            _machine.FreezeCameraImage();
-            _inspectX = _xActual;
-            //return Task.CompletedTask;
         }
         private async Task GoCameraPointXyzAsync()
         {
@@ -564,13 +460,7 @@ namespace DicingBlade.Classes.Processes
             _subject.OnNext(new RotationStarted(deltaAngle, TimeSpan.FromSeconds(time)));
             await _machine.MoveAxInPosAsync(Ax.U, angle);
         }
-
-
-        public async Task TriggerNextState() => await _stateMachine.FireAsync(Trigger.Next);
         public async Task TriggerSingleCutState() => await _stateMachine.FireAsync(Trigger.DoSingleCut);
-        public async Task TriggerNextCutState() => await _stateMachine.FireAsync(Trigger.Correction);
-        public async Task TriggerTeachState() => await _stateMachine?.FireAsync(Trigger.Teach); 
-
         public async Task EmergencyScript()
         {
             _machine.Stop(Ax.X);
@@ -596,6 +486,7 @@ namespace DicingBlade.Classes.Processes
         }
         public async Task Deny()
         {
+            _isCancelled = true;
             if(_repeatUntillCancell is not null) await _repeatUntillCancell.Cancel();
             await _stateMachine.FireAsync(Trigger.Deny);
         }
@@ -606,10 +497,6 @@ namespace DicingBlade.Classes.Processes
             {
                 await _stateMachine.FireAsync(Trigger.Teach);
             }
-            //else if (!(_stateMachine.IsInState(State.Processing) 
-            //    || _stateMachine.IsInState(State.ProcessInterrupted) 
-            //    || _stateMachine.IsInState(State.ProcessEnd) 
-            //    || _stateMachine.IsInState(State.Correction)))
             else if(_stateMachine.IsInState(State.TeachSides) & !_wafer.IsLastSide)
             {
                 await _stateMachine.FireAsync(Trigger.Next);  
@@ -631,7 +518,17 @@ namespace DicingBlade.Classes.Processes
                 await _repeatUntillCancell.Start();
             }
         }
-        
+        public void ExcludeObject(IProcObject procObject)
+        {
+            throw new NotImplementedException();
+        }
+        public void IncludeObject(IProcObject procObject)
+        {
+            throw new NotImplementedException();
+        }
+        public IDisposable Subscribe(IObserver<IProcessNotify> observer) => _subject.Subscribe(observer);
+
+
         private class RepeatUntillCancell
         {
             private readonly Func<Task> _next;
@@ -673,122 +570,6 @@ namespace DicingBlade.Classes.Processes
                     while (!token.IsCancellationRequested) ;
                 });
             }
-        }
-
-        public void ExcludeObject(IProcObject procObject)
-        {
-            throw new NotImplementedException();
-        }
-        public void IncludeObject(IProcObject procObject)
-        {
-            throw new NotImplementedException();
-        }
-        public IDisposable Subscribe(IObserver<IProcessNotify> observer) => _subject.Subscribe(observer);
-               
-    }
-
-    internal enum Gender
-    {
-        Male,
-        Female,
-        Neutral
-    }
-    internal enum RusCase
-    {
-        Nominative,
-        Genative,
-        Dative,
-        Accusative,
-        Instrumental,
-        Prepositional
-    }
-
-    internal static class IntNumbers
-    {
-
-
-        public static string ApplyCase(this string str, GrammaticalCase grammaticalCase)
-        {
-            if(str.EndsWith("ая"))
-            {
-                switch (grammaticalCase)
-                {
-                    case GrammaticalCase.Nominative:
-                        return str;
-                    case GrammaticalCase.Genitive:
-                        return str.Substring(0, str.Length - 2) + "ой";
-                    case GrammaticalCase.Dative:
-                        return str.Substring(0, str.Length - 2) + "ой";
-
-                    case GrammaticalCase.Accusative:
-                        return str.Substring(0, str.Length - 2) + "ую";
-
-                    case GrammaticalCase.Instrumental:
-                        return str.Substring(0, str.Length - 2) + "ой";
-
-                    case GrammaticalCase.Prepositional:
-                        return str.Substring(0, str.Length - 2) + "ой";
-
-                    default:
-                        break;
-                }
-            }
-            else if(str.EndsWith("ья"))
-            {
-                switch (grammaticalCase)
-                {
-                    case GrammaticalCase.Nominative:
-                        return str;
-                    case GrammaticalCase.Genitive:
-                        return str.Substring(0, str.Length - 2) + "ей";
-                    case GrammaticalCase.Dative:
-                        return str.Substring(0, str.Length - 2) + "ей";
-
-                    case GrammaticalCase.Accusative:
-                        return str.Substring(0, str.Length - 2) + "ью";
-
-                    case GrammaticalCase.Instrumental:
-                        return str.Substring(0, str.Length - 2) + "ей";
-
-                    case GrammaticalCase.Prepositional:
-                        return str.Substring(0, str.Length - 2) + "ей";
-
-                    default:
-                        break;
-                }
-            }
-            return str;
-        }
-
-        public static string ConvertToWord(int number, Gender gender, RusCase rusCase)
-        {
-            return number switch
-            {
-                1 => "первую",
-                2 => "вторую",
-                3 => "трет",
-                4 => "четрвёрт",
-                5 => "пят",
-                6 => "шест",
-                7 => "седьм",
-                8 => "восьм",
-                9 => "девят",
-            };
-            
-            //var end = rusCase switch
-            //{
-            //    Nominative => gender switch
-            //    {
-            //        Male => "",
-            //        Female => "",
-            //        Neutral => ""
-            //    },
-            //    Genative,
-            //    Dative,
-            //    Accusative,
-            //    Instrumental,
-            //    Prepositional
-            //};
         }
     }
 }

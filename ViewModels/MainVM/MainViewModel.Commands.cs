@@ -176,7 +176,7 @@ namespace DicingBlade.ViewModels
                     _dicingProcess = null;
                     Substrate = null;
                     ResetWaferView();
-                    AjustWaferTechnology();
+                    AjustWaferTechnology(_currentWafer);
                     Growl.Warning("Процесс экстренно прерван оператором.");
                 }, () => IsMachineInProcess)
                 .CreateKeyDownCommand(Key.H, () => { MachineSettings(); return Task.CompletedTask; }, () => true)
@@ -382,7 +382,6 @@ namespace DicingBlade.ViewModels
                 Settings.Default.DiskShift = -_dicingProcess.GetLastCutY() + YView;
                 Settings.Default.Save();
 
-                //Process?.TeachDiskShift();
                 _machine.ConfigureGeometry(new Dictionary<Place, (Ax, double)[]>
                 {
                     {
@@ -431,7 +430,7 @@ namespace DicingBlade.ViewModels
                         .Build(tempwafer.Thickness);
 
                     WaferView = Wafer.GetWaferView();
-                    AjustWaferTechnology(Substrate.CurrentSide);
+                  //  AjustWaferTechnology(Substrate.CurrentSide);
                 }
             }
         }
@@ -493,21 +492,24 @@ namespace DicingBlade.ViewModels
             FeedSpeedTechnology = _technology.FeedSpeed;
 
             _dicingProcess?.RefreshTechnology(_technology);
-            //Process?.RefresfTechnology(_technology);
             Wafer?.SetPassCount(PropContainer.Technology.PassCount);
         }
 
         [ICommand]
         private void WaferSettings()
         {
-            var waferSettingsVM = new WaferSettingsViewModel(_settingsService);
             var waferSettingsView = new WaferSettingsView
             {
-                DataContext = waferSettingsVM
+                DataContext = new WaferSettingsVM(_currentWafer)
             };
             waferSettingsView.ShowDialog();
-            AjustWaferTechnology();
-            WaferFileName = waferSettingsVM.FileName;
+
+            var newSettingsVM = waferSettingsView.DataContext as WaferSettingsVM;
+            
+            Settings.Default.WaferLastFile = newSettingsVM.FileName;
+            Settings.Default.Save();
+            AjustWaferTechnology(newSettingsVM);
+            WaferFileName = newSettingsVM.FileName;
         }
 
         [ICommand]

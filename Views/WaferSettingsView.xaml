@@ -15,7 +15,6 @@
     xmlns:hc="https://handyorg.github.io/handycontrol"
     mc:Ignorable="d">
     <Window.Resources>
-        <converters:InvertVisibilityConverter x:Key="VisConverter" />
             <Style TargetType="CheckBox" BasedOn="{StaticResource CheckBoxBaseStyle}">
                 <Setter Property="Margin" Value="3" />
             </Style>
@@ -48,17 +47,17 @@
                 <Setter Property="VerticalContentAlignment" Value="Center" />
             </Style>
     </Window.Resources>
-    <i:Interaction.Triggers>
+    <!--<i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
             <i:InvokeCommandAction Command="{Binding CloseCmd, Mode=OneWay}" />
         </i:EventTrigger>
-    </i:Interaction.Triggers>
+    </i:Interaction.Triggers>-->
 
-        <StackPanel>
-            
+    <StackPanel>
+
         <ToggleButton BorderThickness="0" 
                       IsChecked="{Binding IsRound, Mode=OneTime}" 
-                      Command="{Binding ChangeShapeCmd}"
+                      Command="{Binding ChangeShapeCommand}"
                       Style="{StaticResource ToggleButtonFlip}"
                       Padding="5"
                       HorizontalAlignment="Left"
@@ -73,7 +72,8 @@
                 <Path Data="{StaticResource SquareWaferGeometry}" Stretch="Uniform" Fill="Black" />
             </Border>
         </ToggleButton>
-        <StackPanel x:Name="square" Visibility="{Binding SquareVisibility}">
+        <Grid>
+            <StackPanel x:Name="square" Visibility="{Binding IsSquare, Converter={StaticResource Boolean2VisibilityConverter}}">
                 <hc:TextBox
                                 hc:TitleElement.Title="Длина, мм"
                                 hc:TitleElement.TitlePlacement="Left"
@@ -111,7 +111,7 @@
                     
                                 Text="{Binding IndexH, StringFormat=F2}" />
             </StackPanel>
-            <StackPanel x:Name="round" Visibility="{Binding SquareVisibility, Converter={StaticResource VisConverter}}">
+            <StackPanel x:Name="round" Visibility="{Binding IsRound, Converter={StaticResource Boolean2VisibilityConverter}}">
                 <hc:TextBox
                                hc:TitleElement.Title="Диаметр, мм"
                                 hc:TitleElement.TitlePlacement="Left"
@@ -141,12 +141,13 @@
                                 DockPanel.Dock="Right"
                                 Text="{Binding IndexH}" />
             </StackPanel>
-            <DockPanel
+        </Grid>
+        <DockPanel
             Grid.Row="1"
             Margin="3"
             LastChildFill="False">
-                <Label Content="Файл подложки:" DockPanel.Dock="Left" />
-                <Label
+            <Label Content="Файл подложки:" DockPanel.Dock="Left" />
+            <Label
                 HorizontalAlignment="Stretch"
                 Content="{Binding FileName}"
                 DockPanel.Dock="Left" 
@@ -154,19 +155,24 @@
                 FontStyle="Italic"
                 />
 
-            </DockPanel>
-            <DockPanel>
-                <Button
+        </DockPanel>
+        <DockPanel>
+            <Button
                 Margin="3"
-                Command="{Binding SaveFileAsCmd}"
+                Command="{Binding SaveFileAsCommand}"
                 Content="Сохранить как"
                 DockPanel.Dock="Right" />
-                <Button
+            <Button
                 Margin="3"
-                Command="{Binding OpenFileCmd}"
+                Command="{Binding SaveFileCommand}"
+                Content="Сохранить"
+                DockPanel.Dock="Right" />
+            <Button
+                Margin="3"
+                Command="{Binding OpenFileCommand}"
                 Content="Открыть"
                 DockPanel.Dock="Right" />
-            </DockPanel>
-        </StackPanel>
+        </DockPanel>
+    </StackPanel>
 
 </hc:GlowWindow>

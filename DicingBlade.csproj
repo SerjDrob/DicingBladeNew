@@ -152,7 +152,7 @@
     <None Include="Classes\Spindle3.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\MachineClassLibrary\MachineClassLibrary.csproj" />
-    <ProjectReference Include="..\..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
+    <ProjectReference Include="..\MachineClassLibrary\MachineClassLibrary.csproj" />
+    <ProjectReference Include="..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
   </ItemGroup>
 </Project>
