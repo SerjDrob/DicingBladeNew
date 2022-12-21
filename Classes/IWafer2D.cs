@@ -61,6 +61,17 @@ namespace DicingBlade.Classes
                 return (int)Math.Floor(_shape.GetIndexSide(CurrentSide) / CurrentIndex);
             }
         }
+        public int TotalLinesCount()
+        {
+            var count = 0;
+            for (int i = 0; i < _directions.Count; i++)
+            {
+                var side = _shape.GetIndexSide(i);
+                var index = _directions[i].index;
+                count += (int)Math.Floor( side / index) + 1;
+            }
+            return count;
+        }
         public double CurrentIndex
         {
             get => _directions[CurrentSide].index;

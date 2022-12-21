@@ -27,6 +27,7 @@ namespace DicingBlade.ViewModels
         public ICommand? TestKeyCommand { get; protected set; }
         public bool IsMachineInProcess { get => !(_dicingProcess is null || _dicingProcess.ProcessEndOrDenied); }
         private bool _isReadyForAligning;
+        public int ProcessPercentage { get; set; }
         private void InitCommands()
         {
             TestKeyCommand = new KeyProcessorCommands(parameter => true)
@@ -438,6 +439,7 @@ namespace DicingBlade.ViewModels
         private void MachineSettings()
         {
             var settingsVM = new MachineSettingsViewModel(XView, YView, ZView);
+            settingsVM.ScaleGridView = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json"));
             new MachineSettingsView
             {
                 DataContext = settingsVM
@@ -498,13 +500,14 @@ namespace DicingBlade.ViewModels
         [ICommand]
         private void WaferSettings()
         {
+            var waferSettingsVM = new WaferSettingsViewModel(_settingsService);
             var waferSettingsView = new WaferSettingsView
             {
-                DataContext = new WaferSettingsViewModel(_settingsService)
+                DataContext = waferSettingsVM
             };
-
             waferSettingsView.ShowDialog();
             AjustWaferTechnology();
+            WaferFileName = waferSettingsVM.FileName;
         }
 
         [ICommand]

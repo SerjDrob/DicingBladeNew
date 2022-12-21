@@ -560,6 +560,7 @@ namespace DicingBlade.ViewModels
             dicingProcess.OfType<ProcessStateChanging>()
                 .Subscribe(async state => 
                 {
+                    ProcessPercentage = _dicingProcess.ProcessPercentage;
                     switch (state.SourceState)
                     {
                         case State.Correction:
@@ -582,15 +583,15 @@ namespace DicingBlade.ViewModels
 
                         case State.Correction or State.Inspection:
                             {
-                                var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
-                                var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(XView, YView));
-                                var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
-                                var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
-                                List<TraceLine> temp = new(ControlPointsView);
-                                temp.ForEach(br => br.Brush = Brushes.Blue);
-                                temp.Add(new TraceLine()
-                                { XStart = point1.X, XEnd = point2.X, YStart = point1.Y, YEnd = point2.Y, Brush = Brushes.OrangeRed });
-                                ControlPointsView = new ObservableCollection<TraceLine>(temp);
+                                //var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
+                                //var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(XView, YView));
+                                //var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
+                                //var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
+                                //List<TraceLine> temp = new(ControlPointsView);
+                                //temp.ForEach(br => br.Brush = Brushes.Blue);
+                                //temp.Add(new TraceLine()
+                                //{ XStart = point1.X, XEnd = point2.X, YStart = point1.Y, YEnd = point2.Y, Brush = Brushes.OrangeRed });
+                                //ControlPointsView = new ObservableCollection<TraceLine>(temp);
                             }
                             break;
 
@@ -726,7 +727,19 @@ namespace DicingBlade.ViewModels
                             break;
                     }
                 });
-           
+            dicingProcess.OfType<CheckPointOccured>()
+                 .Subscribe(arg =>
+                 {
+                     var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
+                     var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(XView, YView));
+                     var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
+                     var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
+                     List<TraceLine> temp = new(ControlPointsView);
+                     temp.ForEach(br => br.Brush = Brushes.Blue);
+                     temp.Add(new TraceLine()
+                     { XStart = point1.X, XEnd = point2.X, YStart = point1.Y, YEnd = point2.Y, Brush = Brushes.OrangeRed });
+                     ControlPointsView = new ObservableCollection<TraceLine>(temp);
+                 });
             dicingProcess.Subscribe(
                 arg => { },
                 ex =>

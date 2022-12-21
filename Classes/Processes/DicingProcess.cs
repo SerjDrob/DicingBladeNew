@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Humanizer;
 using MsgBox = HandyControl.Controls.MessageBox;
+using DicingBlade.Classes;
 
 namespace DicingBlade.Classes.Processes
 {
@@ -66,6 +67,8 @@ namespace DicingBlade.Classes.Processes
     public record RotationStarted(double Angle, TimeSpan Duration) : IProcessNotify;
     public record WaferAligningChanged():IProcessNotify;
     public record ProcessMessage(MessageType MessageType, string Message):IProcessNotify;
+    public record CheckPointOccured() : IProcessNotify;
+
     public enum MessageType
     {
         Info,
@@ -114,7 +117,8 @@ namespace DicingBlade.Classes.Processes
         private bool IsCutting { get; set; } = false;
         public Visibility CutWidthMarkerVisibility { get; set; } = Visibility.Hidden;
         public double CutOffset { get; set; } = 0;
-
+        public int ProcessPercentage { get; set; }
+        private int _currentScore;
         public bool ProcessEndOrDenied { get => (_stateMachine?.IsInState(State.ProcessEnd)??false) || (_stateMachine?.IsInState(State.ProcessInterrupted)??false); }
 
         public DicingProcess(DicingBladeMachine machine, Wafer2D wafer, Blade blade, ITechnology technology)
@@ -304,6 +308,7 @@ namespace DicingBlade.Classes.Processes
                {
                    await TakeThePhotoAsync();
                    _checkCut.Checked();
+                   _subject.OnNext(new CheckPointOccured());
                })
                .Ignore(Trigger.Teach)
                .PermitDynamic(Trigger.Next, () =>
@@ -322,35 +327,10 @@ namespace DicingBlade.Classes.Processes
             _stateMachine.Configure(State.Correction)
               .SubstateOf(State.ProcessStarted)
               .OnEntryAsync(CorrectionAsync)
-              //.PermitDynamic(Trigger.Next, () =>
-              //{
-              //    if (!_wafer.LastCutOfTheSide)
-              //    {
-              //        _afterCorrection = true;
-              //        return State.GoingTransferingZ;
-              //    }
-              //    else if(!_wafer.IsLastSide && _wafer.LastCutOfTheSide)
-              //    {
-              //        return State.MovingNextSide;
-              //    }
-              //    return State.ProcessEnd;
-              //})
               .Ignore(Trigger.Teach)
-              //.OnExitAsync(() =>
-              //{ 
-              //    EndCorrection();
-              //    //if (!_wafer.LastCutOfTheSide)
-              //    //{
-              //    //    _wafer.IncrementCut();
-              //    //}
-              //    /*else*/ if (!_wafer.IsLastSide && _wafer.LastCutOfTheSide)
-              //    {
-              //        _wafer.DecrementSide();
-              //    }
-              //    return Task.CompletedTask;
-              //})
               .PermitDynamic(Trigger.Next,() => 
               {
+                  _subject.OnNext(new CheckPointOccured());
                   if (CutOffset != 0)
                   {
                       if (MsgBox.Ask($"Сместить следующие резы на {CutOffset} мм?", "Коррекция реза") == MessageBoxResult.OK)
@@ -406,7 +386,16 @@ namespace DicingBlade.Classes.Processes
 //---------------------------------------------------------------------------
 
             _stateMachine.OnUnhandledTrigger((s, t) => { });
-            _stateMachine.OnTransitioned(tr => _subject.OnNext(new ProcessStateChanging(tr.Source, tr.Destination, tr.Trigger)));
+            _stateMachine.OnTransitioned(tr =>
+            {
+                if (tr.Source == State.TeachSides || tr.Source == State.Cutting)
+                {
+                    _currentScore++;
+                    var linesCount = _wafer.TotalLinesCount();
+                    ProcessPercentage = (int)((decimal)_currentScore).Map(0, 2 + linesCount * _technology.PassCount, 0, 100);
+                }               
+                _subject.OnNext(new ProcessStateChanging(tr.Source, tr.Destination, tr.Trigger));
+            });
             _stateMachine.OnTransitionCompleted(tr =>
             {
                 if (tr.Source==State.Processing && tr.Destination == State.GoingTransferingZ)

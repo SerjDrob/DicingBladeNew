@@ -145,7 +145,7 @@
             Grid.Row="1"
             Margin="3"
             LastChildFill="False">
-                <Label Content="Файл технологии:" DockPanel.Dock="Left" />
+                <Label Content="Файл подложки:" DockPanel.Dock="Left" />
                 <Label
                 HorizontalAlignment="Stretch"
                 Content="{Binding FileName}"
