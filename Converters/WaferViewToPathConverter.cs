@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Collections;
 using netDxf.Entities;
 using System.Collections.ObjectModel;
+using DicingBlade.Classes.WaferGeometry;
 
 namespace DicingBlade.Converters
 {

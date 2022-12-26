@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
 using DicingBlade.Classes;
+using DicingBlade.Classes.Miscellaneous;
+
 namespace DicingBlade.ViewModels
 {
     internal class ViewFindersVM:ScaleGrid

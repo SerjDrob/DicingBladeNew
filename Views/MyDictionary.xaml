@@ -24,6 +24,7 @@
     <converters:MulZeroConverter x:Key="MulZeroConverter" />
     <converters:MouseArgsConverter x:Key="MouseArgsConverter"/>
     <converters:MouseArgsCanvasConverter x:Key="MouseArgsCanvasConverter"/>
+    <converters:MouseArgsCanvasConverter2 x:Key="MouseArgsCanvasConverter2"/>
     <converters:DivideConverter x:Key="DivideConverter"/>
     <converters:MulConvereter x:Key="MulConverter"/>
     <converters:ScaleGridConverter x:Key="ScaleGridConverter"/>

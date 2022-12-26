@@ -1,4 +1,10 @@
-﻿using MachineClassLibrary.Classes;
+﻿using DicingBlade.Classes;
+using DicingBlade.Classes.Miscellaneous;
+using DicingBlade.Classes.Technology;
+using DicingBlade.Classes.WaferGeometry;
+using DicingBlade.Utility;
+using Humanizer;
+using MachineClassLibrary.Classes;
 using MachineClassLibrary.Laser.Entities;
 using MachineClassLibrary.Machine;
 using MachineClassLibrary.Machine.Machines;
@@ -11,10 +17,7 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using Humanizer;
 using MsgBox = HandyControl.Controls.MessageBox;
-using DicingBlade.Classes;
-using DicingBlade.Utility;
 
 namespace DicingBlade.Classes.Processes
 {
@@ -45,7 +48,7 @@ namespace DicingBlade.Classes.Processes
         public int ProcessPercentage { get; set; }
         private int _currentScore;
         private bool _isCancelled;
-        public bool ProcessEndOrDenied { get => (_stateMachine?.IsInState(State.ProcessEnd)??false) || (_stateMachine?.IsInState(State.ProcessInterrupted)??false); }
+        public bool ProcessEndOrDenied { get => (_stateMachine?.IsInState(State.ProcessEnd) ?? false) || (_stateMachine?.IsInState(State.ProcessInterrupted) ?? false); }
 
         public DicingProcess(DicingBladeMachine machine, Wafer2D wafer, Blade blade, ITechnology technology)
         {
@@ -87,17 +90,17 @@ namespace DicingBlade.Classes.Processes
             _checkCut.Set(_technology.StartControlNum, _technology.ControlPeriod);
             _inspectX = _machine.GetGeometry(Place.CameraChuckCenter, Ax.X);
             _machine.OnAxisMotionStateChanged += _machine_OnAxisMotionStateChanged;
-            
+
             _stateMachine = new StateMachine<State, Trigger>(State.ProcessStarted, FiringMode.Queued);
 
             _stateMachine.Configure(State.ProcessStarted)
-                .OnActivateAsync(async () => 
+                .OnActivateAsync(async () =>
                 {
                     await GoTransferingHeightZAsync();
-                    await _machine.GoThereAsync(Place.Loading); 
+                    await _machine.GoThereAsync(Place.Loading);
                     _isWaitingToTeach = true;
                     _subject.OnNext(new ProcessMessage(MessageType.Info, @"Установите подложку и нажмите продолжить"));
-                },"Going to loading point")//TODO New initial state on loading point
+                }, "Going to loading point")//TODO New initial state on loading point
                 .InternalTransitionAsync(Trigger.DoSingleCut, async tr =>
                 {
                     if (tr.Source == State.TeachSides || tr.Source == State.Correction)
@@ -115,18 +118,18 @@ namespace DicingBlade.Classes.Processes
                         var xy = new double[] { xCoor, yCoor };
                         var z = _machine.TranslateSpecCoor(Place.ZBladeTouch, _wafer[_zRatio] + _technology.UnterCut, Ax.Z);
 
-                        await GoTransferingHeightZAsync();                       
+                        await GoTransferingHeightZAsync();
                         await _machine.MoveGpInPosAsync(Groups.XY, xy, true);
                         await Task.Delay(300);
                         await _machine.MoveAxInPosAsync(Ax.Y, yCoor, true);
 
 
                         await _machine.MoveAxInPosAsync(Ax.Z, z);
-                        
+
                         await CuttingXAsync();
                         _machine.SetVelocity(Velocity.Service);
                         await GoTransferingHeightZAsync();
-                        await _machine.MoveGpInPosAsync(Groups.XY, new [] { x, y }, true);
+                        await _machine.MoveGpInPosAsync(Groups.XY, new[] { x, y }, true);
                         await Task.Delay(300);
                         await _machine.MoveAxInPosAsync(Ax.Y, y, true);
                         await _machine.MoveAxesInPlaceAsync(Place.ZFocus);
@@ -137,7 +140,7 @@ namespace DicingBlade.Classes.Processes
                 .Permit(Trigger.Deny, State.ProcessInterrupted)
                 .Permit(Trigger.Teach, State.TeachSides);
 
-//------------------------Teaching-------------------------------------
+            //------------------------Teaching-------------------------------------
             _stateMachine.Configure(State.TeachSides)
                 .SubstateOf(State.ProcessStarted)
                 .OnEntryAsync(async () =>
@@ -159,7 +162,7 @@ namespace DicingBlade.Classes.Processes
                         {
                             await GoTransferingHeightZAsync();
                             await MovingNextDirAsync();
-                        } 
+                        }
                     }
                 }, "Moving next direction for learnig")
                 .Ignore(Trigger.Teach)
@@ -167,7 +170,7 @@ namespace DicingBlade.Classes.Processes
                 {
                     return _wafer.IsLastSide ? State.Processing : State.TeachSides;
                 });
-//-----------------------Processing------------------------------------
+            //-----------------------Processing------------------------------------
             _stateMachine.Configure(State.Processing)
                 .SubstateOf(State.ProcessStarted)
                 .InitialTransition(State.GoingTransferingZ)
@@ -218,8 +221,8 @@ namespace DicingBlade.Classes.Processes
                         return State.MovingNextSide;
                     }
                     return State.ProcessEnd;
-                },()=>!_checkCut.Check)
-                .PermitIf(Trigger.Next,State.Inspection,()=>_checkCut.Check && !_repeatUntillCancell.IsCancellationRequested);
+                }, () => !_checkCut.Check)
+                .PermitIf(Trigger.Next, State.Inspection, () => _checkCut.Check && !_repeatUntillCancell.IsCancellationRequested);
 
             _stateMachine.Configure(State.MovingNextSide)
                 .SubstateOf(State.Processing)
@@ -230,10 +233,10 @@ namespace DicingBlade.Classes.Processes
                 })
                 .Ignore(Trigger.Teach)
                 .Permit(Trigger.Next, State.GoingTransferingZ);
-//-------------------------Inspection and Correction-----------------------
+            //-------------------------Inspection and Correction-----------------------
             _stateMachine.Configure(State.Inspection)
                .SubstateOf(State.ProcessStarted)
-               .OnEntryAsync(async()=>
+               .OnEntryAsync(async () =>
                {
                    await TakeThePhotoAsync();
                    _checkCut.Checked();
@@ -252,12 +255,12 @@ namespace DicingBlade.Classes.Processes
                    }
                    return State.ProcessEnd;
                });
-            
+
             _stateMachine.Configure(State.Correction)
               .SubstateOf(State.ProcessStarted)
               .OnEntryAsync(CorrectionAsync)
               .Ignore(Trigger.Teach)
-              .PermitDynamic(Trigger.Next,() => 
+              .PermitDynamic(Trigger.Next, () =>
               {
                   _subject.OnNext(new CheckPointOccured());
                   if (CutOffset != 0)
@@ -292,7 +295,7 @@ namespace DicingBlade.Classes.Processes
                   if (_wafer.DecrementSide()) return State.MovingNextSide;
                   return State.ProcessEnd;
               });
-//-------------------------Ending and Interruption-------------------------
+            //-------------------------Ending and Interruption-------------------------
             _stateMachine.Configure(State.ProcessInterrupted)
                 .OnEntryAsync(async () =>
                 {
@@ -311,7 +314,7 @@ namespace DicingBlade.Classes.Processes
                     _machine.OnAxisMotionStateChanged -= _machine_OnAxisMotionStateChanged;
                     _subject.OnCompleted();
                 });
-//---------------------------------------------------------------------------
+            //---------------------------------------------------------------------------
 
             _stateMachine.OnUnhandledTrigger((s, t) => { });
             _stateMachine.OnTransitioned(tr =>
@@ -321,16 +324,16 @@ namespace DicingBlade.Classes.Processes
                     _currentScore++;
                     var linesCount = _wafer.TotalLinesCount();
                     ProcessPercentage = (int)((decimal)_currentScore).Map(0, 2 + linesCount * _technology.PassCount, 0, 100);
-                }               
+                }
                 _subject.OnNext(new ProcessStateChanging(tr.Source, tr.Destination, tr.Trigger));
             });
             _stateMachine.OnTransitionCompleted(tr =>
             {
-                if (tr.Source==State.Processing && tr.Destination == State.GoingTransferingZ)
+                if (tr.Source == State.Processing && tr.Destination == State.GoingTransferingZ)
                 {
                     _inProcess = true;
                 }
-                _subject.OnNext(new ProcessStateChanged(tr.Source, tr.Destination, tr.Trigger)); 
+                _subject.OnNext(new ProcessStateChanged(tr.Source, tr.Destination, tr.Trigger));
             });
 
             await _stateMachine.ActivateAsync();
@@ -379,8 +382,8 @@ namespace DicingBlade.Classes.Processes
             _subject.OnNext(new WaferAligningChanged());
         }
         private async Task GoTransferingHeightZAsync()
-        {            
-            await _machine.MoveAxInPosAsync(Ax.Z, _machine.GetFeature(MFeatures.ZBladeTouch) - _wafer.Thickness - _bladeTransferGapZ);           
+        {
+            await _machine.MoveAxInPosAsync(Ax.Z, _machine.GetFeature(MFeatures.ZBladeTouch) - _wafer.Thickness - _bladeTransferGapZ);
         }
         private async Task CuttingXAsync()
         {
@@ -412,7 +415,7 @@ namespace DicingBlade.Classes.Processes
             x = x + Math.Sign(x) * _blade.XGap(_wafer.Thickness);
             var y = line.Start.Y - _wafer.CurrentShift;
             var arr = _machine.TranslateActualCoors(Place.BladeChuckCenter, new (Ax, double)[] { (Ax.X, -x), (Ax.Y, -y) });
-            var resY = y + _machine.GetGeometry(Place.CameraChuckCenter,Ax.Y) - _machine.GetFeature(MFeatures.CameraBladeOffset);
+            var resY = y + _machine.GetGeometry(Place.CameraChuckCenter, Ax.Y) - _machine.GetFeature(MFeatures.CameraBladeOffset);
             var xy = new double[] { arr.GetVal(Ax.X), /*arr.GetVal(Ax.Y)*/resY };
             await _machine.MoveGpInPosAsync(Groups.XY, xy, true);
             await Task.Delay(300);
@@ -478,7 +481,7 @@ namespace DicingBlade.Classes.Processes
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            
+
         }
         public override string ToString()
         {
@@ -487,7 +490,7 @@ namespace DicingBlade.Classes.Processes
         public async Task Deny()
         {
             _isCancelled = true;
-            if(_repeatUntillCancell is not null) await _repeatUntillCancell.Cancel();
+            if (_repeatUntillCancell is not null) await _repeatUntillCancell.Cancel();
             await _stateMachine.FireAsync(Trigger.Deny);
         }
         public async Task Next()
@@ -497,9 +500,9 @@ namespace DicingBlade.Classes.Processes
             {
                 await _stateMachine.FireAsync(Trigger.Teach);
             }
-            else if(_stateMachine.IsInState(State.TeachSides) & !_wafer.IsLastSide)
+            else if (_stateMachine.IsInState(State.TeachSides) & !_wafer.IsLastSide)
             {
-                await _stateMachine.FireAsync(Trigger.Next);  
+                await _stateMachine.FireAsync(Trigger.Next);
             }
             else if (_stateMachine.IsInState(State.TeachSides) & _wafer.IsLastSide)
             {
@@ -512,7 +515,7 @@ namespace DicingBlade.Classes.Processes
                 await _repeatUntillCancell.Cancel();
                 await _stateMachine.FireAsync(Trigger.Correction);
             }
-            else if(_inProcess || _stateMachine.IsInState(State.Correction))
+            else if (_inProcess || _stateMachine.IsInState(State.Correction))
             {
                 _repeatUntillCancell = new RepeatUntillCancell(() => _stateMachine.FireAsync(Trigger.Next));
                 await _repeatUntillCancell.Start();

@@ -1,5 +1,8 @@
 ﻿using DicingBlade.Classes;
+using DicingBlade.Classes.Miscellaneous;
 using DicingBlade.Classes.Processes;
+using DicingBlade.Classes.Technology;
+using DicingBlade.Classes.WaferGeometry;
 using DicingBlade.Properties;
 using DicingBlade.Utility;
 using DicingBlade.Views;
@@ -24,6 +27,8 @@ namespace DicingBlade.ViewModels
 {
     internal partial class MainViewModel
     {
+        private bool _homeDone;
+
         public ICommand? TestKeyCommand { get; protected set; }
         public bool IsMachineInProcess { get => !(_dicingProcess is null || _dicingProcess.ProcessEndOrDenied); }
         private bool _isReadyForAligning;
@@ -121,12 +126,12 @@ namespace DicingBlade.ViewModels
                 .CreateKeyDownCommand(Key.N, () =>
                 {
                     _dicingProcess.CutOffset += 0.001;
-                    CutOffsetView += 0.001;
+                    CamVM.CutOffsetView += 0.001;
                     return Task.CompletedTask;
                 }, () => _isProcessInCorrection && _dicingProcess is not null)
                 .CreateKeyDownCommand(Key.M, () =>
                 {
-                    CutOffsetView -= 0.001;
+                    CamVM.CutOffsetView -= 0.001;
                     _dicingProcess.CutOffset -= 0.001;
                     return Task.CompletedTask;
                 }, () => _isProcessInCorrection && _dicingProcess is not null)
@@ -175,7 +180,7 @@ namespace DicingBlade.ViewModels
                     //_dicingProcess.WaitProcDoneAsync().Wait();
                     _dicingProcess = null;
                     Substrate = null;
-                    ResetWaferView();
+                    SubstrVM.ResetWaferView();
                     AjustWaferTechnology(_currentWafer);
                     Growl.Warning("Процесс экстренно прерван оператором.");
                 }, () => IsMachineInProcess)
@@ -212,7 +217,7 @@ namespace DicingBlade.ViewModels
                                     var velocity = VelocityRegime;
                                     _machine.SetVelocity(Velocity.Service);
                                     var index = res.Item2 == AxDir.Pos ? Substrate.CurrentIndex : -Substrate.CurrentIndex;
-                                    await _machine.MoveAxInPosAsync(Ax.Y, YView + index, true);
+                                    await _machine.MoveAxInPosAsync(Ax.Y, YAxis.Position + index, true);
                                     _machine.SetVelocity(velocity);
                                 }
                                 break;
@@ -327,16 +332,16 @@ namespace DicingBlade.ViewModels
         {
             if (!_tempWafer2D.FirstPointSet)
             {
-                _tempWafer2D.Point1 = new double[] { XView, YView };
+                _tempWafer2D.Point1 = new double[] { XAxis.Position, YAxis.Position };
                 _tempWafer2D.FirstPointSet = true;
                 Growl.Info("Укажите вторую точку для выравнивания и нажмите _");
             }
             else
             {
-                _tempWafer2D.Point2 = new double[] { XView, YView };
+                _tempWafer2D.Point2 = new double[] { XAxis.Position, YAxis.Position };
                 _machine.SetVelocity(Velocity.Service);
                 var angle = _tempWafer2D.GetAngle();
-                await _machine.MoveAxInPosAsync(Ax.U, UView - angle);
+                await _machine.MoveAxInPosAsync(Ax.U, UAxis.Position - angle);
                 var rotation = new RotateTransform(-angle);
                 rotation.CenterX = _machine.GetGeometry(Place.CameraChuckCenter, Ax.X);
                 rotation.CenterY = _machine.GetGeometry(Place.CameraChuckCenter, Ax.Y);
@@ -350,25 +355,25 @@ namespace DicingBlade.ViewModels
 
         private Task Change()
         {
-            Cols = new[] { Cols[1], Cols[0] };
-            Rows = new[] { Rows[1], Rows[0] };
+            (CentralView, RightSideView) = (RightSideView, CentralView);
+            //Cols = new[] { Cols[1], Cols[0] };
+            //Rows = new[] { Rows[1], Rows[0] };
             return Task.CompletedTask;
         }
 
         [ICommand]
         public async Task ToTeachVideoScale()
         {
-            TeachVScaleMarkersVisibility = Visibility.Visible;
-            ProcessMessage = "Подведите ориентир к одному из визиров и нажмите *";
+            TeachVScaleMarkersVisibility = true; ;
+            Growl.Info("Подведите ориентир к одному из визиров и нажмите *");
             await WaitForConfirmationAsync();
-            var y = YView;
-            ProcessMessage = "Подведите ориентир ко второму визиру и нажмите *";
+            var y = YAxis.Position;
+            Growl.Info("Подведите ориентир ко второму визиру и нажмите *");
             await WaitForConfirmationAsync();
-            CameraScale = TeachMarkersRatio * Math.Abs(y - YView);
-            Settings.Default.CameraScale = CameraScale;
+            CamVM.CameraScale = TeachMarkersRatio * Math.Abs(y - YAxis.Position);
+            Settings.Default.CameraScale = CamVM.CameraScale;
             Settings.Default.Save();
-            ProcessMessage = "";
-            TeachVScaleMarkersVisibility = Visibility.Hidden;
+            TeachVScaleMarkersVisibility = false;
         }
 
         [ICommand]
@@ -379,7 +384,7 @@ namespace DicingBlade.ViewModels
                 Growl.Info("Совместите горизонтальный визир с центром последнего реза и нажмите *");
 
                 await WaitForConfirmationAsync();
-                Settings.Default.DiskShift = -_dicingProcess.GetLastCutY() + YView;
+                Settings.Default.DiskShift = -_dicingProcess.GetLastCutY() + YAxis.Position;
                 Settings.Default.Save();
 
                 _machine.ConfigureGeometry(new Dictionary<Place, (Ax, double)[]>
@@ -404,13 +409,12 @@ namespace DicingBlade.ViewModels
 
             if (MsgBox.Ask("Обучить размер кристалла?", "Обучение").HasFlag(MessageBoxResult.OK))
             {
-                ProcessMessage = "Подведите ориентир к перекрестию и нажмите *";
+                Growl.Info("Подведите ориентир к перекрестию и нажмите *");
                 await WaitForConfirmationAsync();
-                var y = YView;
-                ProcessMessage = "Подведите следующий ориентир к перекрестию и нажмите *";
+                var y = YAxis.Position;
+                Growl.Info("Подведите следующий ориентир к перекрестию и нажмите *");
                 await WaitForConfirmationAsync();
-                var size = Math.Round(Math.Abs(y - YView), 3);
-                ProcessMessage = "";
+                var size = Math.Round(Math.Abs(y - YAxis.Position), 3);
 
                 if (MsgBox.Ask($"\rНовый размер кристалла {size} мм", "Обучение").HasFlag(MessageBoxResult.OK))
                 {
@@ -429,7 +433,10 @@ namespace DicingBlade.ViewModels
                         .AddDirection(90, tempwafer.Width, tempwafer.Height, tempwafer.IndexW)
                         .Build(tempwafer.Thickness);
 
-                    WaferView = Wafer.GetWaferView();
+                    //WaferView = Wafer.GetWaferView();
+                    SubstrVM.WaferView = Wafer.GetWaferView();
+
+
                   //  AjustWaferTechnology(Substrate.CurrentSide);
                 }
             }
@@ -437,7 +444,7 @@ namespace DicingBlade.ViewModels
         [ICommand]
         private void MachineSettings()
         {
-            var settingsVM = new MachineSettingsViewModel(XView, YView, ZView);
+            var settingsVM = new MachineSettingsViewModel(XAxis.Position, YAxis.Position, ZAxis.CmdPosition);
             settingsVM.ScaleGridView = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json"));
             new MachineSettingsView
             {
@@ -450,9 +457,9 @@ namespace DicingBlade.ViewModels
             viewfinders.SerializeObject(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json"));
 
             viewfinders = viewfinders.DivideDoubles(1000);
-            ScaleGridView = viewfinders;
-            RealCutWidthView = viewfinders.RealCutWidth;
-            CutWidthView = viewfinders.CorrectingCutWidth;
+            CamVM.ScaleGridView = viewfinders;
+            CamVM.RealCutWidthView = viewfinders.RealCutWidth;
+            CamVM.CutWidthView = viewfinders.CorrectingCutWidth;
 
             Settings.Default.Save();
 
@@ -500,7 +507,7 @@ namespace DicingBlade.ViewModels
         {
             var waferSettingsView = new WaferSettingsView
             {
-                DataContext = new WaferSettingsVM(_currentWafer)
+                DataContext = new WaferSettingsVM(_currentWafer)                
             };
             waferSettingsView.ShowDialog();
 

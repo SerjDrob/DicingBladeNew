@@ -5,7 +5,7 @@
     xmlns:converters="clr-namespace:DicingBlade.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-    xmlns:local="clr-namespace:DicingBlade.Classes"
+    xmlns:local="clr-namespace:DicingBlade.Classes.WaferGeometry"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="[model ]clr-namespace:DicingBlade.ViewModels"
     xmlns:hc="https://handyorg.github.io/handycontrol"
@@ -18,7 +18,7 @@
     mc:Ignorable="d">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
-            <i:InvokeCommandAction Command="{Binding CloseCmd}" />
+            <i:InvokeCommandAction Command="{Binding ClosingWndCommand}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <Window.Resources>
@@ -160,12 +160,12 @@
         <DockPanel>
             <Button
                 Margin="3"
-                Command="{Binding SaveFileAsCmd}"
+                Command="{Binding SaveFileAsCommand}"
                 Content="Сохранить как"
                 DockPanel.Dock="Right" />
             <Button
                 Margin="3"
-                Command="{Binding OpenFileCmd}"
+                Command="{Binding OpenFileCommand}"
                 Content="Открыть"
                 DockPanel.Dock="Right" />
         </DockPanel>

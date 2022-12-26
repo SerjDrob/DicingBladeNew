@@ -7,6 +7,9 @@ using System.IO;
 using Microsoft.Win32;
 using System;
 using Microsoft.Toolkit.Mvvm.Input;
+using DicingBlade.Classes.WaferGeometry;
+using DicingBlade.Utility;
+using System.ComponentModel.Design;
 
 namespace DicingBlade.ViewModels
 {
@@ -14,6 +17,8 @@ namespace DicingBlade.ViewModels
     [AddINotifyPropertyChangedInterface]
     public partial class WaferSettingsVM : IWafer
     {
+        private Action<IWafer> _actionWhenOpened;
+
         public bool IsRound { get; set; }
         public bool IsSquare { get => !IsRound; }
         public double Width { get; set; }
@@ -82,6 +87,7 @@ namespace DicingBlade.ViewModels
                 ((IWafer)StatMethods.DeSerializeObjectJson<TempWafer>(FileName)).CopyPropertiesTo(this);
             }
         }
+       
         [ICommand]
         private void SaveFileAs()
         {
