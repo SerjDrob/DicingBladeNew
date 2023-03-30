@@ -8,6 +8,7 @@ using MachineClassLibrary.Classes;
 using MachineClassLibrary.Laser.Entities;
 using MachineClassLibrary.Machine;
 using MachineClassLibrary.Machine.Machines;
+using MachineClassLibrary.Miscellanius;
 using Microsoft.Toolkit.Diagnostics;
 using Stateless;
 using Stateless.Graph;
