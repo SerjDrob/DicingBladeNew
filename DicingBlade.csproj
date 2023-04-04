@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--<OutputType>WinExe</OutputType>-->
-    <TargetFramework>net6.0-windows</TargetFramework>
-	<TargetPlatformVersion></TargetPlatformVersion>
-    <LangVersion>preview</LangVersion>
-	<Nullable>disable</Nullable>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <!--<LangVersion>preview</LangVersion>-->
+	<Nullable>enable</Nullable>
 	<UseWPF>true</UseWPF>
 	<DefineConstants>TRACE;PCIInserted</DefineConstants>
 	<ApplicationIcon>3xhumed-Mega-Games-Pack-36-SAW-TheGame-3.ico</ApplicationIcon>
@@ -22,6 +21,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	<Prefer32Bit>true</Prefer32Bit>
 	<AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+	<Optimize>False</Optimize>
+	<DebugType>portable</DebugType>
+	<WarningLevel>6</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>True</Optimize>
+    <DebugType>portable</DebugType>
+    <WarningLevel>6</WarningLevel>
   </PropertyGroup>
     
   <ItemGroup>
@@ -113,12 +121,6 @@
     <None Remove="Views\videoscale.png" />
     <None Remove="Views\wafer.png" />
     <None Remove="Views\wafer2.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="AdvMotAPI, Version=2.0.2.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>.\AdvMotAPI.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Classes\Obsolete\Axis.cs" />
@@ -215,5 +217,10 @@
   <ItemGroup>
     <ProjectReference Include="..\MachineClassLibrary\MachineClassLibrary.csproj" />
     <ProjectReference Include="..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="AdvMotAPI">
+      <HintPath>..\MachineClassLibrary\AdvMotAPI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
