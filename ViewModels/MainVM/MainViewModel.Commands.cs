@@ -43,7 +43,7 @@ namespace DicingBlade.ViewModels
                 {
                     _machine.SwitchOnValve(Valves.Light);
                     return Task.CompletedTask;
-                }, () => true)
+                }, () => IsNot04PP100)
                 .CreateKeyDownCommand(Key.Q, () =>
                 {
                     if (_machine.GetValveState(Valves.ChuckVacuum))
@@ -74,7 +74,7 @@ namespace DicingBlade.ViewModels
                 .CreateKeyDownCommand(Key.Subtract, setStepVelocity, () => true)
                 .CreateKeyDownCommand(Key.F2, async () =>
                 {
-                    if (SpindleAccelarating | SpindleOnFreq) _machine.StopSpindle();
+                    if (SpindleAccelerating | SpindleOnFreq) _machine.StopSpindle();
                     else
                     {
                         try
@@ -141,7 +141,7 @@ namespace DicingBlade.ViewModels
                     {
                         await _dicingProcess.TriggerSingleCutState();
                     }
-                }, () => _isSingleCutAvaliable && _dicingProcess is not null)
+                }, () => _isSingleCutAvailable && _dicingProcess is not null)
                 .CreateKeyDownCommand(Key.Divide, async () =>
                 {
                     if (!IsMachineInProcess)
@@ -172,8 +172,8 @@ namespace DicingBlade.ViewModels
                 }, () => IsMachineInProcess)
                 .CreateKeyDownCommand(Key.OemMinus, async () => { await AlignWaferAsync(); }, () => _isReadyForAligning)
                 .CreateKeyDownCommand(Key.Multiply, () => { UserConfirmation = true; return Task.CompletedTask; }, () => IsMachineInProcess)
-                .CreateKeyDownCommand(Key.Oem6, async () => await _machine?.GoThereAsync(Place.CameraChuckCenter), () => !IsMachineInProcess)
-                .CreateKeyDownCommand(Key.Oem4, async () => await _machine?.GoThereAsync(Place.BladeChuckCenter), () => !IsMachineInProcess)
+                .CreateKeyDownCommand(Key.Oem6, async() => await _machine.GoThereAsync(Place.CameraChuckCenter), () => !IsMachineInProcess)
+                .CreateKeyDownCommand(Key.Oem4, async () => await _machine.GoThereAsync(Place.BladeChuckCenter), () => !IsMachineInProcess)
                 .CreateKeyDownCommand(Key.F11, async () =>
                 {
                     await _dicingProcess.EmergencyScript();
@@ -181,14 +181,13 @@ namespace DicingBlade.ViewModels
                     _dicingProcess = null;
                     Substrate = null;
                     SubstrVM.ResetWaferView();
-                    AjustWaferTechnology(_currentWafer);
+                    AdjustWaferTechnology(_currentWafer);
                     Growl.Warning("Процесс экстренно прерван оператором.");
                 }, () => IsMachineInProcess)
                 .CreateKeyDownCommand(Key.H, () => { MachineSettings(); return Task.CompletedTask; }, () => true)
                 .CreateKeyDownCommand(Key.F3, () => { WaferSettings(); return Task.CompletedTask; }, () => true)
                 .CreateKeyDownCommand(Key.F4, () => { TechnologySettings(); return Task.CompletedTask; }, () => true)
-                .CreateKeyDownCommand(Key.F6, () => { ToTeachCutShift(); return Task.CompletedTask; }, () => true)
-
+                .CreateKeyDownCommand(Key.F6, ToTeachCutShift, () => true)
                 ;
 
             async Task moveAsync(KeyEventArgs key)
@@ -203,8 +202,8 @@ namespace DicingBlade.ViewModels
                         Key.C => (Ax.X, AxDir.Pos),
                         Key.V => (Ax.Z, AxDir.Pos),
                         Key.B => (Ax.Z, AxDir.Neg),
-                        Key.S => (Ax.U, AxDir.Pos),
-                        Key.D => (Ax.U, AxDir.Neg)
+                        Key.S when IsNot04PP100 => (Ax.U, AxDir.Pos),
+                        Key.D when IsNot04PP100 => (Ax.U, AxDir.Neg)
                     };
 
                     if (!key.IsRepeat)
@@ -515,7 +514,7 @@ namespace DicingBlade.ViewModels
             
             Settings.Default.WaferLastFile = newSettingsVM.FileName;
             Settings.Default.Save();
-            AjustWaferTechnology(newSettingsVM);
+            AdjustWaferTechnology(newSettingsVM);
             WaferFileName = newSettingsVM.FileName;
         }
 

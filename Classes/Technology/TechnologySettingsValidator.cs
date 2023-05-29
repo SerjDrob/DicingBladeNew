@@ -17,6 +17,7 @@ namespace DicingBlade.Classes.Technology
             RuleFor(technology => technology.StartControlNum).NotEmpty().LessThan(10000).GreaterThan(0);
             RuleFor(technology => technology.ControlPeriod).NotEmpty().LessThan(10000).GreaterThan(0);
             RuleFor(technology => technology.PassCount).NotEmpty().LessThan(10).GreaterThan(0);
+            RuleFor(technology => technology.FileName).NotEmpty();
         }
     }
 }

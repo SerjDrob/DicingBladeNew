@@ -43,7 +43,18 @@ namespace DicingBlade
                    .AddSingleton<ExceptionsAgregator>()
                    .AddScoped<IVideoCapture, USBCamera>()
                    //.AddSingleton<ISpindle, Spindle3>()
-                   .AddSingleton<ISpindle, MockSpindle>()
+                   .AddSingleton<ISpindle,CommanderSK>(sp=>
+                   new CommanderSK("COM1",19200, new SpindleParams
+                   {
+                       Acc=5,
+                       Dec=5,
+                       MinFreq=100,
+                       MaxFreq=600,
+                       RatedCurrent=9,
+                       RatedVoltage=60
+                   }))
+                   //.AddSingleton<ISpindle, MockSpindle>()
+                   .AddSingleton(machineconfigs)
                    .AddSingleton<DicingBladeMachine>()
                    .AddSingleton<MainViewModel>()
                    //.AddDbContext<DbContext, LaserDbContext>()

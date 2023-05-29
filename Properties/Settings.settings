@@ -48,7 +48,7 @@
       <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="ZPPU" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">25600</Value>
+      <Value Profile="(Default)">51200</Value>
     </Setting>
     <Setting Name="ZJerk" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1</Value>
@@ -120,10 +120,10 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="TechnologyLastFile" Type="System.String" Scope="User">
-      <Value Profile="(Default)">D:/FirstTechnologyFile.json</Value>
+      <Value Profile="(Default)">TechnologyFiles\FirstTechnologyFile.json</Value>
     </Setting>
     <Setting Name="WaferLastFile" Type="System.String" Scope="User">
-      <Value Profile="(Default)">D:/firstWafer.waf</Value>
+      <Value Profile="(Default)">TechnologyFiles\firstWafer.waf</Value>
     </Setting>
     <Setting Name="XLoad" Type="System.Double" Scope="User">
       <Value Profile="(Default)">100</Value>

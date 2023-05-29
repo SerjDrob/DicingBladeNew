@@ -205,7 +205,7 @@ namespace DicingBlade.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("25600")]
+        [global::System.Configuration.DefaultSettingValueAttribute("51200")]
         public int ZPPU {
             get {
                 return ((int)(this["ZPPU"]));
@@ -493,7 +493,7 @@ namespace DicingBlade.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("D:/FirstTechnologyFile.json")]
+        [global::System.Configuration.DefaultSettingValueAttribute("TechnologyFiles\\FirstTechnologyFile.json")]
         public string TechnologyLastFile {
             get {
                 return ((string)(this["TechnologyLastFile"]));
@@ -505,7 +505,7 @@ namespace DicingBlade.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("D:/firstWafer.waf")]
+        [global::System.Configuration.DefaultSettingValueAttribute("TechnologyFiles\\firstWafer.waf")]
         public string WaferLastFile {
             get {
                 return ((string)(this["WaferLastFile"]));

@@ -34,52 +34,6 @@
             <System:Double x:Key="CutStrokeThickness">0.002</System:Double>
             <System:Boolean x:Key="TRUE">True</System:Boolean>
             <System:Boolean x:Key="FALSE">False</System:Boolean>
-            
-            <!--<Storyboard x:Key="PathAnimation">
-                <DoubleAnimation
-                By="{Binding WvAngle}"
-                Storyboard.Target="{Binding ElementName=CutsView}"
-                Storyboard.TargetProperty="RenderTransform.Children[0].Angle"
-                Duration="{Binding RotatingTime, Converter={StaticResource DoubleToDurationConverter}}" />
-                <DoubleAnimation
-                By="{Binding WvAngle}"
-                Storyboard.Target="{Binding ElementName=TracesView}"
-                Storyboard.TargetProperty="RenderTransform.Children[0].Angle"
-                Duration="{Binding RotatingTime, Converter={StaticResource DoubleToDurationConverter}}"/>
-                <DoubleAnimation
-                By="{Binding WvAngle}"
-                Storyboard.Target="{Binding ElementName=ControlPoints}"
-                Storyboard.TargetProperty="RenderTransform.Children[0].Angle"
-                Duration="{Binding RotatingTime, Converter={StaticResource DoubleToDurationConverter}}"/>
-                <DoubleAnimation
-                By="{Binding WvAngle}"
-                Storyboard.Target="{Binding ElementName=SquareWafer}"
-                Storyboard.TargetProperty="RenderTransform.Children[1].Angle"
-                Duration="{Binding RotatingTime, Converter={StaticResource DoubleToDurationConverter}}"/>
-            </Storyboard>
-            <Storyboard x:Key="ResetView">
-                <DoubleAnimation
-                To="0"
-                Storyboard.Target="{Binding ElementName=CutsView}"
-                Storyboard.TargetProperty="RenderTransform.Children[0].Angle"
-                Duration="0" />
-                <DoubleAnimation
-                To="{Binding WvAngle}"
-                Storyboard.Target="{Binding ElementName=TracesView}"
-                Storyboard.TargetProperty="RenderTransform.Children[0].Angle"
-                Duration="0"/>
-                <DoubleAnimation
-                To="{Binding WvAngle}"
-                Storyboard.Target="{Binding ElementName=ControlPoints}"
-                Storyboard.TargetProperty="RenderTransform.Children[0].Angle"
-                Duration="0"/>
-                <DoubleAnimation
-                To="0"
-                Storyboard.Target="{Binding ElementName=SquareWafer}"
-                Storyboard.TargetProperty="RenderTransform.Children[1].Angle"
-                Duration="0"/>
-            </Storyboard>-->
-
             <Style x:Key="ToolBorder" TargetType="Border">
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="4"/>
@@ -232,32 +186,33 @@
                     </StackPanel.Resources>
 
                     <uc:AxisState CoordinateName="X"                                  
-                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XAxis.Position}"  
-                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XAxis.NLmt}"
-                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XAxis.PLmt}"
-                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XAxis.MotionDone}" 
-                                  CmdCoordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.XAxis.CmdPosition}"
+                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, UpdateSourceTrigger=PropertyChanged, Path=DataContext.XAxis.Position}"  
+                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.XAxis.NLmt}"
+                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.XAxis.PLmt}"
+                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.XAxis.MotionDone}" 
+                                  CmdCoordinate="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.XAxis.CmdPosition}"
                                   />
                     <uc:AxisState CoordinateName="Y"
-                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YAxis.Position}"
-                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YAxis.NLmt}"
-                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YAxis.PLmt}"
-                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YAxis.MotionDone}"
-                                  CmdCoordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.YAxis.CmdPosition}"
+                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.YAxis.Position}"
+                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.YAxis.NLmt}"
+                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.YAxis.PLmt}"
+                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.YAxis.MotionDone}"
+                                  CmdCoordinate="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.YAxis.CmdPosition}"
                                   />
                     <uc:AxisState CoordinateName="Z"
-                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZAxis.Position}"
-                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZAxis.NLmt}"
-                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZAxis.PLmt}"
-                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZAxis.MotionDone}"
-                                  CmdCoordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZAxis.CmdPosition}"
+                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.ZAxis.Position}"
+                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.ZAxis.NLmt}"
+                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.ZAxis.PLmt}"
+                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.ZAxis.MotionDone}"
+                                  CmdCoordinate="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.ZAxis.CmdPosition}"
                                   />
                     <uc:AxisState CoordinateName="U"
-                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UAxis.Position}"
-                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UAxis.NLmt}"
-                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UAxis.PLmt}"
-                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UAxis.MotionDone}"
-                                  CmdCoordinate="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.UAxis.CmdPosition}"
+                                  Visibility="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.IsNot04PP100, Converter={StaticResource Boolean2VisibilityConverter}}"
+                                  Coordinate="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.UAxis.Position}"
+                                  LmtNeg="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.UAxis.NLmt}"
+                                  LmtPos="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.UAxis.PLmt}"
+                                  MotionDone="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.UAxis.MotionDone}"
+                                  CmdCoordinate="{Binding RelativeSource={RelativeSource AncestorType=hc:Window}, Path=DataContext.UAxis.CmdPosition}"
                                   />
                 </StackPanel>
                 <DockPanel>
@@ -457,7 +412,7 @@
                                                 <Style.Triggers>
                                                     <DataTrigger Value="True">
                                                         <DataTrigger.Binding>
-                                                            <Binding Path="SpindleAccelarating" />
+                                                            <Binding Path="SpindleAccelerating" />
                                                         </DataTrigger.Binding>
                                                         <Setter Property="Fill" Value="{StaticResource SignalGreen}" />
                                                     </DataTrigger>
@@ -475,7 +430,7 @@
                                                 <Style.Triggers>
                                                     <DataTrigger Value="True">
                                                         <DataTrigger.Binding>
-                                                            <Binding Path="SpindleDeccelarating" />
+                                                            <Binding Path="SpindleDeaccelerating" />
                                                         </DataTrigger.Binding>
                                                         <Setter Property="Fill" Value="{StaticResource SignalGreen}" />
                                                     </DataTrigger>
@@ -576,15 +531,6 @@
                         <uc:ValveStateButton ValveName="ВАКУУМ" ValveIsOn="{Binding ChuckVacuumValveView}" SensorIsOn="{Binding ChuckVacuumSensorView}"/>
                         <uc:ValveStateButton ValveName="ОБДУВ" ValveIsOn="{Binding BlowingValveView}" SensorIsOn="{Binding AirSensorView}"/>                   
                     </StackPanel>
-                    <!--<GroupBox Header="Перемещение" Grid.Row="1" Grid.Column="2" VerticalAlignment="Top">
-                        <DockPanel>                            
-                            <Grid DockPanel.Dock="Right">
-                                <TextBlock Style="{StaticResource Text1}" Text="Быстро" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static mcl:Velocity.Fast}}" />
-                                <TextBlock Style="{StaticResource Text1}" Text="Медленно" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static mcl:Velocity.Slow}}" />
-                                <TextBlock Style="{StaticResource Text1}" Text="Шаг" Visibility="{Binding VelocityRegime, Converter={StaticResource MatchEnumConverter}, ConverterParameter={x:Static mcl:Velocity.Step}}" />
-                            </Grid>
-                        </DockPanel>                       
-                    </GroupBox>-->
                 </Grid>
             </GroupBox>
             <Border

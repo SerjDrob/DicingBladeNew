@@ -208,10 +208,16 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Update="TechnologyFiles\firstWafer.waf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Component</SubType>
+    </None>
+    <None Update="TechnologyFiles\FirstTechnologyFile.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
-    <Folder Include="TechnologyFiles\" />
     <Folder Include="TempFiles\" />
   </ItemGroup>
   <ItemGroup>

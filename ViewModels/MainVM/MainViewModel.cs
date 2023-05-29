@@ -15,8 +15,8 @@ using MachineClassLibrary.Machine.Parts;
 using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
-using Microsoft.Toolkit.Mvvm.Input;
-using PropertyChanged;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+//using PropertyChanged;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -37,7 +37,7 @@ using Point = System.Windows.Point;
 namespace DicingBlade.ViewModels
 {
 
-    [AddINotifyPropertyChangedInterface]
+    [INotifyPropertyChanged]
     internal partial class MainViewModel : IMainViewModel
     {
         const string APP_SETTINGS_FOLDER = "AppSettings";
@@ -47,7 +47,7 @@ namespace DicingBlade.ViewModels
         private IComSensor _flowMeter;
         private DicingProcess _dicingProcess;
         private bool _isProcessInCorrection;
-        private bool _isSingleCutAvaliable;
+        private bool _isSingleCutAvailable;
         private IWafer _currentWafer;
 
         //public double CameraScale { get; private set; }
@@ -63,6 +63,7 @@ namespace DicingBlade.ViewModels
         //public double YTrace { get; set; }
         //public double XTraceEnd { get; set; }
 
+        public bool TestLmt { get; set; }
 
         public object CentralView { get; set; }
         public object RightSideView {  get; set; }
@@ -94,8 +95,8 @@ namespace DicingBlade.ViewModels
         //public double WaferCurrentShiftView { get; set; }
         //public bool ResetView { get; private set; }
         public bool SpindleOnFreq { get; private set; }
-        public bool SpindleAccelarating { get; private set; }
-        public bool SpindleDeccelarating { get; private set; }
+        public bool SpindleAccelerating { get; private set; }
+        public bool SpindleDeaccelerating { get; private set; }
         public bool SpindleStops { get; private set; }
         //public double CutWidthView { get; set; } = 0.05;
         //public double RealCutWidthView { get; set; } = 0.13;
@@ -115,15 +116,15 @@ namespace DicingBlade.ViewModels
         public bool UserConfirmation { get; private set; }
         public double TeachMarkersRatio { get; } = 2;
 
-
+        public bool IsNot04PP100 { get; set; } = true;
 
         public SubstrateVM SubstrVM { get; set; } = new();
 
-        public MainViewModel(DicingBladeMachine machine)
+        public MainViewModel(DicingBladeMachine machine, MachineConfiguration machineConfiguration)
         {
             //Cols = new[] { 0, 1 };
             //Rows = new[] { 2, 1 };
-
+            IsNot04PP100 = !machineConfiguration.IsO4PP100;
             SubstrVM.SubstrateClicked += SubstrVM_SubstrateClicked;
             CamVM.ImageClicked += CamVM_ImageClicked;
             CentralView = SubstrVM;
@@ -146,13 +147,14 @@ namespace DicingBlade.ViewModels
                 _machine.SwitchOffValve(Valves.Coolant);
                 _machine.SwitchOffValve(Valves.SpindleContact);
 
-                _machine.StartCamera(0, 1);
+                _machine.AdjustWidthToHeight = true;
+                _machine.StartCamera(0, 0);
                 _machine.OnBitmapChanged += _machine_OnBitmapChanged;
 
                 _machine.OnAxisMotionStateChanged += _machine_OnAxisMotionStateChanged;
                 _machine.OnSensorStateChanged += _machine_OnSensorStateChanged;
                 _machine.OnValveStateChanged += _machine_OnValveStateChanged;
-
+                var result = _machine.TryConnectSpindle();
                 _machine.OnSpindleStateChanging += _machine_OnSpindleStateChanging;
             }
             catch (MotionException ex)
@@ -177,7 +179,7 @@ namespace DicingBlade.ViewModels
                     IsRound = false
                 };
             }
-            AjustWaferTechnology(_currentWafer);
+            AdjustWaferTechnology(_currentWafer);
             _flowMeter = new FlowMeter("COM9");
             _flowMeter.GetData += _flowMeter_GetData;
             InitCommands();
@@ -208,8 +210,8 @@ namespace DicingBlade.ViewModels
             SpindleFreqView = e.Rpm;
             SpindleCurrentView = e.Current;
             SpindleOnFreq = e.OnFreq;
-            SpindleAccelarating = e.Accelerating;
-            SpindleDeccelarating = e.Deccelarating;
+            SpindleAccelerating = e.Accelerating;
+            SpindleDeaccelerating = e.Deccelarating;
             SpindleStops = e.Stop;
         }
 
@@ -257,15 +259,22 @@ namespace DicingBlade.ViewModels
         {
             try
             {
-                var state = new AxisStateView(Math.Round(e.Position, 3), Math.Round(e.CmdPosition, 3), e.NLmt, e.PLmt, e.MotionDone, e.MotionStart);
-                var axisState = e.Axis switch
+                var newState = new AxisStateView(Math.Round(e.Position, 3), Math.Round(e.CmdPosition, 3), e.NLmt, e.PLmt, e.MotionDone, e.MotionStart);
+                switch (e.Axis)
                 {
-                    Ax.X => XAxis,
-                    Ax.Y => YAxis,
-                    Ax.Z => ZAxis,
-                    Ax.U => UAxis
-                };
-                axisState = state;
+                    case Ax.X:
+                        XAxis = newState;
+                        break;
+                    case Ax.Y:
+                        YAxis= newState;
+                        break;
+                    case Ax.Z:
+                        ZAxis = newState;
+                        break;
+                    case Ax.U:
+                        UAxis = newState;
+                        break;
+                }
             }
             catch (Exception)
             {
@@ -362,7 +371,7 @@ namespace DicingBlade.ViewModels
 #pragma warning disable VSTHRD101 // Avoid unsupported async delegates
 
             dicingProcess.OfType<ProcessStateChanged>()
-                .Subscribe(async state =>
+                .Subscribe(state =>
                 {
                     switch (state.DestinationState)
                     {
@@ -370,14 +379,14 @@ namespace DicingBlade.ViewModels
                             {
                                 ChangeScreensRegime(true);
                                 _isProcessInCorrection = true;
-                                _isSingleCutAvaliable = true;
+                                _isSingleCutAvailable = true;
                                 _isReadyForAligning = true;
                                 CutWidthMarkerVisibility = true;
                             }
                             break;
                         case State.TeachSides:
                             {
-                                _isSingleCutAvaliable = true;
+                                _isSingleCutAvailable = true;
                                 _isReadyForAligning = true;
                             }
                             break;
@@ -397,7 +406,7 @@ namespace DicingBlade.ViewModels
                             {
                                 ChangeScreensRegime(false);
                                 _isProcessInCorrection = false;
-                                _isSingleCutAvaliable = false;
+                                _isSingleCutAvailable = false;
                                 _isReadyForAligning = false;
                                 CutWidthMarkerVisibility = false;
                                 CamVM.CutOffsetView = 0;
@@ -406,7 +415,7 @@ namespace DicingBlade.ViewModels
 
                         case State.TeachSides:
                             {
-                                _isSingleCutAvaliable = false;
+                                _isSingleCutAvailable = false;
                                 _isReadyForAligning = false;
                             }
                             break;
@@ -512,14 +521,14 @@ namespace DicingBlade.ViewModels
                         case State.ProcessEnd:
                             {
                                 SubstrVM.ResetWaferView();
-                                AjustWaferTechnology(_currentWafer);
+                                AdjustWaferTechnology(_currentWafer);
                                 MsgBox.Success("Процесс завершён.", "Процесс");
                             }
                             break;
                         case State.ProcessInterrupted:
                             {
                                 SubstrVM.ResetWaferView();
-                                AjustWaferTechnology(_currentWafer);
+                                AdjustWaferTechnology(_currentWafer);
                                 MsgBox.Fatal("Процесс прерван оператором.", "Процесс");
                             }
                             break;
@@ -645,13 +654,14 @@ namespace DicingBlade.ViewModels
                 maxDec = 180,
                 maxVel = 50,
                 axDirLogic = (int)DirLogic.DIR_ACT_HIGH,
-                plsOutMde = (int)PulseOutMode.OUT_DIR,
+                plsOutMde = (int)PulseOutMode.OUT_DIR_DIR_NEG,//.OUT_DIR, TODO move this in settings
                 reset = (int)HomeReset.HOME_RESET_EN,
                 acc = Settings.Default.XAcc,
                 dec = Settings.Default.XDec,
                 ppu = Settings.Default.XPPU,
                 homeVelLow = Settings.Default.XVelLow,
-                homeVelHigh = Settings.Default.XVelService
+                homeVelHigh = Settings.Default.XVelService,
+                hLmtLogic=(uint)HLmtLogic.HLMT_ACT_HIGH
             };
             var ypar = new MotionDeviceConfigs
             {
@@ -666,7 +676,8 @@ namespace DicingBlade.ViewModels
                 ppu = Settings.Default.YPPU,
                 plsInMde = (int)PulseInMode.AB_4X,
                 homeVelLow = Settings.Default.YVelLow,
-                homeVelHigh = Settings.Default.YVelService
+                homeVelHigh = Settings.Default.YVelService,
+                hLmtLogic = (uint)HLmtLogic.HLMT_ACT_HIGH
             };
             var zpar = new MotionDeviceConfigs
             {
@@ -674,7 +685,7 @@ namespace DicingBlade.ViewModels
                 maxDec = 180,
                 maxVel = 50,
                 axDirLogic = (int)DirLogic.DIR_ACT_HIGH,
-                plsOutMde = (int)PulseOutMode.OUT_DIR,
+                plsOutMde = (int)PulseOutMode.OUT_DIR_DIR_NEG,//.OUT_DIR,TODO move it in settings
                 reset = (int)HomeReset.HOME_RESET_EN,
                 acc = Settings.Default.ZAcc,
                 dec = Settings.Default.ZDec,
@@ -704,12 +715,12 @@ namespace DicingBlade.ViewModels
                 .WithVelRegime(Velocity.Slow, Settings.Default.XVelLow)
                 .WithVelRegime(Velocity.Service, Settings.Default.XVelService)
                 .Build();
-
-            _machine.AddAxis(Ax.U, axesConfigs.ULine)
-                .WithConfigs(upar)
-                .WithVelRegime(Velocity.Fast, Settings.Default.UVelHigh)
-                .WithVelRegime(Velocity.Slow, Settings.Default.UVelLow)
-                .WithVelRegime(Velocity.Service, Settings.Default.UVelService)
+            
+            _machine.AddAxis(Ax.Y, axesConfigs.YLine)
+                .WithConfigs(ypar)
+                .WithVelRegime(Velocity.Fast, Settings.Default.YVelHigh)
+                .WithVelRegime(Velocity.Slow, Settings.Default.YVelLow)
+                .WithVelRegime(Velocity.Service, Settings.Default.YVelService)
                 .Build();
 
             _machine.AddAxis(Ax.Z, axesConfigs.ZLine)
@@ -719,11 +730,11 @@ namespace DicingBlade.ViewModels
                 .WithVelRegime(Velocity.Service, Settings.Default.ZVelService)
                 .Build();
 
-            _machine.AddAxis(Ax.Y, axesConfigs.YLine)
-                .WithConfigs(ypar)
-                .WithVelRegime(Velocity.Fast, Settings.Default.YVelHigh)
-                .WithVelRegime(Velocity.Slow, Settings.Default.YVelLow)
-                .WithVelRegime(Velocity.Service, Settings.Default.YVelService)
+             _machine.AddAxis(Ax.U, axesConfigs.ULine)
+                .WithConfigs(upar)
+                .WithVelRegime(Velocity.Fast, Settings.Default.UVelHigh)
+                .WithVelRegime(Velocity.Slow, Settings.Default.UVelLow)
+                .WithVelRegime(Velocity.Service, Settings.Default.UVelService)
                 .Build();
 
             _machine.ConfigureHomingForAxis(Ax.X)
@@ -749,7 +760,6 @@ namespace DicingBlade.ViewModels
                 .SetHomingVelocity(Settings.Default.ZVelService)
                 .SetPositionAfterHoming(1)
                 .Configure();
-
             _machine.AddGroup(Groups.XY, Ax.X, Ax.Y);
 
             _machine.ConfigureValves(new Dictionary<Valves, (Ax, Do)>
@@ -760,7 +770,7 @@ namespace DicingBlade.ViewModels
                     {Valves.SpindleContact, (Ax.U, Do.Out5)}
                 });
 
-            _machine.ConfigureSensors(new Dictionary<Sensors, (Ax, Di, Boolean, string)>
+            _machine.ConfigureSensors(new Dictionary<Sensors, (Ax, Di, bool, string)>
                 {
                     {Sensors.Air, (Ax.Z, Di.In1, false, "Воздух")},
                     {Sensors.ChuckVacuum, (Ax.X, Di.In2, false, "Вакуум")},
@@ -821,7 +831,7 @@ namespace DicingBlade.ViewModels
             _machine.SetBridgeOnSensors(Sensors.SpindleCoolant, Settings.Default.SpindleCoolantSensorDsbl);
         }
 
-        private void AjustWaferTechnology(IWafer wafer)
+        private void AdjustWaferTechnology(IWafer wafer)
         {
             _currentWafer = wafer;
             //var fileName = Settings.Default.WaferLastFile;
@@ -872,12 +882,5 @@ namespace DicingBlade.ViewModels
         }
 
         private void ChangeScreensRegime(bool regime) => (CentralView, RightSideView) = (RightSideView, CentralView);
-        //{
-            
-
-
-        //    if (regime && Cols[0] == 0) Change();
-        //    else if (Cols[0] == 1) Change();
-        //}
     }
 }
