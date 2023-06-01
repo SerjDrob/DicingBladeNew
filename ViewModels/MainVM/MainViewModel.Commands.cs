@@ -118,7 +118,6 @@ namespace DicingBlade.ViewModels
                     await _machine.MoveAxInPosAsync(Ax.X, x);
                     _machine.SetVelocity(velocity);
                 }, () => true)
-                //.CreateKeyDownCommand(Key.Multiply, next, () => true)
                 .CreateKeyDownCommand(Key.Escape, async () =>
                 {
                     await _dicingProcess?.Deny();
@@ -156,8 +155,7 @@ namespace DicingBlade.ViewModels
                     }
                     else
                     {
-                        await _dicingProcess.
-                        Next();
+                        await _dicingProcess.Next();
                     }
                 }, () => _homeDone)
                 .CreateKeyDownCommand(Key.I, async () =>
@@ -188,6 +186,17 @@ namespace DicingBlade.ViewModels
                 .CreateKeyDownCommand(Key.F3, () => { WaferSettings(); return Task.CompletedTask; }, () => true)
                 .CreateKeyDownCommand(Key.F4, () => { TechnologySettings(); return Task.CompletedTask; }, () => true)
                 .CreateKeyDownCommand(Key.F6, ToTeachCutShift, () => true)
+
+                .CreateKeyDownCommand(Key.O, async () =>
+                {
+                    var blade = new Blade();
+                    blade.Diameter = 55.6;
+                    blade.Thickness = 0.11;
+                    Substrate.ResetWafer();
+                    var proc = new DicingProcess2(_machine, Substrate, blade, _technology);
+                    await proc.CreateProcess();
+                    var alg = proc.ToString();
+                }, () => true)
                 ;
 
             async Task moveAsync(KeyEventArgs key)

@@ -117,6 +117,7 @@
     <None Remove="Views\settings.png" />
     <None Remove="Views\size1.png" />
     <None Remove="Views\size3.png" />
+    <None Remove="Views\SplashScreen1.png" />
     <None Remove="Views\techniology.png" />
     <None Remove="Views\videoscale.png" />
     <None Remove="Views\wafer.png" />
@@ -228,5 +229,8 @@
     <Reference Include="AdvMotAPI">
       <HintPath>..\MachineClassLibrary\AdvMotAPI.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <SplashScreen Include="Views\SplashScreen1.png" />
   </ItemGroup>
 </Project>
