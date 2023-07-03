@@ -123,7 +123,7 @@
       <Value Profile="(Default)">D:/FirstTechnologyFile.json</Value>
     </Setting>
     <Setting Name="WaferLastFile" Type="System.String" Scope="User">
-      <Value Profile="(Default)">D:/firstWafer.json</Value>
+      <Value Profile="(Default)">D:/firstWafer.waf</Value>
     </Setting>
     <Setting Name="XLoad" Type="System.Double" Scope="User">
       <Value Profile="(Default)">100</Value>

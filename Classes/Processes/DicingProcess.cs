@@ -1,7 +1,14 @@
-﻿using MachineClassLibrary.Classes;
+﻿using DicingBlade.Classes;
+using DicingBlade.Classes.Miscellaneous;
+using DicingBlade.Classes.Technology;
+using DicingBlade.Classes.WaferGeometry;
+using DicingBlade.Utility;
+using Humanizer;
+using MachineClassLibrary.Classes;
 using MachineClassLibrary.Laser.Entities;
 using MachineClassLibrary.Machine;
 using MachineClassLibrary.Machine.Machines;
+using MachineClassLibrary.Miscellanius;
 using Microsoft.Toolkit.Diagnostics;
 using Stateless;
 using Stateless.Graph;
@@ -11,82 +18,10 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using Humanizer;
 using MsgBox = HandyControl.Controls.MessageBox;
-using DicingBlade.Classes;
 
 namespace DicingBlade.Classes.Processes
 {
-
-    public interface IProcessNotify { }
-    [Flags]
-    public enum State
-    {
-        ProcessStarted = 1,
-        TeachSides = 1<<1,
-        Processing = 1<<2,
-        Inspection = 1<<3,
-        ProcessInterrupted = 1<<4,
-        ProcessEnd = 1<<5,
-        Cutting = 1<<6,
-        GoingTransferingZ = 1<<7,
-        GoingNextCutXY = 1<<8,
-        GoingNextDepthZ = 1<<9,
-        MovingNextSide = 1<<10,
-        Correction = 1<<11,
-        MovingTeachNextDirection = 1<<12,
-        SingleCut = 1<<13
-    }
-    public enum Trigger
-    {
-        Next,
-        Pause,
-        Deny,
-        End,
-        NextCut,
-        NextSide,
-        Inspection,
-        Correction,
-        Teach,
-        DoSingleCut
-    }
-    /// <summary>
-    /// Invoked in the new state before invoking OnEntry methods
-    /// </summary>
-    /// <param name="SourceState">An old State</param>
-    /// <param name="DestinationState">A new State</param>
-    /// <param name="Trigger">A trigger caused the new State</param>
-    public record ProcessStateChanging(State SourceState, State DestinationState, Trigger Trigger):IProcessNotify;
-    /// <summary>
-    /// Invoked in the new state after invoking OnEntry methods
-    /// </summary>
-    /// <param name="SourceState">An old State</param>
-    /// <param name="DestinationState">A new State</param>
-    /// <param name="Trigger">A trigger caused the new State</param>
-    public record ProcessStateChanged(State SourceState, State DestinationState, Trigger Trigger) : IProcessNotify;
-    public record RotationStarted(double Angle, TimeSpan Duration) : IProcessNotify;
-    public record WaferAligningChanged():IProcessNotify;
-    public record ProcessMessage(MessageType MessageType, string Message):IProcessNotify;
-    public record CheckPointOccured() : IProcessNotify;
-
-    public enum MessageType
-    {
-        Info,
-        Warning,
-        Danger,
-        ToChangeCurrentStateTo
-    }
-
-    [Serializable]
-    public class ProcessInterruptedException : Exception
-    {
-        public ProcessInterruptedException() { }
-        public ProcessInterruptedException(string message) : base(message) { }
-        public ProcessInterruptedException(string message, Exception inner) : base(message, inner) { }
-        protected ProcessInterruptedException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
-    }
     public class DicingProcess : IProcess
     {
         private readonly DicingBladeMachine _machine;
@@ -95,31 +30,26 @@ namespace DicingBlade.Classes.Processes
         private ITechnology _technology;
         private StateMachine<State, Trigger> _stateMachine;
         private bool _inProcess = false;
-        private readonly double _waferThickness;
         private readonly ISubject<IProcessNotify> _subject;
         private double _xActual;
         private double _yActual;
         private double _zActual;
         private double _uActual;
         private double _bladeTransferGapZ = 4;
-        private bool _spindleWorking;
         private double _zRatio = 0;
-        private double _feedSpeed;
-        private double _undercut;
         private double _lastCutY;
         private double _inspectX;
         private bool _isWaitingToTeach = false;
-        //private Sensors _offSensors = 0;
         private CheckCutControl _checkCut;
         private RepeatUntillCancell _repeatUntillCancell;
         private bool _afterCorrection;
 
         private bool IsCutting { get; set; } = false;
-        public Visibility CutWidthMarkerVisibility { get; set; } = Visibility.Hidden;
         public double CutOffset { get; set; } = 0;
         public int ProcessPercentage { get; set; }
         private int _currentScore;
-        public bool ProcessEndOrDenied { get => (_stateMachine?.IsInState(State.ProcessEnd)??false) || (_stateMachine?.IsInState(State.ProcessInterrupted)??false); }
+        private bool _isCancelled;
+        public bool ProcessEndOrDenied { get => (_stateMachine?.IsInState(State.ProcessEnd) ?? false) || (_stateMachine?.IsInState(State.ProcessInterrupted) ?? false); }
 
         public DicingProcess(DicingBladeMachine machine, Wafer2D wafer, Blade blade, ITechnology technology)
         {
@@ -161,17 +91,17 @@ namespace DicingBlade.Classes.Processes
             _checkCut.Set(_technology.StartControlNum, _technology.ControlPeriod);
             _inspectX = _machine.GetGeometry(Place.CameraChuckCenter, Ax.X);
             _machine.OnAxisMotionStateChanged += _machine_OnAxisMotionStateChanged;
-            
+
             _stateMachine = new StateMachine<State, Trigger>(State.ProcessStarted, FiringMode.Queued);
 
             _stateMachine.Configure(State.ProcessStarted)
-                .OnActivateAsync(async () => 
+                .OnActivateAsync(async () =>
                 {
                     await GoTransferingHeightZAsync();
-                    await _machine.GoThereAsync(Place.Loading); 
+                    await _machine.GoThereAsync(Place.Loading);
                     _isWaitingToTeach = true;
                     _subject.OnNext(new ProcessMessage(MessageType.Info, @"Установите подложку и нажмите продолжить"));
-                },"Going to loading point")//TODO New initial state on loading point
+                }, "Going to loading point")//TODO New initial state on loading point
                 .InternalTransitionAsync(Trigger.DoSingleCut, async tr =>
                 {
                     if (tr.Source == State.TeachSides || tr.Source == State.Correction)
@@ -189,18 +119,18 @@ namespace DicingBlade.Classes.Processes
                         var xy = new double[] { xCoor, yCoor };
                         var z = _machine.TranslateSpecCoor(Place.ZBladeTouch, _wafer[_zRatio] + _technology.UnterCut, Ax.Z);
 
-                        await GoTransferingHeightZAsync();                       
+                        await GoTransferingHeightZAsync();
                         await _machine.MoveGpInPosAsync(Groups.XY, xy, true);
                         await Task.Delay(300);
                         await _machine.MoveAxInPosAsync(Ax.Y, yCoor, true);
 
 
                         await _machine.MoveAxInPosAsync(Ax.Z, z);
-                        
+
                         await CuttingXAsync();
                         _machine.SetVelocity(Velocity.Service);
                         await GoTransferingHeightZAsync();
-                        await _machine.MoveGpInPosAsync(Groups.XY, new [] { x, y }, true);
+                        await _machine.MoveGpInPosAsync(Groups.XY, new[] { x, y }, true);
                         await Task.Delay(300);
                         await _machine.MoveAxInPosAsync(Ax.Y, y, true);
                         await _machine.MoveAxesInPlaceAsync(Place.ZFocus);
@@ -211,7 +141,7 @@ namespace DicingBlade.Classes.Processes
                 .Permit(Trigger.Deny, State.ProcessInterrupted)
                 .Permit(Trigger.Teach, State.TeachSides);
 
-//------------------------Teaching-------------------------------------
+            //------------------------Teaching-------------------------------------
             _stateMachine.Configure(State.TeachSides)
                 .SubstateOf(State.ProcessStarted)
                 .OnEntryAsync(async () =>
@@ -226,11 +156,14 @@ namespace DicingBlade.Classes.Processes
                 })
                 .OnExitAsync(async () =>
                 {
-                    await LearningAsync();
-                    if (_wafer.IncrementSide())
+                    if (!_isCancelled)
                     {
-                        await GoTransferingHeightZAsync();
-                        await MovingNextDirAsync();
+                        await LearningAsync();
+                        if (_wafer.IncrementSide())
+                        {
+                            await GoTransferingHeightZAsync();
+                            await MovingNextDirAsync();
+                        }
                     }
                 }, "Moving next direction for learnig")
                 .Ignore(Trigger.Teach)
@@ -238,7 +171,7 @@ namespace DicingBlade.Classes.Processes
                 {
                     return _wafer.IsLastSide ? State.Processing : State.TeachSides;
                 });
-//-----------------------Processing------------------------------------
+            //-----------------------Processing------------------------------------
             _stateMachine.Configure(State.Processing)
                 .SubstateOf(State.ProcessStarted)
                 .InitialTransition(State.GoingTransferingZ)
@@ -289,8 +222,8 @@ namespace DicingBlade.Classes.Processes
                         return State.MovingNextSide;
                     }
                     return State.ProcessEnd;
-                },()=>!_checkCut.Check)
-                .PermitIf(Trigger.Next,State.Inspection,()=>_checkCut.Check && !_repeatUntillCancell.IsCancellationRequested);
+                }, () => !_checkCut.Check)
+                .PermitIf(Trigger.Next, State.Inspection, () => _checkCut.Check && !_repeatUntillCancell.IsCancellationRequested);
 
             _stateMachine.Configure(State.MovingNextSide)
                 .SubstateOf(State.Processing)
@@ -301,10 +234,10 @@ namespace DicingBlade.Classes.Processes
                 })
                 .Ignore(Trigger.Teach)
                 .Permit(Trigger.Next, State.GoingTransferingZ);
-//-------------------------Inspection and Correction-----------------------
+            //-------------------------Inspection and Correction-----------------------
             _stateMachine.Configure(State.Inspection)
                .SubstateOf(State.ProcessStarted)
-               .OnEntryAsync(async()=>
+               .OnEntryAsync(async () =>
                {
                    await TakeThePhotoAsync();
                    _checkCut.Checked();
@@ -323,12 +256,12 @@ namespace DicingBlade.Classes.Processes
                    }
                    return State.ProcessEnd;
                });
-            
+
             _stateMachine.Configure(State.Correction)
               .SubstateOf(State.ProcessStarted)
               .OnEntryAsync(CorrectionAsync)
               .Ignore(Trigger.Teach)
-              .PermitDynamic(Trigger.Next,() => 
+              .PermitDynamic(Trigger.Next, () =>
               {
                   _subject.OnNext(new CheckPointOccured());
                   if (CutOffset != 0)
@@ -355,7 +288,6 @@ namespace DicingBlade.Classes.Processes
                   {
                       thisSide = _wafer.IncrementCut();
                   }
-                  CutWidthMarkerVisibility = Visibility.Hidden;
                   CutOffset = 0;
                   _machine.FreezeCameraImage();
                   _inspectX = _xActual;
@@ -364,7 +296,7 @@ namespace DicingBlade.Classes.Processes
                   if (_wafer.DecrementSide()) return State.MovingNextSide;
                   return State.ProcessEnd;
               });
-//-------------------------Ending and Interruption-------------------------
+            //-------------------------Ending and Interruption-------------------------
             _stateMachine.Configure(State.ProcessInterrupted)
                 .OnEntryAsync(async () =>
                 {
@@ -383,7 +315,7 @@ namespace DicingBlade.Classes.Processes
                     _machine.OnAxisMotionStateChanged -= _machine_OnAxisMotionStateChanged;
                     _subject.OnCompleted();
                 });
-//---------------------------------------------------------------------------
+            //---------------------------------------------------------------------------
 
             _stateMachine.OnUnhandledTrigger((s, t) => { });
             _stateMachine.OnTransitioned(tr =>
@@ -393,16 +325,16 @@ namespace DicingBlade.Classes.Processes
                     _currentScore++;
                     var linesCount = _wafer.TotalLinesCount();
                     ProcessPercentage = (int)((decimal)_currentScore).Map(0, 2 + linesCount * _technology.PassCount, 0, 100);
-                }               
+                }
                 _subject.OnNext(new ProcessStateChanging(tr.Source, tr.Destination, tr.Trigger));
             });
             _stateMachine.OnTransitionCompleted(tr =>
             {
-                if (tr.Source==State.Processing && tr.Destination == State.GoingTransferingZ)
+                if (tr.Source == State.Processing && tr.Destination == State.GoingTransferingZ)
                 {
                     _inProcess = true;
                 }
-                _subject.OnNext(new ProcessStateChanged(tr.Source, tr.Destination, tr.Trigger)); 
+                _subject.OnNext(new ProcessStateChanged(tr.Source, tr.Destination, tr.Trigger));
             });
 
             await _stateMachine.ActivateAsync();
@@ -415,39 +347,7 @@ namespace DicingBlade.Classes.Processes
             _machine.SwitchOnValve(Valves.Blowing);
             await Task.Delay(500);
             _machine.SwitchOffValve(Valves.Blowing);
-            CutWidthMarkerVisibility = Visibility.Visible;
             _machine.StartCamera(0);
-        }
-        private void EndCorrection()
-        {
-            if (CutOffset != 0)
-            {
-                if (MsgBox.Ask($"Сместить следующие резы на {CutOffset} мм?", "Коррекция реза") == MessageBoxResult.OK)
-                {
-                    _wafer.AddToSideShift(CutOffset);
-                } 
-            }
-            var nearestNum = _wafer.GetNearestNum(_yActual - _machine.GetGeometry(Place.CameraChuckCenter, Ax.Y));
-            if (_wafer.CurrentCutNum != nearestNum)
-            {
-                if (MsgBox.Ask($"Изменить номер реза на {(nearestNum + 1).ToOrdinalWords(GrammaticalGender.Masculine)}?", "Коррекция реза") == MessageBoxResult.OK)
-                {
-                    _wafer.SetCurrentCutNum(nearestNum/* + 1*/);
-                }
-                else
-                {
-                    _wafer.IncrementCut();
-                }
-            }
-            else
-            {
-                _wafer.IncrementCut();
-            }
-            CutWidthMarkerVisibility = Visibility.Hidden;
-            CutOffset = 0;
-            _machine.FreezeCameraImage();
-            _inspectX = _xActual;
-            //return Task.CompletedTask;
         }
         private async Task GoCameraPointXyzAsync()
         {
@@ -483,8 +383,8 @@ namespace DicingBlade.Classes.Processes
             _subject.OnNext(new WaferAligningChanged());
         }
         private async Task GoTransferingHeightZAsync()
-        {            
-            await _machine.MoveAxInPosAsync(Ax.Z, _machine.GetFeature(MFeatures.ZBladeTouch) - _wafer.Thickness - _bladeTransferGapZ);           
+        {
+            await _machine.MoveAxInPosAsync(Ax.Z, _machine.GetFeature(MFeatures.ZBladeTouch) - _wafer.Thickness - _bladeTransferGapZ);
         }
         private async Task CuttingXAsync()
         {
@@ -516,7 +416,7 @@ namespace DicingBlade.Classes.Processes
             x = x + Math.Sign(x) * _blade.XGap(_wafer.Thickness);
             var y = line.Start.Y - _wafer.CurrentShift;
             var arr = _machine.TranslateActualCoors(Place.BladeChuckCenter, new (Ax, double)[] { (Ax.X, -x), (Ax.Y, -y) });
-            var resY = y + _machine.GetGeometry(Place.CameraChuckCenter,Ax.Y) - _machine.GetFeature(MFeatures.CameraBladeOffset);
+            var resY = y + _machine.GetGeometry(Place.CameraChuckCenter, Ax.Y) - _machine.GetFeature(MFeatures.CameraBladeOffset);
             var xy = new double[] { arr.GetVal(Ax.X), /*arr.GetVal(Ax.Y)*/resY };
             await _machine.MoveGpInPosAsync(Groups.XY, xy, true);
             await Task.Delay(300);
@@ -564,13 +464,7 @@ namespace DicingBlade.Classes.Processes
             _subject.OnNext(new RotationStarted(deltaAngle, TimeSpan.FromSeconds(time)));
             await _machine.MoveAxInPosAsync(Ax.U, angle);
         }
-
-
-        public async Task TriggerNextState() => await _stateMachine.FireAsync(Trigger.Next);
         public async Task TriggerSingleCutState() => await _stateMachine.FireAsync(Trigger.DoSingleCut);
-        public async Task TriggerNextCutState() => await _stateMachine.FireAsync(Trigger.Correction);
-        public async Task TriggerTeachState() => await _stateMachine?.FireAsync(Trigger.Teach); 
-
         public async Task EmergencyScript()
         {
             _machine.Stop(Ax.X);
@@ -588,7 +482,7 @@ namespace DicingBlade.Classes.Processes
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            
+
         }
         public override string ToString()
         {
@@ -596,7 +490,8 @@ namespace DicingBlade.Classes.Processes
         }
         public async Task Deny()
         {
-            if(_repeatUntillCancell is not null) await _repeatUntillCancell.Cancel();
+            _isCancelled = true;
+            if (_repeatUntillCancell is not null) await _repeatUntillCancell.Cancel();
             await _stateMachine.FireAsync(Trigger.Deny);
         }
         public async Task Next()
@@ -606,13 +501,9 @@ namespace DicingBlade.Classes.Processes
             {
                 await _stateMachine.FireAsync(Trigger.Teach);
             }
-            //else if (!(_stateMachine.IsInState(State.Processing) 
-            //    || _stateMachine.IsInState(State.ProcessInterrupted) 
-            //    || _stateMachine.IsInState(State.ProcessEnd) 
-            //    || _stateMachine.IsInState(State.Correction)))
-            else if(_stateMachine.IsInState(State.TeachSides) & !_wafer.IsLastSide)
+            else if (_stateMachine.IsInState(State.TeachSides) & !_wafer.IsLastSide)
             {
-                await _stateMachine.FireAsync(Trigger.Next);  
+                await _stateMachine.FireAsync(Trigger.Next);
             }
             else if (_stateMachine.IsInState(State.TeachSides) & _wafer.IsLastSide)
             {
@@ -625,13 +516,23 @@ namespace DicingBlade.Classes.Processes
                 await _repeatUntillCancell.Cancel();
                 await _stateMachine.FireAsync(Trigger.Correction);
             }
-            else if(_inProcess || _stateMachine.IsInState(State.Correction))
+            else if (_inProcess || _stateMachine.IsInState(State.Correction))
             {
                 _repeatUntillCancell = new RepeatUntillCancell(() => _stateMachine.FireAsync(Trigger.Next));
                 await _repeatUntillCancell.Start();
             }
         }
-        
+        public void ExcludeObject(IProcObject procObject)
+        {
+            throw new NotImplementedException();
+        }
+        public void IncludeObject(IProcObject procObject)
+        {
+            throw new NotImplementedException();
+        }
+        public IDisposable Subscribe(IObserver<IProcessNotify> observer) => _subject.Subscribe(observer);
+
+
         private class RepeatUntillCancell
         {
             private readonly Func<Task> _next;
@@ -673,122 +574,6 @@ namespace DicingBlade.Classes.Processes
                     while (!token.IsCancellationRequested) ;
                 });
             }
-        }
-
-        public void ExcludeObject(IProcObject procObject)
-        {
-            throw new NotImplementedException();
-        }
-        public void IncludeObject(IProcObject procObject)
-        {
-            throw new NotImplementedException();
-        }
-        public IDisposable Subscribe(IObserver<IProcessNotify> observer) => _subject.Subscribe(observer);
-               
-    }
-
-    internal enum Gender
-    {
-        Male,
-        Female,
-        Neutral
-    }
-    internal enum RusCase
-    {
-        Nominative,
-        Genative,
-        Dative,
-        Accusative,
-        Instrumental,
-        Prepositional
-    }
-
-    internal static class IntNumbers
-    {
-
-
-        public static string ApplyCase(this string str, GrammaticalCase grammaticalCase)
-        {
-            if(str.EndsWith("ая"))
-            {
-                switch (grammaticalCase)
-                {
-                    case GrammaticalCase.Nominative:
-                        return str;
-                    case GrammaticalCase.Genitive:
-                        return str.Substring(0, str.Length - 2) + "ой";
-                    case GrammaticalCase.Dative:
-                        return str.Substring(0, str.Length - 2) + "ой";
-
-                    case GrammaticalCase.Accusative:
-                        return str.Substring(0, str.Length - 2) + "ую";
-
-                    case GrammaticalCase.Instrumental:
-                        return str.Substring(0, str.Length - 2) + "ой";
-
-                    case GrammaticalCase.Prepositional:
-                        return str.Substring(0, str.Length - 2) + "ой";
-
-                    default:
-                        break;
-                }
-            }
-            else if(str.EndsWith("ья"))
-            {
-                switch (grammaticalCase)
-                {
-                    case GrammaticalCase.Nominative:
-                        return str;
-                    case GrammaticalCase.Genitive:
-                        return str.Substring(0, str.Length - 2) + "ей";
-                    case GrammaticalCase.Dative:
-                        return str.Substring(0, str.Length - 2) + "ей";
-
-                    case GrammaticalCase.Accusative:
-                        return str.Substring(0, str.Length - 2) + "ью";
-
-                    case GrammaticalCase.Instrumental:
-                        return str.Substring(0, str.Length - 2) + "ей";
-
-                    case GrammaticalCase.Prepositional:
-                        return str.Substring(0, str.Length - 2) + "ей";
-
-                    default:
-                        break;
-                }
-            }
-            return str;
-        }
-
-        public static string ConvertToWord(int number, Gender gender, RusCase rusCase)
-        {
-            return number switch
-            {
-                1 => "первую",
-                2 => "вторую",
-                3 => "трет",
-                4 => "четрвёрт",
-                5 => "пят",
-                6 => "шест",
-                7 => "седьм",
-                8 => "восьм",
-                9 => "девят",
-            };
-            
-            //var end = rusCase switch
-            //{
-            //    Nominative => gender switch
-            //    {
-            //        Male => "",
-            //        Female => "",
-            //        Neutral => ""
-            //    },
-            //    Genative,
-            //    Dative,
-            //    Accusative,
-            //    Instrumental,
-            //    Prepositional
-            //};
         }
     }
 }

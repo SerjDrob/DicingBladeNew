@@ -1,0 +1,279 @@
+﻿<UserControl x:Class="DicingBlade.Views.CameraView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DicingBlade.Views"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="MyDictionary.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <System:Double x:Key="Hundred">100</System:Double>
+        </ResourceDictionary>        
+    </UserControl.Resources>
+    <Grid>
+        <Image
+            Name="VideoImg"            
+            Margin="3"
+            Panel.ZIndex="0"
+            Source="{Binding Bi, Mode=OneWay}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseLeftButtonDown">
+                    <i:InvokeCommandAction PassEventArgsToCommand="True" 
+                                               EventArgsConverter="{Binding Source={StaticResource MouseArgsConverter}}" 
+                                               EventArgsConverterParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Image}}" 
+                                               Command="{Binding ClickOnImageCommand, Mode=OneWay}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </Image>
+        <Canvas              
+                Width="{Binding ElementName=VideoImg, Path=ActualWidth}"
+                Height="{Binding ElementName=VideoImg, Path=ActualHeight}"
+                Panel.ZIndex="1"
+                ClipToBounds="True">
+            <Grid Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}" 
+                      Height="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
+                      >
+
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="TimesNewRoman"
+                    FontSize="3"
+                    FontStyle="Normal"
+                    FontWeight="Bold"
+                    Foreground="OrangeRed"
+                    RenderTransformOrigin="0.5,-1"
+                    Text="{Binding Path=ProcessMessage}"
+                    TextAlignment="Center">
+
+                    <TextBlock.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform>
+                                <ScaleTransform.ScaleX>
+                                    <MultiBinding Converter="{StaticResource GetRatioConverter}">
+                                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                                        <Binding Source="{StaticResource Hundred}" />
+                                    </MultiBinding>
+                                </ScaleTransform.ScaleX>
+                                <ScaleTransform.ScaleY>
+                                    <MultiBinding Converter="{StaticResource GetRatioConverter}">
+                                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                                        <Binding Source="{StaticResource Hundred}" />
+                                    </MultiBinding>
+                                </ScaleTransform.ScaleY>
+                            </ScaleTransform>
+                        </TransformGroup>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="TimesNewRoman"
+                    FontSize="3"
+                    FontStyle="Normal"
+                    FontWeight="Bold"
+                    Foreground="GreenYellow"
+                    RenderTransformOrigin="0.5,-1"
+                    Text="{Binding Path=Process.CutOffset, StringFormat=Корректировка реза\, мм:  {0:N3}}"
+                    TextAlignment="Center"
+                    Visibility="{Binding CutWidthMarkerVisibility, Converter={StaticResource Boolean2VisibilityConverter}}">
+                    <TextBlock.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform>
+                                <ScaleTransform.ScaleX>
+                                    <MultiBinding Converter="{StaticResource GetRatioConverter}">
+                                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                                        <Binding Source="{StaticResource Hundred}" />
+                                    </MultiBinding>
+                                </ScaleTransform.ScaleX>
+                                <ScaleTransform.ScaleY>
+                                    <MultiBinding Converter="{StaticResource GetRatioConverter}">
+                                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                                        <Binding Source="{StaticResource Hundred}" />
+                                    </MultiBinding>
+                                </ScaleTransform.ScaleY>
+                            </ScaleTransform>
+                        </TransformGroup>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+            </Grid>
+            <Rectangle
+                    Name="CutWidth"
+                    IsHitTestVisible="False"
+                    Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
+                    Stroke="ForestGreen"
+                    Visibility="{Binding CutWidthMarkerVisibility, Converter={StaticResource Boolean2VisibilityConverter}}"
+                    RenderTransformOrigin="0 0.5"
+                    StrokeThickness="1"
+                    >
+
+                <Rectangle.Height>
+                    <MultiBinding Converter="{StaticResource MulConverter}">
+                        <Binding Path="CutWidthView"/>
+                        <Binding Path="CameraScale"/>
+                        <Binding RelativeSource="{RelativeSource AncestorType=Canvas, Mode=FindAncestor}" Path="ActualHeight"/>
+                    </MultiBinding>
+                </Rectangle.Height>
+                <Rectangle.RenderTransform>
+                    <TransformGroup>
+                        <TranslateTransform Y="{Binding RelativeSource={RelativeSource AncestorType=Rectangle}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"/>
+                        <TranslateTransform Y="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=2}"/>
+                        <TranslateTransform>
+                            <TranslateTransform.Y>
+                                <MultiBinding Converter="{StaticResource MulConverter}">
+                                    <Binding RelativeSource="{RelativeSource AncestorType=Canvas, Mode=FindAncestor}" Path="ActualHeight"/>
+                                    <Binding Path="CameraScale"/>
+                                    <Binding Path="CutOffsetView"/>
+                                </MultiBinding>
+                            </TranslateTransform.Y>
+                        </TranslateTransform>
+                    </TransformGroup>
+                </Rectangle.RenderTransform>
+
+            </Rectangle>
+
+            <Rectangle
+                Name="TeachScaleMarkers"
+                Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
+                Stroke="OrangeRed"
+                StrokeThickness="1"
+                Visibility="{Binding TeachVScaleMarkersVisibility, Converter={StaticResource Boolean2VisibilityConverter}, FallbackValue=Hidden}">
+                <Rectangle.Height>
+                    <MultiBinding Converter="{StaticResource GetRatioConverter}">
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                        <Binding Path="TeachMarkersRatio" />
+                    </MultiBinding>
+                </Rectangle.Height>
+                <Canvas.Top>
+                    <MultiBinding Converter="{StaticResource TranslateConverterScheme}">
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                    </MultiBinding>
+                </Canvas.Top>
+                <Rectangle.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="1.5" ScaleY="-1" />
+                        <TranslateTransform X="-10">
+                            <TranslateTransform.Y>
+                                <MultiBinding Converter="{StaticResource TranslateConverterScheme}">
+                                    <Binding Path="Height" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Rectangle}" />
+                                </MultiBinding>
+                            </TranslateTransform.Y>
+                        </TranslateTransform>
+                    </TransformGroup>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+
+            <Rectangle
+                    Name="RealCutWidth"
+                    IsHitTestVisible="False"
+                    Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
+                    Stroke="OrangeRed"
+                    Visibility="Visible"
+                    RenderTransformOrigin="0 0.5"
+                    StrokeThickness="1"
+                    >
+                <Rectangle.Height>
+                    <MultiBinding Converter="{StaticResource MulConverter}">
+                        <Binding Path="RealCutWidthView"/>
+                        <Binding Path="CameraScale"/>
+                        <Binding RelativeSource="{RelativeSource AncestorType=Canvas, Mode=FindAncestor}" Path="ActualHeight"/>
+                    </MultiBinding>
+                </Rectangle.Height>
+                <Rectangle.RenderTransform>
+                    <TransformGroup>
+                        <TranslateTransform Y="{Binding RelativeSource={RelativeSource AncestorType=Rectangle}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"/>
+                        <TranslateTransform Y="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=2}"/>
+                    </TransformGroup>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Path Stroke="Gold" StrokeThickness="{Binding ScaleGridView.StrokeThickness}" RenderTransformOrigin="0.5 0.5">
+                <Path.Data>
+                    <GeometryGroup Children="{Binding ScaleGridView, Converter={StaticResource ScaleGridConverter}}"/>
+                </Path.Data>
+                <Path.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform>
+                            <ScaleTransform.ScaleX>
+                                <MultiBinding Converter="{StaticResource MulConverter}">
+                                    <Binding RelativeSource="{RelativeSource AncestorType=UserControl, Mode=FindAncestor}" Path="DataContext.CameraScale"/>
+                                    <Binding RelativeSource="{RelativeSource AncestorType=Canvas, Mode=FindAncestor}" Path="ActualHeight"/>
+                                </MultiBinding>
+                            </ScaleTransform.ScaleX>
+                            <ScaleTransform.ScaleY>
+                                <MultiBinding Converter="{StaticResource MulConverter}">
+                                    <Binding RelativeSource="{RelativeSource AncestorType=UserControl, Mode=FindAncestor}" Path="DataContext.CameraScale"/>
+                                    <Binding RelativeSource="{RelativeSource AncestorType=Canvas, Mode=FindAncestor}" Path="ActualHeight"/>
+                                </MultiBinding>
+                            </ScaleTransform.ScaleY>
+                        </ScaleTransform>
+                        <TranslateTransform X="{Binding RelativeSource={RelativeSource AncestorType=Canvas, Mode=FindAncestor}, Path=ActualWidth, Converter={StaticResource DivideConverter}, ConverterParameter=2}"
+                                                Y="{Binding RelativeSource={RelativeSource AncestorType=Canvas, Mode=FindAncestor}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=2}"
+                                                />
+                    </TransformGroup>
+                </Path.RenderTransform>
+            </Path>
+
+            <Line
+                    IsHitTestVisible="False"
+                    Stroke="Red" StrokeThickness="1">
+                <Line.X1>
+                    <MultiBinding Converter="{StaticResource CrossConverter}" ConverterParameter="0,3">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                        <Binding Source="1" />
+                    </MultiBinding>
+                </Line.X1>
+                <Line.X2>
+                    <MultiBinding Converter="{StaticResource CrossConverter}" ConverterParameter="0,3">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                        <Binding Source="2" />
+                    </MultiBinding>
+                </Line.X2>
+                <Line.Y1>
+                    <MultiBinding Converter="{StaticResource CrossConverter}" ConverterParameter="0,3">
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                    </MultiBinding>
+                </Line.Y1>
+                <Line.Y2>
+                    <MultiBinding Converter="{StaticResource CrossConverter}" ConverterParameter="0,3">
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                    </MultiBinding>
+                </Line.Y2>
+            </Line>
+            <Line
+                    IsHitTestVisible="False"
+                    Stroke="Red" StrokeThickness="1">
+                <Line.Y1>
+                    <MultiBinding Converter="{StaticResource CrossConverter}" ConverterParameter="0,3">
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                        <Binding Source="1" />
+                    </MultiBinding>
+                </Line.Y1>
+                <Line.Y2>
+                    <MultiBinding Converter="{StaticResource CrossConverter}" ConverterParameter="0,3">
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                        <Binding Source="2" />
+                    </MultiBinding>
+                </Line.Y2>
+                <Line.X1>
+                    <MultiBinding Converter="{StaticResource CrossConverter}" ConverterParameter="0,3">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                    </MultiBinding>
+                </Line.X1>
+                <Line.X2>
+                    <MultiBinding Converter="{StaticResource CrossConverter}" ConverterParameter="0,3">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Canvas}" />
+                    </MultiBinding>
+                </Line.X2>
+            </Line>
+        </Canvas>
+
+    </Grid>
+</UserControl>

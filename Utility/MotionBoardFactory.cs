@@ -1,10 +1,7 @@
-﻿using MachineClassLibrary.Machine.MotionDevices;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MachineClassLibrary.Machine.MotionDevices;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DicingBlade.Utility
 {
@@ -18,12 +15,12 @@ namespace DicingBlade.Utility
             _serviceProvider = serviceProvider;
             _machineConfiguration = machineConfiguration;
         }
-        public IMotionDevicePCI1240U? GetMotionBoard()
+        public IMotionDevicePCI1240U GetMotionBoard()
         {
-            if (_machineConfiguration.IsPCI1240U) return _serviceProvider.GetService<MotionDevicePCI1240U>();
-            if (_machineConfiguration.IsPCI1245E) return _serviceProvider.GetService<MotionDevicePCI1245E>();
-            if (_machineConfiguration.IsMOCKBOARD) return _serviceProvider.GetService<MotDevMock>();
-            return null;
+            if (_machineConfiguration.IsPCI1240U) return _serviceProvider.GetService<MotionDevicePCI1240U>() ?? throw new NullReferenceException("Getting service MotionDevicePCI1240U returned null");
+            if (_machineConfiguration.IsPCI1245E) return _serviceProvider.GetService<MotionDevicePCI1245E>() ?? throw new NullReferenceException("Getting service MotionDevicePCI1245E returned null");
+            if (_machineConfiguration.IsMOCKBOARD) return _serviceProvider.GetService<MotDevMock>() ?? throw new NullReferenceException("Getting service MotDevMock returned null");
+            throw new ArgumentException($"The motion board isn't defined.");
         }
     }
 }

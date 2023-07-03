@@ -11,7 +11,7 @@
     Title="Настройки"
     Width="auto"
     Height="auto"
-    d:DataContext="{d:DesignInstance model:WaferSettingsViewModel,
+    d:DataContext="{d:DesignInstance model:WaferSettingsVM,
                                      IsDesignTimeCreatable=False}"
     xmlns:hc="https://handyorg.github.io/handycontrol"
     ResizeMode="NoResize"
@@ -200,7 +200,7 @@
                                 <Button
                                     Grid.RowSpan="2"
                                     Grid.Column="2"
-                                    Command="{Binding XyObjectiveTeachCmd}"
+                                    Command="{Binding XyObjectiveTeachCommand}"
                                     Content="Обучить" />
                             </Grid>
                         </GroupBox>
@@ -228,7 +228,7 @@
                                 <Button
                                     Grid.RowSpan="2"
                                     Grid.Column="2"
-                                    Command="{Binding XyLoadTeachCmd}"
+                                    Command="{Binding XyLoadTeachCommand}"
                                     Content="Обучить" />
                             </Grid>
                         </GroupBox>
@@ -251,7 +251,7 @@
                             <Button
                                 Grid.Column="2"
                                 Margin="3"
-                                Command="{Binding XDiskTeachCmd}"
+                                Command="{Binding XDiskTeachCommand}"
                                 Content="Обучить" />
                         </Grid>
                     </GroupBox>
@@ -304,7 +304,7 @@
                                 <Button
                                 Grid.Column="2"
                                 Margin="3"
-                                Command="{Binding ZObjectiveTeachCmd}"
+                                Command="{Binding ZObjectiveTeachCommand}"
                                 Content="Обучить" />
                             </Grid>
                         </GroupBox>

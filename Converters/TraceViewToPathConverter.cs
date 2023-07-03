@@ -5,6 +5,7 @@ using System.Windows.Media;
 using netDxf.Entities;
 using System.Collections.ObjectModel;
 using DicingBlade.Classes;
+using DicingBlade.Classes.Miscellaneous;
 
 namespace DicingBlade.Converters
 {

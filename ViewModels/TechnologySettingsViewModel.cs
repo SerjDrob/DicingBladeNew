@@ -1,24 +1,26 @@
-﻿using System.Linq;
-using DicingBlade.Classes;
+﻿using DicingBlade.Classes;
+using DicingBlade.Classes.Miscellaneous;
+using DicingBlade.Classes.Technology;
+using DicingBlade.Classes.WaferGeometry;
 using DicingBlade.Properties;
+using DicingBlade.Utility;
+using Microsoft.Toolkit.Mvvm.Input;
+using Microsoft.Win32;
 using PropertyChanged;
 using System.ComponentModel;
-using System.Windows.Input;
 using System.IO;
-using Microsoft.Win32;
+using System.Linq;
+using System.Windows.Input;
 
 namespace DicingBlade.ViewModels
 {
 
     [AddINotifyPropertyChangedInterface]
-    public class TechnologySettingsViewModel : ITechnology, IDataErrorInfo
+    internal partial class TechnologySettingsViewModel : ITechnology, IDataErrorInfo
     {
         public TechnologySettingsViewModel()
         {
             _validator = new TechnologySettingsValidator();
-            CloseCmd = new Command(args => ClosingWnd());
-            OpenFileCmd = new Command(args => OpenFile());
-            SaveFileAsCmd = new Command(args => SaveFileAs());
             FileName = Settings.Default.TechnologyLastFile;
             if (FileName == null | !File.Exists(FileName))
             {
@@ -49,9 +51,8 @@ namespace DicingBlade.ViewModels
         public Directions PassType { get; set; }
         public int StartControlNum { get; set; }
         public int ControlPeriod { get; set; }
-        public ICommand CloseCmd { get; set; }
-        public ICommand OpenFileCmd { get; set; }
-        public ICommand SaveFileAsCmd { get; set; }
+
+        [ICommand]
         private void ClosingWnd()
         {
             PropContainer.Technology = this;
@@ -59,7 +60,7 @@ namespace DicingBlade.ViewModels
             Settings.Default.TechnologyLastFile = PropContainer.Technology.FileName;
             Settings.Default.Save();
         }
-
+        [ICommand]
         private void OpenFile()
         {
             var dialog = new OpenFileDialog
@@ -74,7 +75,7 @@ namespace DicingBlade.ViewModels
                 ((ITechnology)StatMethods.DeSerializeObjectJson<Technology>(FileName)).CopyPropertiesTo(this);
             }
         }
-
+        [ICommand]
         private void SaveFileAs()
         {
             var dialog = new SaveFileDialog
@@ -89,17 +90,7 @@ namespace DicingBlade.ViewModels
                 ClosingWnd();
             }
         }
-        public string Error =>
-            //if (validator != null)
-            //{
-            //    var results = validator.Validate(this);
-            //    if (results != null && results.Errors.Any())
-            //    {
-            //        var errors = string.Join(Environment.NewLine, results.Errors.Select(x => x.ErrorMessage).ToArray());
-            //        return errors;
-            //    }
-            //}
-            string.Empty;
+        public string Error => string.Empty;
 
         private readonly TechnologySettingsValidator _validator;
         public string this[string columnName]

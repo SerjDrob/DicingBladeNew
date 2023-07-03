@@ -28,29 +28,26 @@ namespace DicingBlade
         public App()
         {
             var machineconfigs = ExtensionMethods
-            .DeserilizeObject<MachineConfiguration>(Path.Combine(ProjectPath.GetFolderPath("AppSettings"), "MachineConfigs.json"));
-
+            .DeserilizeObject<MachineConfiguration>(Path.Combine(ProjectPath.GetFolderPath("AppSettings"), "MachineConfigs.json")) 
+            ?? throw new NullReferenceException("Machine configs isn't defined");
 
             MainIoC = new ServiceCollection();
 
-            MainIoC//.AddMediatR(Assembly.GetExecutingAssembly())
-                   //.AddSingleton<ISubject,Subject>()
-
-                       .AddSingleton<MotDevMock>()
-                       .AddSingleton<MotionDevicePCI1240U>()
-                       .AddSingleton<MotionDevicePCI1245E>()
-                       .AddSingleton(sp =>
-                       {
-                           return new MotionBoardFactory(sp, machineconfigs).GetMotionBoard();
-                       })
-                       .AddSingleton<ExceptionsAgregator>()
-                       .AddScoped<IVideoCapture, USBCamera>()
-                       .AddSingleton<ISpindle, Spindle3>()
-                       //.AddSingleton<ISpindle, MockSpindle>()
-                       .AddSingleton<DicingBladeMachine>()
-                       .AddSingleton<MainViewModel>()
-                       //.AddDbContext<DbContext, LaserDbContext>()
-                       ;
+            MainIoC.AddSingleton<MotDevMock>()
+                   .AddSingleton<MotionDevicePCI1240U>()
+                   .AddSingleton<MotionDevicePCI1245E>()
+                   .AddSingleton(sp =>
+                   {
+                       return new MotionBoardFactory(sp, machineconfigs).GetMotionBoard();
+                   })
+                   .AddSingleton<ExceptionsAgregator>()
+                   .AddScoped<IVideoCapture, USBCamera>()
+                   //.AddSingleton<ISpindle, Spindle3>()
+                   .AddSingleton<ISpindle, MockSpindle>()
+                   .AddSingleton<DicingBladeMachine>()
+                   .AddSingleton<MainViewModel>()
+                   //.AddDbContext<DbContext, LaserDbContext>()
+                   ;
         }
         protected override void OnStartup(StartupEventArgs e)
         {

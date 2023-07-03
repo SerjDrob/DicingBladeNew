@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--<OutputType>WinExe</OutputType>-->
-    <TargetFramework>net6.0-windows</TargetFramework>
-	<TargetPlatformVersion></TargetPlatformVersion>
-    <LangVersion>preview</LangVersion>
-	<Nullable>disable</Nullable>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <!--<LangVersion>preview</LangVersion>-->
+	<Nullable>enable</Nullable>
 	<UseWPF>true</UseWPF>
 	<DefineConstants>TRACE;PCIInserted</DefineConstants>
 	<ApplicationIcon>3xhumed-Mega-Games-Pack-36-SAW-TheGame-3.ico</ApplicationIcon>
@@ -22,6 +21,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	<Prefer32Bit>true</Prefer32Bit>
 	<AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+	<Optimize>False</Optimize>
+	<DebugType>portable</DebugType>
+	<WarningLevel>6</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>True</Optimize>
+    <DebugType>portable</DebugType>
+    <WarningLevel>6</WarningLevel>
   </PropertyGroup>
     
   <ItemGroup>
@@ -33,18 +41,62 @@
   <ItemGroup>
     <Compile Remove="Classes\Axis.cs" />
     <Compile Remove="Classes\Axis2.cs" />
+    <Compile Remove="Classes\AxisDirections.cs" />
+    <Compile Remove="Classes\BehaviourTree.cs" />
+    <Compile Remove="Classes\BehaviourTree2.cs" />
+    <Compile Remove="Classes\Obsolete\Axis.cs" />
+    <Compile Remove="Classes\Obsolete\Axis2.cs" />
+    <Compile Remove="Classes\Obsolete\AxisDirections.cs" />
+    <Compile Remove="Classes\Obsolete\BehaviourTree.cs" />
+    <Compile Remove="Classes\Obsolete\BehaviourTree2.cs" />
+    <Compile Remove="Classes\Obsolete\BehaviourTrees\Block.cs" />
+    <Compile Remove="Classes\Obsolete\BehaviourTrees\ISequence.cs" />
+    <Compile Remove="Classes\Obsolete\BehaviourTrees\Leaf.cs" />
+    <Compile Remove="Classes\Obsolete\BehaviourTrees\Sequence.cs" />
+    <Compile Remove="Classes\Obsolete\BehaviourTrees\Ticker.cs" />
+    <Compile Remove="Classes\Obsolete\BehaviourTrees\WorkerBase.cs" />
+    <Compile Remove="Classes\Bridge.cs" />
+    <Compile Remove="Classes\Command.cs" />
     <Compile Remove="Classes\Di.cs" />
     <Compile Remove="Classes\Do.cs" />
     <Compile Remove="Classes\ExceptionsAgregator.cs" />
     <Compile Remove="Classes\IAxis.cs" />
+    <Compile Remove="Classes\IComSensor.cs" />
     <Compile Remove="Classes\IMachine.cs" />
     <Compile Remove="Classes\ISpindle.cs" />
+    <Compile Remove="Classes\IVideoCapture.cs" />
+    <Compile Remove="Classes\IWafer2.cs" />
     <Compile Remove="Classes\Machine.cs" />
     <Compile Remove="Classes\Machine4X.cs" />
     <Compile Remove="Classes\MachineException.cs" />
     <Compile Remove="Classes\MFeatures.cs" />
     <Compile Remove="Classes\MotionDevice.cs" />
     <Compile Remove="Classes\MotionException.cs" />
+    <Compile Remove="Classes\Obsolete\Bridge.cs" />
+    <Compile Remove="Classes\Obsolete\Command.cs" />
+    <Compile Remove="Classes\Obsolete\Di.cs" />
+    <Compile Remove="Classes\Obsolete\Do.cs" />
+    <Compile Remove="Classes\Obsolete\ExceptionsAgregator.cs" />
+    <Compile Remove="Classes\Obsolete\IAxis.cs" />
+    <Compile Remove="Classes\Obsolete\IComSensor.cs" />
+    <Compile Remove="Classes\Obsolete\IMachine.cs" />
+    <Compile Remove="Classes\Obsolete\ISpindle.cs" />
+    <Compile Remove="Classes\Obsolete\IVideoCapture.cs" />
+    <Compile Remove="Classes\Obsolete\IWafer2.cs" />
+    <Compile Remove="Classes\Obsolete\Machine.cs" />
+    <Compile Remove="Classes\Obsolete\Machine4X.cs" />
+    <Compile Remove="Classes\Obsolete\MachineException.cs" />
+    <Compile Remove="Classes\Obsolete\MFeatures.cs" />
+    <Compile Remove="Classes\Obsolete\MotionDevice.cs" />
+    <Compile Remove="Classes\Obsolete\MotionException.cs" />
+    <Compile Remove="Classes\Obsolete\Place.cs" />
+    <Compile Remove="Classes\Obsolete\Process.cs" />
+    <Compile Remove="Classes\Obsolete\Process4.cs" />
+    <Compile Remove="Classes\Obsolete\Process5.cs" />
+    <Compile Remove="Classes\Obsolete\Spindle3.cs" />
+    <Compile Remove="Classes\Obsolete\SpindleException.cs" />
+    <Compile Remove="Classes\Obsolete\SquareWafer.cs" />
+    <Compile Remove="Classes\Obsolete\USBCamera.cs" />
     <Compile Remove="Classes\Place.cs" />
     <Compile Remove="Classes\Process.cs" />
     <Compile Remove="Classes\Process2.cs" />
@@ -54,6 +106,9 @@
     <Compile Remove="Classes\Spindle.cs" />
     <Compile Remove="Classes\Spindle2.cs" />
     <Compile Remove="Classes\Spindle3.cs" />
+    <Compile Remove="Classes\SpindleException.cs" />
+    <Compile Remove="Classes\SquareWafer.cs" />
+    <Compile Remove="Classes\USBCamera.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Views\7863776561600002497-48.png" />
@@ -68,21 +123,42 @@
     <None Remove="Views\wafer2.png" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="AdvMotAPI, Version=2.0.2.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>.\AdvMotAPI.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Classes\Axis.cs" />
-    <None Include="Classes\Axis2.cs" />
-    <None Include="Classes\IAxis.cs" />
-    <None Include="Classes\MachineException.cs" />
-    <None Include="Classes\MotionDevice.cs" />
-    <None Include="Classes\Process.cs" />
-    <None Include="Classes\Process4.cs" />
-    <None Include="Classes\Processes\Process5.cs" />
-    <Content Include="Notes.txt" />
+    <None Include="Classes\Obsolete\Axis.cs" />
+    <None Include="Classes\Obsolete\Axis2.cs" />
+    <None Include="Classes\Obsolete\AxisDirections.cs" />
+    <None Include="Classes\Obsolete\BehaviourTree.cs" />
+    <None Include="Classes\Obsolete\BehaviourTree2.cs" />
+    <None Include="Classes\Obsolete\BehaviourTrees\Block.cs" />
+    <None Include="Classes\Obsolete\BehaviourTrees\ISequence.cs" />
+    <None Include="Classes\Obsolete\BehaviourTrees\Leaf.cs" />
+    <None Include="Classes\Obsolete\BehaviourTrees\Sequence.cs" />
+    <None Include="Classes\Obsolete\BehaviourTrees\Ticker.cs" />
+    <None Include="Classes\Obsolete\BehaviourTrees\WorkerBase.cs" />
+    <None Include="Classes\Obsolete\Bridge.cs" />
+    <None Include="Classes\Obsolete\Command.cs" />
+    <None Include="Classes\Obsolete\Di.cs" />
+    <None Include="Classes\Obsolete\Do.cs" />
+    <None Include="Classes\Obsolete\ExceptionsAgregator.cs" />
+    <None Include="Classes\Obsolete\IAxis.cs" />
+    <None Include="Classes\Obsolete\IComSensor.cs" />
+    <None Include="Classes\Obsolete\IMachine.cs" />
+    <None Include="Classes\Obsolete\ISpindle.cs" />
+    <None Include="Classes\Obsolete\IVideoCapture.cs" />
+    <None Include="Classes\Obsolete\IWafer2.cs" />
+    <None Include="Classes\Obsolete\Machine.cs" />
+    <None Include="Classes\Obsolete\Machine4X.cs" />
+    <None Include="Classes\Obsolete\MachineException.cs" />
+    <None Include="Classes\Obsolete\MFeatures.cs" />
+    <None Include="Classes\Obsolete\MotionDevice.cs" />
+    <None Include="Classes\Obsolete\MotionException.cs" />
+    <None Include="Classes\Obsolete\Place.cs" />
+    <None Include="Classes\Obsolete\Process.cs" />
+    <None Include="Classes\Obsolete\Process4.cs" />
+    <None Include="Classes\Obsolete\Process5.cs" />
+    <None Include="Classes\Obsolete\Spindle3.cs" />
+    <None Include="Classes\Obsolete\SpindleException.cs" />
+    <None Include="Classes\Obsolete\SquareWafer.cs" />
+    <None Include="Classes\Obsolete\USBCamera.cs" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="ViewModels\FodyWeavers.xml" />
@@ -139,20 +215,12 @@
     <Folder Include="TempFiles\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Classes\Di.cs" />
-    <None Include="Classes\Do.cs" />
-    <None Include="Classes\ExceptionsAgregator.cs" />
-    <None Include="Classes\IMachine.cs" />
-    <None Include="Classes\ISpindle.cs" />
-    <None Include="Classes\Machine.cs" />
-    <None Include="Classes\Machine4X.cs" />
-    <None Include="Classes\MFeatures.cs" />
-    <None Include="Classes\MotionException.cs" />
-    <None Include="Classes\Place.cs" />
-    <None Include="Classes\Spindle3.cs" />
+    <ProjectReference Include="..\MachineClassLibrary\MachineClassLibrary.csproj" />
+    <ProjectReference Include="..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\MachineClassLibrary\MachineClassLibrary.csproj" />
-    <ProjectReference Include="..\..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
+    <Reference Include="AdvMotAPI">
+      <HintPath>..\MachineClassLibrary\AdvMotAPI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

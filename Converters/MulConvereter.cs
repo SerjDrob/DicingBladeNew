@@ -11,18 +11,13 @@ namespace DicingBlade.Converters
         {
             try
             {
-                var result = values.Aggregate((prev, cur) =>
-                {
-                    var prevVal = System.Convert.ToDouble(prev);
-                    var curVal = System.Convert.ToDouble(cur);
-                    return prevVal * curVal;
-                });
-                return result;
+                return values.Cast<double>().Aggregate((prev, cur) => prev * cur);
             }
-            catch (Exception)
+            catch (InvalidCastException ex)
             {
-                throw;
+               // throw;
             }
+            return 0;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

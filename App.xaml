@@ -7,20 +7,13 @@
     xmlns:hc="https://handyorg.github.io/handycontrol" 
     xmlns:local="clr-namespace:DicingBlade"
     xmlns:controls="clr-namespace:MachineControlsLibrary.Controls;assembly=MachineControlsLibrary"
+    xmlns:vm="clr-namespace:DicingBlade.ViewModels"
+    xmlns:views="clr-namespace:DicingBlade.Views"
     d1p1:Ignorable="d"
     >
     <Application.Resources>
         <ResourceDictionary>
-            <Style x:Key="Rec1" TargetType="Rectangle">
-                <Setter Property="Width" Value="10" />
-                <Setter Property="Height" Value="10" />
-                <!--<Setter Property="Fill"  Value="{StaticResource SignalRed}"/>-->
-                <!--<Style.Triggers>
-                    <DataTrigger Value="True">
-                        <Setter Property="Fill" Value="{StaticResource SignalGreen}"/>
-                    </DataTrigger>
-                </Style.Triggers>-->
-            </Style>
+            
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="WizardDictionary.xaml"/>
                 <!--<ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinViolet.xaml"/>-->
@@ -31,7 +24,19 @@
                 <ResourceDictionary Source="Geometries.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             
-        </ResourceDictionary>
+            <Style x:Key="Rec1" TargetType="Rectangle">
+                <Setter Property="Width" Value="10" />
+                <Setter Property="Height" Value="10" />
+            </Style>
 
+            <DataTemplate DataType="{x:Type vm:SubstrateVM}">
+                <views:SubstrateView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:CameraVM}">
+                <views:CameraView/>
+            </DataTemplate>
+
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,8 +1,9 @@
 ﻿using Advantech.Motion;
 using DicingBlade.Classes;
-using DicingBlade.Classes.BehaviourTrees;
+using DicingBlade.Classes.Miscellaneous;
 using DicingBlade.Classes.Processes;
-using DicingBlade.Classes.Test;
+using DicingBlade.Classes.Technology;
+using DicingBlade.Classes.WaferGeometry;
 using DicingBlade.Properties;
 using DicingBlade.Utility;
 using DicingBlade.Views;
@@ -10,11 +11,11 @@ using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine;
 using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
+using MachineClassLibrary.Machine.Parts;
 using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
-using netDxf;
-using netDxf.Entities;
+using Microsoft.Toolkit.Mvvm.Input;
 using PropertyChanged;
 using System;
 using System.Collections.Generic;
@@ -29,10 +30,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
-using Point = System.Windows.Point;
 using Growl = HandyControl.Controls.Growl;
 using MsgBox = HandyControl.Controls.MessageBox;
+using Point = System.Windows.Point;
 
 namespace DicingBlade.ViewModels
 {
@@ -42,49 +42,96 @@ namespace DicingBlade.ViewModels
     {
         const string APP_SETTINGS_FOLDER = "AppSettings";
 
-        private readonly ExceptionsAgregator _exceptionsAgregator;
         private readonly DicingBladeMachine _machine;
-
-        public double CameraScale { get; private set; }
-        private bool _homeDone;
         private ITechnology _technology;
-
         private IComSensor _flowMeter;
+        private DicingProcess _dicingProcess;
+        private bool _isProcessInCorrection;
+        private bool _isSingleCutAvaliable;
+        private IWafer _currentWafer;
 
-        private Task _tracingTask;
-        private CancellationToken _tracingTaskCancellationToken;
-
-        private CancellationTokenSource _tracingTaskCancellationTokenSource;
-        private WatchSettingsService _settingsService;
+        //public double CameraScale { get; private set; }
         public bool CutWidthMarkerVisibility { get; set; }
-        //[Obsolete("Only for design data", true)]
-        //public MainViewModel()
-        //    : this(null, null)
-        //{
-        //    if ((bool)DesignerProperties.IsInDesignModeProperty.GetMetadata(typeof(DependencyObject)).DefaultValue)
-        //    {
-        //        throw new Exception("Use only for design mode");
-        //    }
-        //}
+        //public ScaleGrid ScaleGridView { get; private set; }
+        public double Flow { get; set; }
+        public Velocity VelocityRegime { get; set; } = Velocity.Fast;
+        public ObservableCollection<TraceLine> TracesCollectionView { get; set; } = new();
+        public ObservableCollection<TraceLine> ControlPointsView { get; set; } = new();
+        //public double CutOffsetView { get; set; }
 
-        public MainViewModel(ExceptionsAgregator exceptionsAgregator, DicingBladeMachine machine)
+        //public double XTrace { get; set; }
+        //public double YTrace { get; set; }
+        //public double XTraceEnd { get; set; }
+
+
+        public object CentralView { get; set; }
+        public object RightSideView {  get; set; }
+
+
+        public CameraVM CamVM { get; set; } = new();
+
+        //public BitmapImage Bi { get; set; }
+
+        public AxisStateView XAxis { get; set; } = new AxisStateView(0, 0, false, false, true, false);
+        public AxisStateView YAxis { get; set; } = new AxisStateView(0, 0, false, false, true, false);
+        public AxisStateView ZAxis { get; set; } = new AxisStateView(0, 0, false, false, true, false);
+        public AxisStateView UAxis { get; set; } = new AxisStateView(0, 0, false, false, true, false);
+        
+        public bool ChuckVacuumValveView { get; set; }
+        public bool CoolantValveView { get; set; }
+        public bool BlowingValveView { get; set; }
+        public bool ChuckVacuumSensorView { get; set; }
+        public bool CoolantSensorView { get; set; }
+        public bool AirSensorView { get; set; }
+        public bool SpindleCoolantSensorView { get; set; }
+        //public double BCCenterXView { get; set; }
+        //public double BCCenterYView { get; set; }
+        //public double CCCenterXView { get; set; }
+        //public double CCCenterYView { get; set; }
+        public double ZBladeTouchView { get; set; }
+        public int SpindleFreqView { get; set; }
+        public double SpindleCurrentView { get; set; }
+        //public double WaferCurrentShiftView { get; set; }
+        //public bool ResetView { get; private set; }
+        public bool SpindleOnFreq { get; private set; }
+        public bool SpindleAccelarating { get; private set; }
+        public bool SpindleDeccelarating { get; private set; }
+        public bool SpindleStops { get; private set; }
+        //public double CutWidthView { get; set; } = 0.05;
+        //public double RealCutWidthView { get; set; } = 0.13;
+        public Wafer Wafer { get; set; }
+        public Wafer2D Substrate { get; private set; }
+        //public WaferView WaferView { get; set; }
+        //public double WvAngle { get; set; }
+        //public bool WvRotate { get; set; }
+        //public double RotatingTime { get; set; } = 1;
+        //public double Thickness { get; set; } = 1;
+
+        //public int[] Rows { get; set; }
+        //public int[] Cols { get; set; }
+
+        public bool TeachVScaleMarkersVisibility { get; private set; }
+        public string ProcessStatus { get; private set; }
+        public bool UserConfirmation { get; private set; }
+        public double TeachMarkersRatio { get; } = 2;
+
+
+
+        public SubstrateVM SubstrVM { get; set; } = new();
+
+        public MainViewModel(DicingBladeMachine machine)
         {
-            _exceptionsAgregator = exceptionsAgregator;
+            //Cols = new[] { 0, 1 };
+            //Rows = new[] { 2, 1 };
 
-            Test = false;
-            Cols = new[] { 0, 1 };
-            Rows = new[] { 2, 1 };
+            SubstrVM.SubstrateClicked += SubstrVM_SubstrateClicked;
+            CamVM.ImageClicked += CamVM_ImageClicked;
+            CentralView = SubstrVM;
+            RightSideView = CamVM;
+            //Bi = new BitmapImage();
+            //CameraScale = Settings.Default.CameraScale;
 
-            ClickOnImageCmd = new Command(args => ClickOnImage(args));
-            LeftClickOnWaferCmd = new Command(args => LeftClickOnWafer(args));
-            RightClickOnWaferCmd = new Command(args => RightClickOnWafer(args));
-            
-
-            Bi = new BitmapImage();
-
-            _exceptionsAgregator.SetShowMethod(s => { MessageBox.Show(s); });
-            _exceptionsAgregator.SetShowMethod(s => { ProcessMessage = s; });
-            CameraScale = Settings.Default.CameraScale;
+            CamVM.CameraScale = Settings.Default.CameraScale;
 
             try
             {
@@ -99,23 +146,38 @@ namespace DicingBlade.ViewModels
                 _machine.SwitchOffValve(Valves.Coolant);
                 _machine.SwitchOffValve(Valves.SpindleContact);
 
-                _machine.StartCamera(0,1);
+                _machine.StartCamera(0, 1);
                 _machine.OnBitmapChanged += _machine_OnBitmapChanged;
 
                 _machine.OnAxisMotionStateChanged += _machine_OnAxisMotionStateChanged;
                 _machine.OnSensorStateChanged += _machine_OnSensorStateChanged;
                 _machine.OnValveStateChanged += _machine_OnValveStateChanged;
-                
+
                 _machine.OnSpindleStateChanging += _machine_OnSpindleStateChanging;
             }
             catch (MotionException ex)
             {
                 MessageBox.Show(ex.Message, ex.StackTrace);
             }
-            
-            _settingsService = new();
-            _settingsService.OnSettingsChangedEvent += _settingsService_OnSettingsChangedEvent;
-            AjustWaferTechnology();
+
+            if (File.Exists(Settings.Default.WaferLastFile))
+            {
+                _currentWafer = ExtensionMethods.DeserilizeObject<TempWafer>(Settings.Default.WaferLastFile);
+
+            }
+            else
+            {
+                _currentWafer = new TempWafer
+                {
+                    Width = 60,
+                    Height = 48,
+                    IndexH = 2,
+                    IndexW = 3,
+                    Thickness = 0.5,
+                    IsRound = false
+                };
+            }
+            AjustWaferTechnology(_currentWafer);
             _flowMeter = new FlowMeter("COM9");
             _flowMeter.GetData += _flowMeter_GetData;
             InitCommands();
@@ -123,122 +185,23 @@ namespace DicingBlade.ViewModels
 
             var viewfinders = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(APP_SETTINGS_FOLDER, "Viewfinders.json")).DivideDoubles(1000);
 
-            ScaleGridView = viewfinders;
-            RealCutWidthView = viewfinders.RealCutWidth;
-            CutWidthView = viewfinders.CorrectingCutWidth;
+            CamVM.ScaleGridView = viewfinders;
+            CamVM.RealCutWidthView = viewfinders.RealCutWidth;
+            CamVM.CutWidthView = viewfinders.CorrectingCutWidth;
 
         }
 
-        public ScaleGrid ScaleGridView { get; private set; }
-        public double Flow { get; set; }
+       
+
         private void _flowMeter_GetData(decimal obj)
         {
             Flow = (double)obj;
         }
 
-        private void _settingsService_OnSettingsChangedEvent(object sender, SettingsChangedEventArgs eventArgs)
-        {
-
-            //if (eventArgs.Settings is IWafer)
-            //{
-            //    var wf = (IWafer)eventArgs.Settings;
-            //    var substrate = new Substrate2D(wf.IndexH, wf.IndexW, wf.Thickness, new Rectangle2D(wf.Height, wf.Width));
-            //    if (Process is null)
-            //    {
-            //        Substrate = substrate;
-            //    }
-            //    else
-            //    {
-            //        substrate.SetSide(Process.CurrentDirection);
-            //    }
-
-            //    var wfViewFactory = new WaferViewFactory(substrate);
-            //    ResetView ^= true;
-            //    WaferView = new();
-            //    WaferView.SetView(wfViewFactory);
-            //}
-        }
-
-        public Velocity VelocityRegime { get; set; } = Velocity.Fast;
-        public ObservableCollection<TraceLine> TracesCollectionView { get; set; } = new();
-        public double CutOffsetView { get; set; }
-        public double XTrace { get; set; }
-        public double YTrace { get; set; }
-        public double XTraceEnd { get; set; }
-        public BitmapImage Bi { get; set; }
-        public double XView { get; set; }
-        public double YView { get; set; }
-        public double ZView { get; set; }
-        public double UView { get; set; }
-        public bool XpLmtView { get; set; }
-        public bool YpLmtView { get; set; }
-        public bool ZpLmtView { get; set; }
-        public bool UpLmtView { get; set; }
-        public bool XnLmtView { get; set; }
-        public bool YnLmtView { get; set; }
-        public bool ZnLmtView { get; set; }
-        public bool UnLmtView { get; set; }
-        public bool XMotDoneView { get; set; }
-        public bool YMotDoneView { get; set; }
-        public bool ZMotDoneView { get; set; }
-        public bool UMotDoneView { get; set; }
-        public bool ChuckVacuumValveView { get; set; }
-        public bool CoolantValveView { get; set; }
-        public bool BlowingValveView { get; set; }
-        public bool ChuckVacuumSensorView { get; set; }
-        public bool CoolantSensorView { get; set; }
-        public bool TestBool { get; set; } = true;
-        public bool AirSensorView { get; set; }
-        public double CoolantRateView { get; set; }
-        public bool SpindleCoolantSensorView { get; set; }
-        public double BCCenterXView { get; set; }
-        public double BCCenterYView { get; set; }
-        public double CCCenterXView { get; set; }
-        public double CCCenterYView { get; set; }
-        public double ZBladeTouchView { get; set; }
-        public int SpindleFreqView { get; set; }
-        public double SpindleCurrentView { get; set; }
-        public double WaferCurrentShiftView { get; set; }
-        public ObservableCollection<TraceLine> ControlPointsView { get; set; } = new();
-        public bool ResetView { get; private set; }
-        public bool SpindleOnFreq { get; private set; }
-        public bool SpindleAccelarating { get; private set; }
-        public bool SpindleDeccelarating { get; private set; }
-        public bool SpindleStops { get; private set; }
-        public double PointX { get; set; }
-        public double PointY { get; set; }
-        public double CutWidthView { get; set; } = 0.05;
-        public double RealCutWidthView { get; set; } = 0.13;
-        public Wafer Wafer { get; set; }
-        public Wafer2D Substrate { get; private set; }
-        public WaferView WaferView { get; set; }
-        public ObservableCollection<TracePath> Traces { get; set; }
-        public double WvAngle { get; set; }
-        public bool WvRotate { get; set; }
-        public double RotatingTime { get; set; } = 1;
-        public Map Condition { get; set; }
-        public double Thickness { get; set; } = 1;
-        public bool Test { get; set; }
-        public int[] Rows { get; set; }
-
-        public int[] Cols { get; set; }
-        public ICommand RotateCmd { get; }
-        public ICommand TestCmd { get; }
-        public ICommand ClickOnImageCmd { get; }
-        public ICommand LeftClickOnWaferCmd { get; }
-        public ICommand RightClickOnWaferCmd { get; }
-
-        public Visibility TeachVScaleMarkersVisibility { get; private set; } = Visibility.Hidden;
-        public string ProcessMessage { get; private set; }
-        public string ProcessStatus { get; private set; }
-        public bool UserConfirmation { get; private set; }
-        public double TeachMarkersRatio { get; } = 2;
-        public bool MachineIsStillView { get; private set; }
+        
 
 
-        private DicingProcess _dicingProcess;
-        private bool _isProcessInCorrection;
-        private bool _isSingleCutAvaliable;
+        
 
         private void _machine_OnSpindleStateChanging(object? obj, SpindleEventArgs e)
         {
@@ -252,9 +215,9 @@ namespace DicingBlade.ViewModels
 
         private void _machine_OnBitmapChanged(object? sender, VideoCaptureEventArgs e)
         {
-            Bi = e.Image;
+            CamVM.Bi = e.Image;
         }
-        
+
         private void _machine_OnValveStateChanged(object? sender, ValveEventArgs eventArgs)
         {
             switch (eventArgs.Valve)
@@ -294,41 +257,15 @@ namespace DicingBlade.ViewModels
         {
             try
             {
-                switch (e.Axis)
+                var state = new AxisStateView(Math.Round(e.Position, 3), Math.Round(e.CmdPosition, 3), e.NLmt, e.PLmt, e.MotionDone, e.MotionStart);
+                var axisState = e.Axis switch
                 {
-                    case Ax.X:
-                        XView = e.Position;
-                        XpLmtView = e.PLmt;
-                        XnLmtView = e.NLmt;
-                        XMotDoneView = e.MotionStart ? true : e.MotionDone ? false : XMotDoneView;
-                        //XAxis = new AxisStateView(Math.Round(e.Position, 3), Math.Round(e.CmdPosition, 3), e.NLmt, e.PLmt, e.MotionDone, e.MotionStart);
-                        //LaserViewfinderX = _coorSystem?.FromSub(LMPlace.FileOnWaferUnderLaser, XAxis.Position, YAxis.Position)[0] * FileScale ?? 0;
-                        //CameraViewfinderX = _coorSystem?.FromSub(LMPlace.FileOnWaferUnderCamera, XAxis.Position, YAxis.Position)[0] * FileScale ?? 0;
-                        break;
-                    case Ax.Y:
-                        YView = e.Position;
-                        YpLmtView = e.PLmt;
-                        YnLmtView = e.NLmt;
-                        YMotDoneView = e.MotionStart ? true : e.MotionDone ? false : YMotDoneView;
-                        //YAxis = new AxisStateView(Math.Round(e.Position, 3), Math.Round(e.CmdPosition, 3), e.NLmt, e.PLmt, e.MotionDone, e.MotionStart);
-                        //LaserViewfinderY = _coorSystem?.FromSub(LMPlace.FileOnWaferUnderLaser, XAxis.Position, YAxis.Position)[1] * FileScale ?? 0;
-                        //CameraViewfinderY = _coorSystem?.FromSub(LMPlace.FileOnWaferUnderCamera, XAxis.Position, YAxis.Position)[1] * FileScale ?? 0;
-                        break;
-                    case Ax.Z:
-                        ZView = e.Position;
-                        ZpLmtView = e.PLmt;
-                        ZnLmtView = e.NLmt;
-                        ZMotDoneView = e.MotionStart ? true : e.MotionDone ? false : ZMotDoneView;
-                        //ZAxis = new AxisStateView(Math.Round(e.Position, 3), Math.Round(e.CmdPosition, 3), e.NLmt, e.PLmt, e.MotionDone, e.MotionStart);
-                        break;
-                    case Ax.U:
-                        UView = e.Position;
-                        UpLmtView = e.PLmt;
-                        UnLmtView = e.NLmt;
-                        UMotDoneView = e.MotionStart ? true : e.MotionDone ? false : UMotDoneView;
-                        break;
-                }
-                MachineIsStillView = XMotDoneView & YMotDoneView & ZMotDoneView & UMotDoneView;
+                    Ax.X => XAxis,
+                    Ax.Y => YAxis,
+                    Ax.Z => ZAxis,
+                    Ax.U => UAxis
+                };
+                axisState = state;
             }
             catch (Exception)
             {
@@ -336,199 +273,90 @@ namespace DicingBlade.ViewModels
             }
         }
 
-        private async Task ClickOnImage(object o)
+        //[ICommand]
+        //private async Task ClickOnImage(object o)
+        //{
+        //    var point = (Point)o;
+
+        //    var x = XAxis.Position - point.X * CamVM.CameraScale;
+        //    var y = YAxis.Position + point.Y * CamVM.CameraScale;
+
+
+        //    _machine.SetVelocity(Velocity.Service);
+        //    await Task.WhenAll(
+        //    _machine.MoveAxInPosAsync(Ax.X, x),
+        //    _machine.MoveAxInPosAsync(Ax.Y, y, true));
+        //}
+        private async void CamVM_ImageClicked(object sender, ImageClickedArgs e)
         {
-            var point = (Point)o;
-            PointX = XView - point.X * CameraScale;
-            PointY = YView + point.Y * CameraScale;
+            var x = XAxis.Position - e.X;
+            var y = YAxis.Position + e.Y;
+
+
             _machine.SetVelocity(Velocity.Service);
-            _machine.MoveAxInPosAsync(Ax.X, PointX);
-            _machine.MoveAxInPosAsync(Ax.Y, PointY, true);
+            await Task.WhenAll(
+            _machine.MoveAxInPosAsync(Ax.X, x),
+            _machine.MoveAxInPosAsync(Ax.Y, y, true));
         }
+        //[ICommand]
+        //private async Task LeftClickOnWafer(object o)
+        //{
+        //    var points = (Point[])o;
+        //    var x = 0d;
+        //    var y = 0d;
+        //    var index = WaferView.ShapeSize[0] > WaferView.ShapeSize[1] ? 0 : 1;
+        //    x = points[index].X * 1.4 * WaferView.ShapeSize[index];
+        //    y = points[index].Y * 1.4 * WaferView.ShapeSize[index];
 
-        private async Task LeftClickOnWafer(object o)
+        //    x = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -x, Ax.X);
+        //    y = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -y, Ax.Y);
+
+        //    _machine.SetVelocity(Velocity.Service);
+        //    await Task.WhenAll(
+        //    _machine.MoveAxInPosAsync(Ax.X, x),
+        //    _machine.MoveAxInPosAsync(Ax.Y, y));
+        //}
+
+        //[ICommand]
+        //private async Task RightClickOnWafer(object o)
+        //{
+        //    var points = (Point[])o;
+        //    var x = 0d;
+        //    var y = 0d;
+        //    var index = WaferView.ShapeSize[0] > WaferView.ShapeSize[1] ? 0 : 1;
+        //    x = points[index].X * 1.4 * WaferView.ShapeSize[index];
+        //    y = points[index].Y * 1.4 * WaferView.ShapeSize[index];
+
+        //    x = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -x, Ax.X);
+        //    y = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -Substrate.GetNearestY(y), Ax.Y);
+
+        //    _machine.SetVelocity(Velocity.Service);
+        //    await Task.WhenAll(
+        //    _machine.MoveAxInPosAsync(Ax.X, x),
+        //    _machine.MoveAxInPosAsync(Ax.Y, y));
+        //}
+
+        private async void SubstrVM_SubstrateClicked(object sender, SubstrateClickedArgs e)
         {
-            var points = (Point[])o;
+            var x = 0d;
+            var y = 0d;
 
-            if (WaferView.ShapeSize[0] > WaferView.ShapeSize[1])
+            if (e.IsByLeftButtonClicked)
             {
-                PointX = points[0].X * 1.4 * WaferView.ShapeSize[0];
-                PointY = points[0].Y * 1.4 * WaferView.ShapeSize[0];
+                x = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -e.X, Ax.X);
+                y = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -e.Y, Ax.Y);
             }
             else
             {
-                PointX = points[1].X * 1.4 * WaferView.ShapeSize[1];
-                PointY = points[1].Y * 1.4 * WaferView.ShapeSize[1];
+                x = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -x, Ax.X);
+                y = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -Substrate.GetNearestY(y), Ax.Y);
             }
-
-            PointX = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -PointX, Ax.X);
-            PointY = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -PointY, Ax.Y);
-
+            
             _machine.SetVelocity(Velocity.Service);
-            _machine.MoveAxInPosAsync(Ax.X, PointX);
-            _machine.MoveAxInPosAsync(Ax.Y, PointY);
+                await Task.WhenAll(
+                _machine.MoveAxInPosAsync(Ax.X, x),
+                _machine.MoveAxInPosAsync(Ax.Y, y));
         }
-
-        private async Task RightClickOnWafer(object o)
-        {
-            var points = (Point[])o;
-
-            if (WaferView.ShapeSize[0] > WaferView.ShapeSize[1])
-            {
-                PointX = points[0].X * 1.4 * WaferView.ShapeSize[0];
-                PointY = points[0].Y * 1.4 * WaferView.ShapeSize[0];
-            }
-            else
-            {
-                PointX = points[1].X * 1.4 * WaferView.ShapeSize[1];
-                PointY = points[1].Y * 1.4 * WaferView.ShapeSize[1];
-            }
-
-            PointX = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -PointX, Ax.X);
-            PointY = _machine.TranslateSpecCoor(Place.CameraChuckCenter, -Substrate.GetNearestY(PointY), Ax.Y);
-
-            _machine.SetVelocity(Velocity.Service);
-            _machine.MoveAxInPosAsync(Ax.X, PointX);
-            _machine.MoveAxInPosAsync(Ax.Y, PointY);
-        }
-
-        //private void SetRotation(double angle, double time)
-        //{
-        //    WvAngle = angle;
-        //    RotatingTime = time;
-        //    WvRotate ^= true;
-        //}
-
-        //private void Machine_OnAirWanished(DiEventArgs eventArgs)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //private void Func(object args)
-        //{
-        //}
-
-        //private void GetWvAngle(bool changing)
-        //{
-        //}
-
-        
-
-        private async Task KeyDownAsync(object args)
-        {
-            var key = (KeyEventArgs)args;
-
-            //if (key.Key == Key.Multiply)
-            //{
-            //    UserConfirmation = true;
-            //}
-            
-                       
-            //if (key.Key == Key.Divide)
-            //{
-            //    if (_homeDone)
-            //    {
-            //        if (_dicingProcess is null)
-            //        {
-            //            var blade = new Blade();
-            //            blade.Diameter = 55.6;
-            //            blade.Thickness = 0.11;
-            //            Substrate.ResetWafer();
-            //            //Process5 = new Process5(_machine, Substrate, blade, _technology);
-            //            //Process5.GetRotationEvent += SetRotation;
-            //            //Process5.ChangeScreensEvent += ChangeScreensRegime;
-            //            //Process5.BladeTracingEvent += Process_BladeTracingEvent;
-            //            //Process5.OnProcessStatusChanged += Process_OnProcessStatusChanged;
-            //            //Process5.OnProcParamsChanged += Process_OnProcParamsChanged;
-            //            //Process5.OnControlPointAppeared += Process_OnControlPointAppeared;
-            //            //Process5.OnProcStatusChanged += Process5_OnProcStatusChanged;
-
-            //            _dicingProcess = new DicingProcess(_machine, Substrate, blade, _technology);
-            //            GetSubscriptions(_dicingProcess);
-            //        }
-            //        else
-            //        {
-            //            //Process5.StartPauseProc();
-            //        } 
-            //    }
-            //    else
-            //    {
-            //        MessageBox.Show("Необходимо обнулить координаты. Нажмите клавишу Home");
-            //    }
-
-            //}
-
-            //if (key.Key == Key.A)
-            //{
-            //    if (VelocityRegime == Velocity.Step)
-            //    {
-            //        var velocity = VelocityRegime;
-            //        _machine.SetVelocity(Velocity.Service);
-            //        var y = YView - 0.03;
-            //        await _machine.MoveAxInPosAsync(Ax.Y, y + Substrate.CurrentIndex, true);
-            //        await Task.Delay(300);
-            //        await _machine.MoveAxInPosAsync(Ax.Y, y + 0.03 + Substrate.CurrentIndex, true);
-            //        _machine.SetVelocity(velocity);
-            //    }
-            //    else
-            //    {
-            //        _machine.GoWhile(Ax.Y, AxDir.Pos);
-            //    }
-            //}
-
-            //if (key.Key == Key.Z)
-            //{
-            //    if (VelocityRegime == Velocity.Step)
-            //    {
-            //        var velocity = VelocityRegime;
-            //        _machine.SetVelocity(Velocity.Service);
-            //        var y = YView - 0.03;
-            //        await _machine.MoveAxInPosAsync(Ax.Y, y - Substrate.CurrentIndex, true);
-            //        await Task.Delay(300);
-            //        await _machine.MoveAxInPosAsync(Ax.Y, y + 0.03 - Substrate.CurrentIndex, true);
-            //        _machine.SetVelocity(velocity);
-            //    }
-            //    else
-            //    {
-            //        _machine.GoWhile(Ax.Y, AxDir.Neg);
-            //    }
-            //}
-
-                    
-
-                       
-           
-            
-
-            
-            if (Keyboard.IsKeyDown(Key.RightCtrl) && Keyboard.IsKeyDown(Key.Oem6))
-            {
-                await _machine?.GoThereAsync(Place.CameraChuckCenter);
-            }
-
-            if (Keyboard.IsKeyDown(Key.RightCtrl) && Keyboard.IsKeyDown(Key.Oem4))
-            {
-                await _machine?.GoThereAsync(Place.BladeChuckCenter);
-            }
-                       
-
-            //if (key.Key == Key.F12)
-            //{
-            //    if (_dicingProcess is not null)
-            //    {
-            //        //_dicingProcess.EmergencyScript();
-            //        //_dicingProcess.WaitProcDoneAsync().Wait();
-            //        //_dicingProcess = null;
-            //        Substrate = null;
-            //        ResetWaferView();
-            //        AjustWaferTechnology();
-            //        //MessageBox.Show("Процесс экстренно прерван оператором.", "Процесс", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-
-            //    }
-            //}
-            //key.Handled = true;
-        }
-
         private void GetSubscriptions(IObservable<IProcessNotify> dicingProcess)
         {
 #pragma warning disable VSTHRD101 // Avoid unsupported async delegates
@@ -537,7 +365,7 @@ namespace DicingBlade.ViewModels
                 .Subscribe(async state =>
                 {
                     switch (state.DestinationState)
-                    {                        
+                    {
                         case State.Correction:
                             {
                                 ChangeScreensRegime(true);
@@ -558,9 +386,11 @@ namespace DicingBlade.ViewModels
                     }
                 });
             dicingProcess.OfType<ProcessStateChanging>()
-                .Subscribe(async state => 
+                .Subscribe(async state =>
                 {
                     ProcessPercentage = _dicingProcess.ProcessPercentage;
+                    var tracingTask = Task.CompletedTask;
+                    var tracingTaskCancellationTokenSource = new CancellationTokenSource();
                     switch (state.SourceState)
                     {
                         case State.Correction:
@@ -570,7 +400,7 @@ namespace DicingBlade.ViewModels
                                 _isSingleCutAvaliable = false;
                                 _isReadyForAligning = false;
                                 CutWidthMarkerVisibility = false;
-                                CutOffsetView = 0;
+                                CamVM.CutOffsetView = 0;
                             }
                             break;
 
@@ -599,18 +429,25 @@ namespace DicingBlade.ViewModels
                             //Cancellation the tracing after cutting is end.
                             {
 
-                                _tracingTaskCancellationTokenSource.Cancel();
+                                tracingTaskCancellationTokenSource.Cancel();
 
                                 var rotateTransform = new RotateTransform(
                                     -WaferCurrentSideAngle,
-                                    BCCenterXView,
-                                    BCCenterYView
+                                    //BCCenterXView,
+                                    //BCCenterYView
+                                    SubstrVM.BCCenterXView,
+                                    SubstrVM.BCCenterYView
                                 );
 
-                                var point1 = rotateTransform.Transform(new Point(XTrace, YTrace + WaferCurrentShiftView));
-                                var point2 = rotateTransform.Transform(new Point(XTraceEnd, YTrace + WaferCurrentShiftView));
-                                point1 = new TranslateTransform(-BCCenterXView, -BCCenterYView).Transform(point1);
-                                point2 = new TranslateTransform(-BCCenterXView, -BCCenterYView).Transform(point2);
+                                //var point1 = rotateTransform.Transform(new Point(XTrace, YTrace + WaferCurrentShiftView));
+                                //var point2 = rotateTransform.Transform(new Point(XTraceEnd, YTrace + WaferCurrentShiftView));
+                                //point1 = new TranslateTransform(-BCCenterXView, -BCCenterYView).Transform(point1);
+                                //point2 = new TranslateTransform(-BCCenterXView, -BCCenterYView).Transform(point2);
+
+                                var point1 = rotateTransform.Transform(new Point(SubstrVM.XTrace, SubstrVM.YTrace + SubstrVM.WaferCurrentShiftView));
+                                var point2 = rotateTransform.Transform(new Point(SubstrVM.XTraceEnd, SubstrVM.YTrace + SubstrVM.WaferCurrentShiftView));
+                                point1 = new TranslateTransform(-SubstrVM.BCCenterXView, -SubstrVM.BCCenterYView).Transform(point1);
+                                point2 = new TranslateTransform(-SubstrVM.BCCenterXView, -SubstrVM.BCCenterYView).Transform(point2);
 
                                 TracesCollectionView.Add(new TraceLine
                                 {
@@ -621,28 +458,29 @@ namespace DicingBlade.ViewModels
                                 });
 
                                 TracesCollectionView = new ObservableCollection<TraceLine>(TracesCollectionView);
-                                XTrace = new double();
-                                YTrace = new double();
-                                XTraceEnd = new double();
+                                //XTrace = new double();
+                                //YTrace = new double();
+                                //XTraceEnd = new double();
+
+                                SubstrVM.ResetTrace();
 
                                 try
                                 {
-                                    await _tracingTask;
+                                    await tracingTask;
                                 }
                                 catch (OperationCanceledException)
                                 {
                                 }
                                 finally
                                 {
-                                    _tracingTaskCancellationTokenSource.Dispose();
-                                    _tracingTask?.Dispose();
+                                    tracingTask?.Dispose();
                                 }
 
                             }
                             break;
                     }
 
-                    switch(state.DestinationState) 
+                    switch (state.DestinationState)
                     {
                         case State.GoingNextDepthZ:
                             {
@@ -667,41 +505,40 @@ namespace DicingBlade.ViewModels
                         case State.Cutting or State.SingleCut:
                             //Starting a tracing after cutting is started;
                             {
-                                _tracingTaskCancellationTokenSource = new CancellationTokenSource();
-                                _tracingTaskCancellationToken = _tracingTaskCancellationTokenSource.Token;
-                                _tracingTask = new Task(() => BladeTracingTaskAsync(), _tracingTaskCancellationToken);
-                                _tracingTask.Start();
+                                tracingTaskCancellationTokenSource = new CancellationTokenSource();
+                                BladeTracingTaskAsync(tracingTaskCancellationTokenSource.Token);
                             }
                             break;
                         case State.ProcessEnd:
                             {
-                                ResetWaferView();
-                                AjustWaferTechnology();
+                                SubstrVM.ResetWaferView();
+                                AjustWaferTechnology(_currentWafer);
                                 MsgBox.Success("Процесс завершён.", "Процесс");
                             }
                             break;
                         case State.ProcessInterrupted:
                             {
-                                ResetWaferView();
-                                AjustWaferTechnology();
+                                SubstrVM.ResetWaferView();
+                                AjustWaferTechnology(_currentWafer);
                                 MsgBox.Fatal("Процесс прерван оператором.", "Процесс");
                             }
                             break;
-                    }                                       
+                    }
                 });
 #pragma warning restore VSTHRD101 // Avoid unsupported async delegates
 
             dicingProcess.OfType<RotationStarted>()
                     .Subscribe(rotation =>
                     {
-                        WvAngle = rotation.Angle;
-                        RotatingTime = rotation.Duration.Seconds;
-                        WvRotate ^= true;
+                        SubstrVM.WvAngle = rotation.Angle;
+                        SubstrVM.RotatingTime = rotation.Duration.Seconds;
+                        SubstrVM.WvRotate ^= true;
                     });
             dicingProcess.OfType<WaferAligningChanged>()
                 .Subscribe(arg =>
                 {
-                    WaferCurrentShiftView = Substrate.CurrentShift;
+                    //WaferCurrentShiftView = Substrate.CurrentShift;
+                    SubstrVM.WaferCurrentShiftView = Substrate.CurrentShift;
                     WaferCurrentSideAngle = Substrate.CurrentSideAngle;
                 });
 
@@ -730,10 +567,16 @@ namespace DicingBlade.ViewModels
             dicingProcess.OfType<CheckPointOccured>()
                  .Subscribe(arg =>
                  {
+                     //var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
+                     //var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(XAxis.Position, YAxis.Position));
+                     //var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
+                     //var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
+
                      var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
-                     var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(XView, YView));
-                     var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
-                     var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
+                     var point = new TranslateTransform(-SubstrVM.CCCenterXView, -SubstrVM.CCCenterYView).Transform(new Point(XAxis.Position, YAxis.Position));
+                     var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + SubstrVM.WaferCurrentShiftView));
+                     var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + SubstrVM.WaferCurrentShiftView));
+
                      List<TraceLine> temp = new(ControlPointsView);
                      temp.ForEach(br => br.Brush = Brushes.Blue);
                      temp.Add(new TraceLine()
@@ -755,137 +598,37 @@ namespace DicingBlade.ViewModels
                     {
                         throw;
                     }
-                    
+
                 },
                 () =>
                 {
                     _machine.StartCamera(0);
                 });
         }
-
-        //private void Process5_OnProcStatusChanged(object sender, Process5.Stat e)
+        //private void ResetWaferView()
         //{
-        //    switch (e)
-        //    {
-        //        case Process5.Stat.Cancelled:
-        //            break;
-        //        case Process5.Stat.End:
-        //            Process5.WaitProcDoneAsync().ContinueWith
-        //                (async t =>
-        //                {
-        //                    Process5 = null;
-        //                    Substrate = null;
-        //                    ResetWaferView();
-        //                    AjustWaferTechnology();
-        //                    await _machine.GoThereAsync(Place.Loading);
-        //                    MessageBox.Show("Процесс завершён.", "Процесс", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-        //                });
-                    
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //}
-
-        private void ResetWaferView()
-        {
-            WvAngle = default;
-            ResetView ^= true;
-        }
-        //private void Process_OnControlPointAppeared()
-        //{
-        //    var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
-
-        //    var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(XView, YView));
-        //    var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
-        //    var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
-        //    List<TraceLine> temp = new(ControlPointsView);
-        //    temp.ForEach(br => br.Brush = Brushes.Blue);
-        //    temp.Add(new TraceLine()
-        //    { XStart = point1.X, XEnd = point2.X, YStart = point1.Y, YEnd = point2.Y, Brush = Brushes.OrangeRed });
-        //    ControlPointsView = new ObservableCollection<TraceLine>(temp);
-        //}
-
-        //private void Process_OnProcParamsChanged(object arg1, ProcParams procParamsEventArgs)
-        //{
-        //    WaferCurrentShiftView = procParamsEventArgs.currentShift;
-        //    WaferCurrentSideAngle = procParamsEventArgs.currentSideAngle;
+        //    WvAngle = default;
+        //    ResetView ^= true;
         //}
 
         public double WaferCurrentSideAngle { get; set; }
 
-        //private void Process_OnProcessStatusChanged(string status)
-        //{
-        //    ProcessStatus = status;
-        //}
-
-        //private async void Process_BladeTracingEvent(bool trace)
-        //{
-        //    if (trace)
-        //    {
-        //        _tracingTaskCancellationTokenSource = new CancellationTokenSource();
-        //        _tracingTaskCancellationToken = _tracingTaskCancellationTokenSource.Token;
-        //        _tracingTask = new Task(() => BladeTracingTaskAsync(), _tracingTaskCancellationToken);
-
-        //        _tracingTask.Start();
-        //    }
-        //    else
-        //    {
-        //        _tracingTaskCancellationTokenSource.Cancel();
-
-        //        var rotateTransform = new RotateTransform(
-
-        //            //-Substrate.CurrentSideAngle,
-        //            -WaferCurrentSideAngle,
-        //            BCCenterXView,
-        //            BCCenterYView
-        //        );
-
-        //        var point1 = rotateTransform.Transform(new Point(XTrace, YTrace + WaferCurrentShiftView));
-        //        var point2 = rotateTransform.Transform(new Point(XTraceEnd, YTrace + WaferCurrentShiftView));
-        //        point1 = new TranslateTransform(-BCCenterXView, -BCCenterYView).Transform(point1);
-        //        point2 = new TranslateTransform(-BCCenterXView, -BCCenterYView).Transform(point2);
-
-        //        TracesCollectionView.Add(new TraceLine
-        //        {
-        //            XStart = point1.X,
-        //            XEnd = point2.X,
-        //            YStart = point1.Y,
-        //            YEnd = point2.Y
-        //        });
-
-        //        TracesCollectionView = new ObservableCollection<TraceLine>(TracesCollectionView);
-        //        XTrace = new double();
-        //        YTrace = new double();
-        //        XTraceEnd = new double();
-
-        //        try
-        //        {
-        //            await _tracingTask;
-        //        }
-        //        catch (OperationCanceledException)
-        //        {
-        //        }
-        //        finally
-        //        {
-        //            _tracingTaskCancellationTokenSource.Dispose();
-        //            _tracingTask?.Dispose();
-        //        }
-        //    }
-        //}
-
-        private async Task BladeTracingTaskAsync()
+        private async Task BladeTracingTaskAsync(CancellationToken cancellationToken)
         {
-            XTrace = XView;
-            YTrace = YView;
+            //XTrace = XAxis.Position;
+            //YTrace = YAxis.Position;
 
-            while (!_tracingTaskCancellationToken.IsCancellationRequested)
+            SubstrVM.XTrace = XAxis.Position;
+            SubstrVM.YTrace = YAxis.Position;
+
+            while (!cancellationToken.IsCancellationRequested)
             {
-                XTraceEnd = XView;
+                //XTraceEnd = XAxis.Position;
+                SubstrVM.XTraceEnd = XAxis.Position;
                 Task.Delay(100).Wait();
             }
 
-            _tracingTaskCancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
         }
 
 
@@ -975,7 +718,7 @@ namespace DicingBlade.ViewModels
                 .WithVelRegime(Velocity.Slow, Settings.Default.ZVelLow)
                 .WithVelRegime(Velocity.Service, Settings.Default.ZVelService)
                 .Build();
-            
+
             _machine.AddAxis(Ax.Y, axesConfigs.YLine)
                 .WithConfigs(ypar)
                 .WithVelRegime(Velocity.Fast, Settings.Default.YVelHigh)
@@ -1017,11 +760,6 @@ namespace DicingBlade.ViewModels
                     {Valves.SpindleContact, (Ax.U, Do.Out5)}
                 });
 
-            //_machine.SwitchOffValve(Valves.Blowing);
-            //_machine.SwitchOffValve(Valves.ChuckVacuum);
-            //_machine.SwitchOffValve(Valves.Coolant);
-            //_machine.SwitchOffValve(Valves.SpindleContact);
-
             _machine.ConfigureSensors(new Dictionary<Sensors, (Ax, Di, Boolean, string)>
                 {
                     {Sensors.Air, (Ax.Z, Di.In1, false, "Воздух")},
@@ -1032,10 +770,18 @@ namespace DicingBlade.ViewModels
 
             _machine.SetVelocity(VelocityRegime);
 
-            BCCenterXView = Settings.Default.XDisk;
-            BCCenterYView = Settings.Default.YObjective - Settings.Default.DiskShift;
-            CCCenterXView = Settings.Default.XObjective;
-            CCCenterYView = Settings.Default.YObjective;
+            //BCCenterXView = Settings.Default.XDisk;
+            //BCCenterYView = Settings.Default.YObjective - Settings.Default.DiskShift;
+            //CCCenterXView = Settings.Default.XObjective;
+            //CCCenterYView = Settings.Default.YObjective;
+
+
+            SubstrVM.BCCenterXView = Settings.Default.XDisk;
+            SubstrVM.BCCenterYView = Settings.Default.YObjective - Settings.Default.DiskShift;
+            SubstrVM.CCCenterXView = Settings.Default.XObjective;
+            SubstrVM.CCCenterYView = Settings.Default.YObjective;
+
+
             ZBladeTouchView = Settings.Default.ZTouch;
 
             _machine.ConfigureGeometryFor(Place.BladeChuckCenter)
@@ -1075,42 +821,46 @@ namespace DicingBlade.ViewModels
             _machine.SetBridgeOnSensors(Sensors.SpindleCoolant, Settings.Default.SpindleCoolantSensorDsbl);
         }
 
-        private void AjustWaferTechnology(int side = -1)
+        private void AjustWaferTechnology(IWafer wafer)
         {
-            var fileName = Settings.Default.WaferLastFile;
-            var waf = new TempWafer();
+            _currentWafer = wafer;
+            //var fileName = Settings.Default.WaferLastFile;
+            //var waf = new TempWafer();
             var tech = new Technology();
 
-            if (File.Exists(fileName))
-            {
-                // TODO ASYNC
-                StatMethods.DeSerializeObjectJson<TempWafer>(fileName).CopyPropertiesTo(waf);
-                IShape shape = waf.IsRound ? new Circle2D(waf.Diameter) : new Rectangle2D(waf.Height, waf.Width);
-                Substrate = new Substrate2D(waf.IndexH, waf.IndexW, waf.Thickness, shape);
-            }
+            // TODO ASYNC
+            //StatMethods.DeSerializeObjectJson<TempWafer>(fileName).CopyPropertiesTo(waf);
+            IShape shape = wafer.IsRound ? new Circle2D(wafer.Diameter) : new Rectangle2D(wafer.Height, wafer.Width);
+            Substrate = new Substrate2D(wafer.IndexH, wafer.IndexW, wafer.Thickness, shape);
+
             TracesCollectionView = new ObservableCollection<TraceLine>();
             ControlPointsView = new ObservableCollection<TraceLine>();
             //ResetView ^= true;
             var wfViewFactory = new WaferViewFactory(Substrate);
             //ResetView ^= true;
-            WaferView = new();
-            WaferView.SetView(wfViewFactory);
-            WaferView.IsRound = waf.IsRound;
 
-            fileName = Settings.Default.TechnologyLastFile;
+
+
+            //WaferView = new();
+            //WaferView.SetView(wfViewFactory);
+            //WaferView.IsRound = wafer.IsRound;
+
+            SubstrVM.WaferView.SetView(wfViewFactory);
+            SubstrVM.WaferView.IsRound = wafer.IsRound;
+
+
+            var fileName = Settings.Default.TechnologyLastFile;
             if (File.Exists(fileName))
             {
                 // TODO ASYNC
                 StatMethods.DeSerializeObjectJson<Technology>(fileName).CopyPropertiesTo(tech);
                 PropContainer.Technology = tech;
-                Thickness = waf.Thickness;
+                
+                //Thickness = wafer.Thickness;
+                SubstrVM.Thickness = wafer.Thickness;
             }
 
         }
-
-        
-
-        
 
         private async Task WaitForConfirmationAsync()
         {
@@ -1121,10 +871,13 @@ namespace DicingBlade.ViewModels
             });
         }
 
-        private void ChangeScreensRegime(bool regime)
-        {
-            if (regime && Cols[0] == 0) Change();
-            else if (Cols[0] == 1) Change();
-        }
+        private void ChangeScreensRegime(bool regime) => (CentralView, RightSideView) = (RightSideView, CentralView);
+        //{
+            
+
+
+        //    if (regime && Cols[0] == 0) Change();
+        //    else if (Cols[0] == 1) Change();
+        //}
     }
 }
