@@ -1,12 +1,15 @@
-﻿using DicingBlade.Classes.WaferGeometry;
+﻿using DicingBlade.Classes.Miscellaneous;
+using DicingBlade.Classes.WaferGeometry;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 
 namespace DicingBlade.ViewModels
 {
@@ -18,7 +21,6 @@ namespace DicingBlade.ViewModels
         public double XView { get; set; }
         public double YView { get; set; }
         public double UView { get; set; }
-
         public double CCCenterXView { get; set; }
         public double CCCenterYView { get; set; }
         public double BCCenterXView { get; set; }
@@ -27,11 +29,11 @@ namespace DicingBlade.ViewModels
         public double XTrace { get; set; }
         public double YTrace { get; set; }
         public double XTraceEnd { get; set; }
-
         public double WvAngle { get; set; }
         public bool WvRotate { get; set; }
         public bool ResetView { get; private set; }
         public double RotatingTime { get; set; } = 1;
+        public ObservableCollection<TraceLine> ControlPointsView { get; set; } = new();
 
         public event EventHandler<SubstrateClickedArgs> SubstrateClicked;
 
@@ -64,6 +66,20 @@ namespace DicingBlade.ViewModels
             WvAngle = default;
             ResetView ^= true;
         }
+        public void AddControlPoint(double x, double y, double angle)
+        {
+            var rotateTransform = new RotateTransform(angle);
+            var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(x, y));
+            var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
+            var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
+
+            List<TraceLine> temp = new(ControlPointsView);
+            temp.ForEach(br => br.Brush = Brushes.Blue);
+            temp.Add(new TraceLine()
+            { XStart = point1.X, XEnd = point2.X, YStart = point1.Y, YEnd = point2.Y, Brush = Brushes.OrangeRed });
+            ControlPointsView = new ObservableCollection<TraceLine>(temp);
+        }
+        public void ClearControlPoints() => ControlPointsView.Clear();
     }
     internal class SubstrateClickedArgs : EventArgs
     {

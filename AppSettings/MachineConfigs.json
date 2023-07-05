@@ -1,7 +1,7 @@
 {
   "MotionBoardNote": "Choose from following boards: PCI1240U, PCI1245E, MOCKBOARD",
-  "MotionBoard": "MOCKBOARD",
+  "MotionBoard": "PCI1245E",
   "DicingDevTypeNote": "Choose from following types: EM225, O4PP100, DR150",
   "DicingDevType": "EM225",
-  "CameraEnable": "False"
+  "CameraEnable": "True"
 }

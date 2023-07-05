@@ -56,7 +56,6 @@ namespace DicingBlade.ViewModels
         public double Flow { get; set; }
         public Velocity VelocityRegime { get; set; } = Velocity.Fast;
         public ObservableCollection<TraceLine> TracesCollectionView { get; set; } = new();
-        public ObservableCollection<TraceLine> ControlPointsView { get; set; } = new();
         //public double CutOffsetView { get; set; }
 
         //public double XTrace { get; set; }
@@ -258,14 +257,25 @@ namespace DicingBlade.ViewModels
             try
             {
                 var state = new AxisStateView(Math.Round(e.Position, 3), Math.Round(e.CmdPosition, 3), e.NLmt, e.PLmt, e.MotionDone, e.MotionStart);
-                var axisState = e.Axis switch
+
+                switch (e.Axis)
                 {
-                    Ax.X => XAxis,
-                    Ax.Y => YAxis,
-                    Ax.Z => ZAxis,
-                    Ax.U => UAxis
-                };
-                axisState = state;
+                    case Ax.X:
+                        XAxis = state;
+                        SubstrVM.XView = state.Position;
+                        break;
+                    case Ax.Y:
+                        YAxis = state;
+                        SubstrVM.YView = state.Position;
+                        break;
+                    case Ax.Z:
+                        ZAxis = state;
+                        break;
+                    case Ax.U:
+                        UAxis = state;
+                        SubstrVM.YView = state.Position;
+                        break;
+                }
             }
             catch (Exception)
             {
@@ -362,7 +372,7 @@ namespace DicingBlade.ViewModels
 #pragma warning disable VSTHRD101 // Avoid unsupported async delegates
 
             dicingProcess.OfType<ProcessStateChanged>()
-                .Subscribe(async state =>
+                .Subscribe(state =>
                 {
                     switch (state.DestinationState)
                     {
@@ -413,15 +423,7 @@ namespace DicingBlade.ViewModels
 
                         case State.Correction or State.Inspection:
                             {
-                                //var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
-                                //var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(XView, YView));
-                                //var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
-                                //var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
-                                //List<TraceLine> temp = new(ControlPointsView);
-                                //temp.ForEach(br => br.Brush = Brushes.Blue);
-                                //temp.Add(new TraceLine()
-                                //{ XStart = point1.X, XEnd = point2.X, YStart = point1.Y, YEnd = point2.Y, Brush = Brushes.OrangeRed });
-                                //ControlPointsView = new ObservableCollection<TraceLine>(temp);
+                                SubstrVM.AddControlPoint(XAxis.Position, YAxis.Position, -Substrate.CurrentSideAngle);
                             }
                             break;
 
@@ -567,21 +569,7 @@ namespace DicingBlade.ViewModels
             dicingProcess.OfType<CheckPointOccured>()
                  .Subscribe(arg =>
                  {
-                     //var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
-                     //var point = new TranslateTransform(-CCCenterXView, -CCCenterYView).Transform(new Point(XAxis.Position, YAxis.Position));
-                     //var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + WaferCurrentShiftView));
-                     //var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + WaferCurrentShiftView));
-
-                     var rotateTransform = new RotateTransform(-Substrate.CurrentSideAngle);
-                     var point = new TranslateTransform(-SubstrVM.CCCenterXView, -SubstrVM.CCCenterYView).Transform(new Point(XAxis.Position, YAxis.Position));
-                     var point1 = rotateTransform.Transform(new Point(point.X - 1, point.Y + SubstrVM.WaferCurrentShiftView));
-                     var point2 = rotateTransform.Transform(new Point(point.X + 1, point.Y + SubstrVM.WaferCurrentShiftView));
-
-                     List<TraceLine> temp = new(ControlPointsView);
-                     temp.ForEach(br => br.Brush = Brushes.Blue);
-                     temp.Add(new TraceLine()
-                     { XStart = point1.X, XEnd = point2.X, YStart = point1.Y, YEnd = point2.Y, Brush = Brushes.OrangeRed });
-                     ControlPointsView = new ObservableCollection<TraceLine>(temp);
+                     SubstrVM.AddControlPoint(XAxis.Position, YAxis.Position, -Substrate.CurrentSideAngle);
                  });
             dicingProcess.Subscribe(
                 arg => { },
@@ -621,12 +609,15 @@ namespace DicingBlade.ViewModels
             SubstrVM.XTrace = XAxis.Position;
             SubstrVM.YTrace = YAxis.Position;
 
-            while (!cancellationToken.IsCancellationRequested)
+            await Task.Run(async () =>
             {
-                //XTraceEnd = XAxis.Position;
-                SubstrVM.XTraceEnd = XAxis.Position;
-                Task.Delay(100).Wait();
-            }
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    //XTraceEnd = XAxis.Position;
+                    SubstrVM.XTraceEnd = XAxis.Position;
+                    await Task.Delay(100);
+                }
+            });
 
             cancellationToken.ThrowIfCancellationRequested();
         }
@@ -834,7 +825,7 @@ namespace DicingBlade.ViewModels
             Substrate = new Substrate2D(wafer.IndexH, wafer.IndexW, wafer.Thickness, shape);
 
             TracesCollectionView = new ObservableCollection<TraceLine>();
-            ControlPointsView = new ObservableCollection<TraceLine>();
+            SubstrVM.ClearControlPoints();
             //ResetView ^= true;
             var wfViewFactory = new WaferViewFactory(Substrate);
             //ResetView ^= true;
@@ -872,12 +863,5 @@ namespace DicingBlade.ViewModels
         }
 
         private void ChangeScreensRegime(bool regime) => (CentralView, RightSideView) = (RightSideView, CentralView);
-        //{
-            
-
-
-        //    if (regime && Cols[0] == 0) Change();
-        //    else if (Cols[0] == 1) Change();
-        //}
     }
 }

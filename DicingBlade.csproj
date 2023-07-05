@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--<OutputType>WinExe</OutputType>-->
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <!--<LangVersion>preview</LangVersion>-->
 	<Nullable>enable</Nullable>
 	<UseWPF>true</UseWPF>
@@ -215,12 +215,12 @@
     <Folder Include="TempFiles\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MachineClassLibrary\MachineClassLibrary.csproj" />
-    <ProjectReference Include="..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
+    <ProjectReference Include="..\..\MachineClassLibrary\MachineClassLibrary.csproj" />
+    <ProjectReference Include="..\..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="AdvMotAPI">
-      <HintPath>..\MachineClassLibrary\AdvMotAPI.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\Advantech\Common Motion\Public\AdvMotAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

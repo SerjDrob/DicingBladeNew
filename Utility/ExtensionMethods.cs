@@ -86,6 +86,11 @@ namespace DicingBlade.Utility
         {
             return new ObservableCollection<T>(en);
         }
+
+        internal static void SetObject<T>(this ref T obj, T @value) where T:struct
+        {
+            obj = value;
+        }
     }
 
 }

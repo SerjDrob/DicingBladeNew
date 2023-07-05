@@ -175,13 +175,13 @@ namespace DicingBlade.Classes.Processes
             _stateMachine.Configure(State.Processing)
                 .SubstateOf(State.ProcessStarted)
                 .InitialTransition(State.GoingTransferingZ)
+                .Ignore(Trigger.Teach)
                 .Permit(Trigger.Inspection, State.Inspection)
                 .Permit(Trigger.Correction, State.Correction);
 
             _stateMachine.Configure(State.GoingTransferingZ)
                 .SubstateOf(State.Processing)
                 .OnEntryAsync(GoTransferingHeightZAsync, "Transfer by Z into the safe position")
-                .Ignore(Trigger.Teach)
                 .PermitDynamic(Trigger.Next, () =>
                 {
                     if (_checkCut.Check && !_afterCorrection)
@@ -198,13 +198,11 @@ namespace DicingBlade.Classes.Processes
             _stateMachine.Configure(State.GoingNextCutXY)
                 .SubstateOf(State.Processing)
                 .OnEntryAsync(GoNextCutXYAsync, "Going a next cut by XY")
-                .Ignore(Trigger.Teach)
                 .Permit(Trigger.Next, State.GoingNextDepthZ);
 
             _stateMachine.Configure(State.GoingNextDepthZ)
                 .SubstateOf(State.Processing)
                 .OnEntryAsync(GoNextDepthZAsync)
-                .Ignore(Trigger.Teach)
                 .Permit(Trigger.Next, State.Cutting);
 
 
@@ -232,7 +230,6 @@ namespace DicingBlade.Classes.Processes
                     await GoTransferingHeightZAsync();
                     await GoNextDirectionAsync();
                 })
-                .Ignore(Trigger.Teach)
                 .Permit(Trigger.Next, State.GoingTransferingZ);
             //-------------------------Inspection and Correction-----------------------
             _stateMachine.Configure(State.Inspection)
@@ -473,12 +470,13 @@ namespace DicingBlade.Classes.Processes
             if (_repeatUntillCancell is not null) await _repeatUntillCancell.Cancel();
             await _stateMachine.FireAsync(Trigger.Deny);
         }
-        public async Task StartAsync()
+        public Task StartAsync()
         {
-            while (!(_wafer.IsLastSide && _wafer.LastCutOfTheSide))
-            {
-                await _stateMachine.FireAsync(Trigger.Next);
-            }
+            //while (!(_wafer.IsLastSide && _wafer.LastCutOfTheSide))
+            //{
+            //    await _stateMachine.FireAsync(Trigger.Next);
+            //}
+            return Task.CompletedTask;
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
