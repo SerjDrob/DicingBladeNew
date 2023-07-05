@@ -74,7 +74,7 @@ namespace DicingBlade.ViewModels
                 .CreateKeyDownCommand(Key.Subtract, setStepVelocity, () => true)
                 .CreateKeyDownCommand(Key.F2, async () =>
                 {
-                    if (SpindleAccelarating | SpindleOnFreq) _machine.StopSpindle();
+                    if (SpindleAccelerating | SpindleOnFreq) _machine.StopSpindle();
                     else
                     {
                         try
@@ -180,8 +180,8 @@ namespace DicingBlade.ViewModels
                     //_dicingProcess.WaitProcDoneAsync().Wait();
                     _dicingProcess = null;
                     Substrate = null;
-                    SubstrVM.ResetWaferView();
-                    AjustWaferTechnology(_currentWafer);
+                    SubstrateVM.ResetWaferView();
+                    AdjustWaferTechnology(_currentWafer);
                     Growl.Warning("Процесс экстренно прерван оператором.");
                 }, () => IsMachineInProcess)
                 .CreateKeyDownCommand(Key.H, () => { MachineSettings(); return Task.CompletedTask; }, () => true)
@@ -434,7 +434,7 @@ namespace DicingBlade.ViewModels
                         .Build(tempwafer.Thickness);
 
                     //WaferView = Wafer.GetWaferView();
-                    SubstrVM.WaferView = Wafer.GetWaferView();
+                    SubstrateVM.WaferView = Wafer.GetWaferView();
 
 
                   //  AjustWaferTechnology(Substrate.CurrentSide);
@@ -515,7 +515,7 @@ namespace DicingBlade.ViewModels
             
             Settings.Default.WaferLastFile = newSettingsVM.FileName;
             Settings.Default.Save();
-            AjustWaferTechnology(newSettingsVM);
+            AdjustWaferTechnology(newSettingsVM);
             WaferFileName = newSettingsVM.FileName;
         }
 

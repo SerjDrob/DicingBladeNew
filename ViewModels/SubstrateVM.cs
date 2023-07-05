@@ -1,5 +1,8 @@
-﻿using DicingBlade.Classes.Miscellaneous;
+﻿using Advantech.Motion;
+using DicingBlade.Classes.Miscellaneous;
 using DicingBlade.Classes.WaferGeometry;
+using MachineClassLibrary.Classes;
+using MachineClassLibrary.Machine;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
@@ -7,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -34,6 +38,7 @@ namespace DicingBlade.ViewModels
         public bool ResetView { get; private set; }
         public double RotatingTime { get; set; } = 1;
         public ObservableCollection<TraceLine> ControlPointsView { get; set; } = new();
+        public ObservableCollection<TraceLine> TracesCollectionView { get; set; } = new();
 
         public event EventHandler<SubstrateClickedArgs> SubstrateClicked;
 
@@ -55,12 +60,6 @@ namespace DicingBlade.ViewModels
                 Y = y
             });
         }
-        public void ResetTrace()
-        {
-            XTrace = 0;
-            YTrace = 0;
-            XTraceEnd = 0;
-        }
         public void ResetWaferView()
         {
             WvAngle = default;
@@ -80,6 +79,72 @@ namespace DicingBlade.ViewModels
             ControlPointsView = new ObservableCollection<TraceLine>(temp);
         }
         public void ClearControlPoints() => ControlPointsView.Clear();
+        public void ClearTrace() => TracesCollectionView.Clear();
+        public void AddTrace(double sideAngle)
+        {
+            var rotateTransform = new RotateTransform(
+                                    sideAngle,
+                                    BCCenterXView,
+                                    BCCenterYView
+                                );
+            var point1 = rotateTransform.Transform(new Point(XTrace, YTrace + WaferCurrentShiftView));
+            var point2 = rotateTransform.Transform(new Point(XTraceEnd, YTrace + WaferCurrentShiftView));
+            point1 = new TranslateTransform(-BCCenterXView, -BCCenterYView).Transform(point1);
+            point2 = new TranslateTransform(-BCCenterXView, -BCCenterYView).Transform(point2);
+
+            TracesCollectionView.Add(new TraceLine
+            {
+                XStart = point1.X,
+                XEnd = point2.X,
+                YStart = point1.Y,
+                YEnd = point2.Y
+            });
+
+            TracesCollectionView = new ObservableCollection<TraceLine>(TracesCollectionView);
+            XTrace = 0;
+            YTrace = 0;
+            XTraceEnd = 0;
+        }
+        public async Task BladeTracingTaskAsync(CancellationToken cancellationToken)
+        {
+            XTrace = XView;
+            YTrace = YView;
+
+            await Task.Run(async () =>
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    XTraceEnd = XView;
+                    await Task.Delay(100);
+                }
+            });
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+        public void OnAxisMotionStateChanged(object? sender, AxisStateEventArgs e)
+        {
+            try
+            {
+                var state = new AxisStateView(Math.Round(e.Position, 3), Math.Round(e.CmdPosition, 3), e.NLmt, e.PLmt, e.MotionDone, e.MotionStart);
+
+                switch (e.Axis)
+                {
+                    case Ax.X:
+                        XView = state.Position;
+                        break;
+                    case Ax.Y:
+                        YView = state.Position;
+                        break;
+                    case Ax.U:
+                        YView = state.Position;
+                        break;
+                }
+            }
+            catch (Exception)
+            {
+                //throw;
+            }
+        }
     }
     internal class SubstrateClickedArgs : EventArgs
     {

@@ -1,6 +1,7 @@
 ﻿using DicingBlade.Classes.Miscellaneous;
 using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine;
+using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
@@ -33,6 +34,8 @@ namespace DicingBlade.ViewModels
             var y = point.Y * CameraScale;
             ImageClicked?.Invoke(this, new ImageClickedArgs(x, y));
         }
+        
+        public void OnBitmapChanged(object? sender, VideoCaptureEventArgs e) => Bi = e.Image;
     }
 
     internal class ImageClickedArgs : EventArgs

@@ -215,12 +215,12 @@
     <Folder Include="TempFiles\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\MachineClassLibrary\MachineClassLibrary.csproj" />
-    <ProjectReference Include="..\..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
+    <ProjectReference Include="..\MachineClassLibrary\MachineClassLibrary.csproj" />
+    <ProjectReference Include="..\MachineControlsLibrary\MachineControlsLibrary.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="AdvMotAPI">
-      <HintPath>..\..\..\..\..\..\Program Files\Advantech\Common Motion\Public\AdvMotAPI.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Advantech\Common Motion\Public\AdvMotAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
