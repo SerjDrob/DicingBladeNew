@@ -178,7 +178,11 @@ namespace DicingBlade.ViewModels
                     //_dicingProcess.WaitProcDoneAsync().Wait();
                     _dicingProcess = null;
                     Substrate = null;
+<<<<<<< HEAD
+                    SubstrVM.ResetWaferView();
+=======
                     SubstrateVM.ResetWaferView();
+>>>>>>> origin/main
                     AdjustWaferTechnology(_currentWafer);
                     Growl.Warning("Процесс экстренно прерван оператором.");
                 }, () => IsMachineInProcess)
