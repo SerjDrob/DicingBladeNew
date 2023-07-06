@@ -149,7 +149,7 @@ namespace DicingBlade.ViewModels
                         blade.Diameter = 55.6;
                         blade.Thickness = 0.11;
                         Substrate.ResetWafer();
-                        _dicingProcess = new DicingProcess2(_machine, Substrate, blade, _technology);
+                        _dicingProcess = new DicingProcess(_machine, Substrate, blade, _technology);
                         GetSubscriptions(_dicingProcess);
                         await _dicingProcess.CreateProcess();
                     }
@@ -178,7 +178,11 @@ namespace DicingBlade.ViewModels
                     //_dicingProcess.WaitProcDoneAsync().Wait();
                     _dicingProcess = null;
                     Substrate = null;
+<<<<<<< HEAD
+                    SubstrVM.ResetWaferView();
+=======
                     SubstrateVM.ResetWaferView();
+>>>>>>> origin/main
                     AdjustWaferTechnology(_currentWafer);
                     Growl.Warning("Процесс экстренно прерван оператором.");
                 }, () => IsMachineInProcess)
