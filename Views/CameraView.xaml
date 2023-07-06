@@ -109,7 +109,7 @@
                     Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
                     Stroke="ForestGreen"
                     Visibility="{Binding CutWidthMarkerVisibility, Converter={StaticResource Boolean2VisibilityConverter}}"
-                    RenderTransformOrigin="0 0.5"
+                    RenderTransformOrigin="0.5 0.5"
                     StrokeThickness="1"
                     >
 
@@ -122,6 +122,7 @@
                 </Rectangle.Height>
                 <Rectangle.RenderTransform>
                     <TransformGroup>
+                        <ScaleTransform ScaleX="1.1"/>
                         <TranslateTransform Y="{Binding RelativeSource={RelativeSource AncestorType=Rectangle}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"/>
                         <TranslateTransform Y="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=2}"/>
                         <TranslateTransform>
@@ -176,7 +177,7 @@
                     Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}}"
                     Stroke="OrangeRed"
                     Visibility="Visible"
-                    RenderTransformOrigin="0 0.5"
+                    RenderTransformOrigin="0.5 0.5"
                     StrokeThickness="1"
                     >
                 <Rectangle.Height>
@@ -188,6 +189,7 @@
                 </Rectangle.Height>
                 <Rectangle.RenderTransform>
                     <TransformGroup>
+                        <ScaleTransform ScaleX="1.1"/>
                         <TranslateTransform Y="{Binding RelativeSource={RelativeSource AncestorType=Rectangle}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"/>
                         <TranslateTransform Y="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Canvas}, Path=ActualHeight, Converter={StaticResource DivideConverter}, ConverterParameter=2}"/>
                     </TransformGroup>

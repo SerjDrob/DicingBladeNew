@@ -40,9 +40,10 @@ namespace DicingBlade
                    {
                        return new MotionBoardFactory(sp, machineconfigs).GetMotionBoard();
                    })
+                   .AddSingleton(machineconfigs)
                    .AddSingleton<ExceptionsAgregator>()
                    .AddScoped<IVideoCapture, USBCamera>()
-                   .AddSingleton<ISpindle, Spindle3>()
+                   //.AddSingleton<ISpindle, Spindle3>()
                    .AddSingleton<ISpindle,CommanderSK>(sp=>
                    new CommanderSK("COM1",19200, new SpindleParams
                    {

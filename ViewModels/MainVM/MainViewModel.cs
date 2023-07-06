@@ -136,11 +136,14 @@ namespace DicingBlade.ViewModels
         {
             get; private set;
         }
+        public bool IsNot04PP100 { get; set; } = true;
+        private bool _isSingleCutAvailable;
         public double TeachMarkersRatio { get; } = 2;
         public SubstrateVM SubstrateVM { get; set; } = new();
         private readonly List<IDisposable> _subscriptions = new();
-        public MainViewModel(DicingBladeMachine machine)
+        public MainViewModel(DicingBladeMachine machine, MachineConfiguration machineConfiguration)
         {
+            IsNot04PP100 = !machineConfiguration.IsO4PP100;
             SubstrateVM.SubstrateClicked += SubstrVM_SubstrateClicked;
             CamVM.ImageClicked += CamVM_ImageClicked;
             CentralView = SubstrateVM;
@@ -156,15 +159,15 @@ namespace DicingBlade.ViewModels
                 _machine.SwitchOffValve(Valves.ChuckVacuum);
                 _machine.SwitchOffValve(Valves.Coolant);
                 _machine.SwitchOffValve(Valves.SpindleContact);
-
-                _machine.StartCamera(0, 1);
+                _machine.AdjustWidthToHeight = true;
+                _machine.StartCamera(0, 0);
                 _machine.OnBitmapChanged += CamVM.OnBitmapChanged;
 
                 _machine.OnAxisMotionStateChanged += _machine_OnAxisMotionStateChanged;
                 _machine.OnAxisMotionStateChanged += SubstrateVM.OnAxisMotionStateChanged;
                 _machine.OnSensorStateChanged += _machine_OnSensorStateChanged;
                 _machine.OnValveStateChanged += _machine_OnValveStateChanged;
-
+                var result = _machine.TryConnectSpindle();
                 _machine.OnSpindleStateChanging += _machine_OnSpindleStateChanging;
             }
             catch (MotionException ex)
@@ -519,13 +522,14 @@ namespace DicingBlade.ViewModels
                 maxDec = 180,
                 maxVel = 50,
                 axDirLogic = (int)DirLogic.DIR_ACT_HIGH,
-                plsOutMde = (int)PulseOutMode.OUT_DIR,
+                plsOutMde = (int)PulseOutMode.OUT_DIR_DIR_NEG,
                 reset = (int)HomeReset.HOME_RESET_EN,
                 acc = Settings.Default.XAcc,
                 dec = Settings.Default.XDec,
                 ppu = Settings.Default.XPPU,
                 homeVelLow = Settings.Default.XVelLow,
-                homeVelHigh = Settings.Default.XVelService
+                homeVelHigh = Settings.Default.XVelService,
+                hLmtLogic = (uint)HLmtLogic.HLMT_ACT_HIGH
             };
             var ypar = new MotionDeviceConfigs
             {
@@ -541,7 +545,8 @@ namespace DicingBlade.ViewModels
                 //denominator = 12,
                 plsInMde = (int)PulseInMode.AB_4X,
                 homeVelLow = Settings.Default.YVelLow,
-                homeVelHigh = Settings.Default.YVelService
+                homeVelHigh = Settings.Default.YVelService,
+                hLmtLogic = (uint)HLmtLogic.HLMT_ACT_HIGH
             };
             var zpar = new MotionDeviceConfigs
             {
@@ -549,7 +554,7 @@ namespace DicingBlade.ViewModels
                 maxDec = 180,
                 maxVel = 50,
                 axDirLogic = (int)DirLogic.DIR_ACT_HIGH,
-                plsOutMde = (int)PulseOutMode.OUT_DIR,
+                plsOutMde = (int)PulseOutMode.OUT_DIR_DIR_NEG,
                 reset = (int)HomeReset.HOME_RESET_EN,
                 acc = Settings.Default.ZAcc,
                 dec = Settings.Default.ZDec,
@@ -580,12 +585,12 @@ namespace DicingBlade.ViewModels
                 .WithVelRegime(Velocity.Service, Settings.Default.XVelService)
                 .Build();
 
-            _machine.AddAxis(Ax.U, axesConfigs.ULine)
-                .WithConfigs(upar)
-                .WithVelRegime(Velocity.Fast, Settings.Default.UVelHigh)
-                .WithVelRegime(Velocity.Slow, Settings.Default.UVelLow)
-                .WithVelRegime(Velocity.Service, Settings.Default.UVelService)
-                .Build();
+            _machine.AddAxis(Ax.Y, axesConfigs.YLine)
+               .WithConfigs(ypar)
+               .WithVelRegime(Velocity.Fast, Settings.Default.YVelHigh)
+               .WithVelRegime(Velocity.Slow, Settings.Default.YVelLow)
+               .WithVelRegime(Velocity.Service, Settings.Default.YVelService)
+               .Build();
 
             _machine.AddAxis(Ax.Z, axesConfigs.ZLine)
                 .WithConfigs(zpar)
@@ -594,12 +599,12 @@ namespace DicingBlade.ViewModels
                 .WithVelRegime(Velocity.Service, Settings.Default.ZVelService)
                 .Build();
 
-            _machine.AddAxis(Ax.Y, axesConfigs.YLine)
-                .WithConfigs(ypar)
-                .WithVelRegime(Velocity.Fast, Settings.Default.YVelHigh)
-                .WithVelRegime(Velocity.Slow, Settings.Default.YVelLow)
-                .WithVelRegime(Velocity.Service, Settings.Default.YVelService)
-                .Build();
+            _machine.AddAxis(Ax.U, axesConfigs.ULine)
+                 .WithConfigs(upar)
+                 .WithVelRegime(Velocity.Fast, Settings.Default.UVelHigh)
+                 .WithVelRegime(Velocity.Slow, Settings.Default.UVelLow)
+                 .WithVelRegime(Velocity.Service, Settings.Default.UVelService)
+                 .Build();
 
             _machine.ConfigureHomingForAxis(Ax.X)
                 .SetHomingDirection(AxDir.Neg)
@@ -635,7 +640,7 @@ namespace DicingBlade.ViewModels
                     {Valves.SpindleContact, (Ax.U, Do.Out5)}
                 });
 
-            _machine.ConfigureSensors(new Dictionary<Sensors, (Ax, Di, Boolean, string)>
+            _machine.ConfigureSensors(new Dictionary<Sensors, (Ax, Di, bool, string)>
                 {
                     {Sensors.Air, (Ax.U, Di.In3, true, "Воздух")},
                     {Sensors.ChuckVacuum, (Ax.X, Di.In3, true, "Вакуум")},

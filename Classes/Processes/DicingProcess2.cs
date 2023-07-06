@@ -155,15 +155,11 @@ namespace DicingBlade.Classes.Processes
                     await StartLearningAsync();
                     if (_wafer.CurrentSide == 0)
                     {
-                        _subject.OnNext(new ProcessMessage(MessageType.Info,
-                        $"Обучите {(_wafer.CurrentSide + 1).ToOrdinalWords(GrammaticalGender.Feminine)
-                        .ApplyCase(GrammaticalCase.Accusative)} сторону и нажмите продолжить"));
+                        _subject.OnNext(new ProcessMessage(MessageType.Info,$"Обучите {(_wafer.CurrentSide + 1).ToOrdinalWords(GrammaticalGender.Feminine).ApplyCase(GrammaticalCase.Accusative)} сторону и нажмите продолжить"));
                     }
                     else if (_wafer.IsLastSide)
                     {
-                        _subject.OnNext(new ProcessMessage(MessageType.Info,
-                       $"Поверните столик на 90 и обучите {(_wafer.CurrentSide + 1).ToOrdinalWords(GrammaticalGender.Feminine)
-                       .ApplyCase(GrammaticalCase.Accusative)} сторону и нажмите продолжить"));
+                        _subject.OnNext(new ProcessMessage(MessageType.Info,$"Поверните столик на 90 и обучите {(_wafer.CurrentSide + 1).ToOrdinalWords(GrammaticalGender.Feminine).ApplyCase(GrammaticalCase.Accusative)} сторону и нажмите продолжить"));
                     }
                 })
                 .Ignore(Trigger.Teach)

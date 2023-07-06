@@ -136,7 +136,7 @@ namespace DicingBlade.ViewModels
                         YView = state.Position;
                         break;
                     case Ax.U:
-                        YView = state.Position;
+                        UView = state.Position;
                         break;
                 }
             }
