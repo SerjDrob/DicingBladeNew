@@ -336,7 +336,7 @@ namespace DicingBlade.Classes.Processes
                 _subject.OnNext(new ProcessStateChanged(tr.Source, tr.Destination, tr.Trigger));
             });
 
-            //await _stateMachine.ActivateAsync();
+            await _stateMachine.ActivateAsync();
         }
 
         private async Task CorrectionAsync()
@@ -422,7 +422,14 @@ namespace DicingBlade.Classes.Processes
             var y = _wafer.GetNearestY(0);
             var arr = _machine.TranslateActualCoors(Place.CameraChuckCenter, new (Ax, double)[] { (Ax.X, 0), (Ax.Y, -y) });
             var point = new double[] { arr.GetVal(Ax.X), arr.GetVal(Ax.Y) };
-            await _machine.MoveGpInPosAsync(Groups.XY, point);
+            //await _machine.MoveGpInPosAsync(Groups.XY, point);
+
+            await Task.WhenAll(
+                _machine.MoveAxInPosAsync(Ax.X, point[0]),
+                _machine.MoveAxInPosAsync(Ax.Y, point[1], true));
+
+
+
             await _machine.MoveAxesInPlaceAsync(Place.ZFocus);
         }
         private Task LearningAsync()

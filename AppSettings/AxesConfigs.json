@@ -1,7 +1,7 @@
 {
   "LineComment": "Line coefficient for coordinates equiped with encoder. Can be negative. Set 0 if no encoder",
   "XLine": 0.0,
-  "YLine": 12.8,
+  "YLine": 21.3333333,
   "ZLine": 0.0,
   "ULine": 0.0,
   "RightDirectionComment": "Set true if moving right is the positive direction",

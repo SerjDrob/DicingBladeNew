@@ -149,7 +149,7 @@ namespace DicingBlade.ViewModels
                         blade.Diameter = 55.6;
                         blade.Thickness = 0.11;
                         Substrate.ResetWafer();
-                        _dicingProcess = new DicingProcess(_machine, Substrate, blade, _technology);
+                        _dicingProcess = new DicingProcess2(_machine, Substrate, blade, _technology);
                         GetSubscriptions(_dicingProcess);
                         await _dicingProcess.CreateProcess();
                     }

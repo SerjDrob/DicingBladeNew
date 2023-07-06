@@ -45,7 +45,7 @@ namespace DicingBlade.ViewModels
         private readonly DicingBladeMachine _machine;
         private ITechnology _technology;
         private IComSensor _flowMeter;
-        private DicingProcess _dicingProcess;
+        private DicingProcess2 _dicingProcess;
         private bool _isProcessInCorrection;
         private bool _isSingleCutAvailable;
         private IWafer _currentWafer;
@@ -673,7 +673,8 @@ namespace DicingBlade.ViewModels
                 reset = (int)HomeReset.HOME_RESET_EN,
                 acc = Settings.Default.YAcc,
                 dec = Settings.Default.YDec,
-                ppu = Settings.Default.YPPU,
+                ppu = 21333,//Settings.Default.YPPU,
+                //denominator = 12,
                 plsInMde = (int)PulseInMode.AB_4X,
                 homeVelLow = Settings.Default.YVelLow,
                 homeVelHigh = Settings.Default.YVelService,
@@ -765,17 +766,17 @@ namespace DicingBlade.ViewModels
             _machine.ConfigureValves(new Dictionary<Valves, (Ax, Do)>
                 {
                     {Valves.Blowing, (Ax.Z, Do.Out6)},
-                    {Valves.ChuckVacuum, (Ax.Z, Do.Out4)},
+                    {Valves.ChuckVacuum, (Ax.Z, Do.Out5)},
                     {Valves.Coolant, (Ax.U, Do.Out4)},
                     {Valves.SpindleContact, (Ax.U, Do.Out5)}
                 });
 
             _machine.ConfigureSensors(new Dictionary<Sensors, (Ax, Di, bool, string)>
                 {
-                    {Sensors.Air, (Ax.Z, Di.In1, false, "Воздух")},
-                    {Sensors.ChuckVacuum, (Ax.X, Di.In2, false, "Вакуум")},
-                    {Sensors.Coolant, (Ax.U, Di.In2, false, "СОЖ")},
-                    {Sensors.SpindleCoolant, (Ax.Y, Di.In2, false, "Охлаждение шпинделя")}
+                    {Sensors.Air, (Ax.U, Di.In3, true, "Воздух")},
+                    {Sensors.ChuckVacuum, (Ax.X, Di.In3, true, "Вакуум")},
+                    {Sensors.Coolant, (Ax.Z, Di.In3, false, "СОЖ")},
+                    {Sensors.SpindleCoolant, (Ax.Y, Di.In3, false, "Охлаждение шпинделя")}
                 });
 
             _machine.SetVelocity(VelocityRegime);

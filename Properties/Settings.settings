@@ -15,7 +15,7 @@
       <Value Profile="(Default)">180</Value>
     </Setting>
     <Setting Name="XPPU" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">870</Value>
+      <Value Profile="(Default)">1000</Value>
     </Setting>
     <Setting Name="XJerk" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1</Value>
@@ -30,7 +30,7 @@
       <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="YPPU" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">12800</Value>
+      <Value Profile="(Default)">25600</Value>
     </Setting>
     <Setting Name="YJerk" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1</Value>
