@@ -108,9 +108,8 @@ namespace DicingBlade.ViewModels
         {
             if(HandyControl.Controls.MessageBox.Ask($"Сохранить изменения в файле {FileName}?") == MessageBoxResult.OK)
             {
-                var content = File.ReadAllLines(FileName);
-                File.WriteAllLines(FileName, content);
-            }            
+                this.SerializeObjectJson(FileName);
+            }
         }
        
     }

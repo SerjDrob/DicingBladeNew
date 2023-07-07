@@ -35,7 +35,7 @@ namespace DicingBlade.Classes.Processes
         private double _yActual;
         private double _zActual;
         private double _uActual;
-        private double _bladeTransferGapZ = 4;
+        private double _bladeTransferGapZ = 1;
         private double _zRatio = 0;
         private double _lastCutY;
         private double _inspectX;
@@ -159,6 +159,7 @@ namespace DicingBlade.Classes.Processes
                     }
                     else if (_wafer.IsLastSide)
                     {
+                        await GoNextDirectionAsync();
                         _subject.OnNext(new ProcessMessage(MessageType.Info,$"Поверните столик на 90 и обучите {(_wafer.CurrentSide + 1).ToOrdinalWords(GrammaticalGender.Feminine).ApplyCase(GrammaticalCase.Accusative)} сторону и нажмите продолжить"));
                     }
                 })
@@ -213,8 +214,9 @@ namespace DicingBlade.Classes.Processes
                         return State.GoingTransferingZ;
                     }
                     else if (_wafer.IncrementSide())
-                    {                       
-                        return State.TeachSides;
+                    {
+                        _repeatUntillCancell.CancelAsync();
+                         return State.TeachSides;
                     }
                     return State.ProcessEnd;
                 }, () => !_checkCut.Check)
@@ -499,7 +501,8 @@ namespace DicingBlade.Classes.Processes
             }
             else if (_stateMachine.IsInState(State.TeachSides) & !_wafer.IsLastSide)
             {
-                await _stateMachine.FireAsync(Trigger.Next);
+                _repeatUntillCancell = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
+                await _repeatUntillCancell.StartAsync();
             }
             else if (_stateMachine.IsInState(State.TeachSides) & _wafer.IsLastSide)
             {
