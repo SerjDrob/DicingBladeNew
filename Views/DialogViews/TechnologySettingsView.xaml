@@ -1,5 +1,5 @@
-﻿<hc:GlowWindow
-    x:Class="DicingBlade.Views.TechnologySettingsView"
+﻿<UserControl
+    x:Class="DicingBlade.Views.DialogViews.TechnologySettingsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:DicingBlade.Converters"
@@ -7,23 +7,18 @@
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:local="clr-namespace:DicingBlade.Classes.WaferGeometry"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:model="[model ]clr-namespace:DicingBlade.ViewModels"
     xmlns:hc="https://handyorg.github.io/handycontrol"
-    Title="Технология резки"
     Width="auto"
     Height="auto"
-    ResizeMode="NoResize"
-    SizeToContent="WidthAndHeight"
-    WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
             <i:InvokeCommandAction Command="{Binding ClosingWndCommand}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
-    <Window.Resources>
+    <UserControl.Resources>
         <converters:RadioEnumConverter x:Key="RadioConverter" />
-    </Window.Resources>
+    </UserControl.Resources>
     <StackPanel>
         <StackPanel.Resources>
             <Style TargetType="CheckBox" BasedOn="{StaticResource CheckBoxBaseStyle}">
@@ -170,4 +165,4 @@
                 DockPanel.Dock="Right" />
         </DockPanel>
     </StackPanel>
-</hc:GlowWindow>
+</UserControl>

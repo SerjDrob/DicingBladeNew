@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Serialization;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using netDxf;
-using MachineClassLibrary.Machine;
+using System.Xml.Serialization;
 using MachineClassLibrary.Classes;
-using DicingBlade;
-using DicingBlade.Classes;
-using DicingBlade.Utility;
+using netDxf;
 
 namespace DicingBlade.Utility
 {

@@ -18,6 +18,7 @@ using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.Machine.Parts;
 using MachineClassLibrary.SFC;
+using Microsoft.Extensions.Logging;
 using Microsoft.Toolkit.Diagnostics;
 using PropertyChanged;
 using Growl = HandyControl.Controls.Growl;
@@ -141,8 +142,10 @@ namespace DicingBlade.ViewModels
         public double TeachMarkersRatio { get; } = 2;
         public SubstrateVM SubstrateVM { get; set; } = new();
         private readonly List<IDisposable> _subscriptions = new();
-        public MainViewModel(DicingBladeMachine machine, MachineConfiguration machineConfiguration)
+        private readonly ILogger _logger;
+        public MainViewModel(DicingBladeMachine machine, DicingMachineConfiguration machineConfiguration, ILoggerProvider loggerProvider)
         {
+            _logger = loggerProvider.CreateLogger("MainVM");
             IsNot04PP100 = !machineConfiguration.IsO4PP100;
             SubstrateVM.SubstrateClicked += SubstrVM_SubstrateClicked;
             CamVM.ImageClicked += CamVM_ImageClicked;
@@ -201,8 +204,9 @@ namespace DicingBlade.ViewModels
             CamVM.ScaleGridView = viewfinders;
             CamVM.RealCutWidthView = viewfinders.RealCutWidth;
             CamVM.CutWidthView = viewfinders.CorrectingCutWidth;
+            _logger.Log(LogLevel.Information, "App started");
         }
-
+        public void LogMessage(LogLevel loggerLevel, string message) => _logger.Log(loggerLevel, message);
         private void _flowMeter_GetData(decimal obj)
         {
             Flow = (double)obj;
@@ -339,7 +343,7 @@ namespace DicingBlade.ViewModels
                 })
                 .AddToSubscriptions(_subscriptions);
             dicingProcess.OfType<ProcessStateChanging>()
-                .Subscribe(async state =>
+                .Select(state => Observable.FromAsync(async () =>
                 {
                     ProcessPercentage = _dicingProcess.ProcessPercentage;
                     var tracingTask = Task.CompletedTask;
@@ -417,7 +421,7 @@ namespace DicingBlade.ViewModels
                             //Starting a tracing after cutting is started;
                             {
                                 tracingTaskCancellationTokenSource = new CancellationTokenSource();
-                                SubstrateVM.BladeTracingTaskAsync(tracingTaskCancellationTokenSource.Token);
+                                await SubstrateVM.BladeTracingTaskAsync(tracingTaskCancellationTokenSource.Token);
                             }
                             break;
                         case State.ProcessEnd:
@@ -435,7 +439,9 @@ namespace DicingBlade.ViewModels
                             }
                             break;
                     }
-                })
+                }))
+                .Concat()
+                .Subscribe()
                 .AddToSubscriptions(_subscriptions);
 #pragma warning restore VSTHRD101 // Avoid unsupported async delegates
 
@@ -495,15 +501,12 @@ namespace DicingBlade.ViewModels
                             //interruption actions
                         }
                     }
-                    catch (Exception)
+                    catch (Exception exception)
                     {
-                        throw;
+                        _logger.LogError(exception, $"Throwed in {nameof(GetSubscriptions)} method.  ");
                     }
-                },
-                () =>
-                {
-                    _machine.StartCamera(0);
-                }).AddToSubscriptions(_subscriptions);
+                },() =>_machine.StartCamera(0))
+                .AddToSubscriptions(_subscriptions);
         }
         public double WaferCurrentSideAngle
         {

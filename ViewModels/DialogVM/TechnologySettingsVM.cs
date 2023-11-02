@@ -1,24 +1,24 @@
-﻿using DicingBlade.Classes;
+﻿using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Windows.Input;
 using DicingBlade.Classes.Miscellaneous;
 using DicingBlade.Classes.Technology;
 using DicingBlade.Classes.WaferGeometry;
 using DicingBlade.Properties;
 using DicingBlade.Utility;
+using MachineControlsLibrary.CommonDialog;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Win32;
 using PropertyChanged;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Windows.Input;
 
-namespace DicingBlade.ViewModels
+namespace DicingBlade.ViewModels.DialogVM
 {
 
     [AddINotifyPropertyChangedInterface]
-    internal partial class TechnologySettingsViewModel : ITechnology, IDataErrorInfo
+    internal partial class TechnologySettingsVM : CommonDialogResultable<ITechnology>, ITechnology, IDataErrorInfo
     {
-        public TechnologySettingsViewModel()
+        public TechnologySettingsVM()
         {
             _validator = new TechnologySettingsValidator();
             FileName = Settings.Default.TechnologyLastFile;
@@ -41,16 +41,46 @@ namespace DicingBlade.ViewModels
             }
 
         }
-        public string FileName { get; set; }
-        public int SpindleFreq { get; set; }
-        public double FeedSpeed { get; set; }
-        public double WaferBladeGap { get; set; }
-        public double FilmThickness { get; set; }
-        public double UnterCut { get; set; }
-        public int PassCount { get; set; }
-        public Directions PassType { get; set; }
-        public int StartControlNum { get; set; }
-        public int ControlPeriod { get; set; }
+        public string FileName
+        {
+            get; set;
+        }
+        public int SpindleFreq
+        {
+            get; set;
+        }
+        public double FeedSpeed
+        {
+            get; set;
+        }
+        public double WaferBladeGap
+        {
+            get; set;
+        }
+        public double FilmThickness
+        {
+            get; set;
+        }
+        public double UnterCut
+        {
+            get; set;
+        }
+        public int PassCount
+        {
+            get; set;
+        }
+        public Directions PassType
+        {
+            get; set;
+        }
+        public int StartControlNum
+        {
+            get; set;
+        }
+        public int ControlPeriod
+        {
+            get; set;
+        }
 
         [ICommand]
         private void ClosingWnd()
@@ -90,6 +120,9 @@ namespace DicingBlade.ViewModels
                 ClosingWnd();
             }
         }
+
+        public override void SetResult() => SetResult(this);
+
         public string Error => string.Empty;
 
         private readonly TechnologySettingsValidator _validator;

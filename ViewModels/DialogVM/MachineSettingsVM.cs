@@ -1,20 +1,20 @@
 ﻿using System.Windows.Input;
-using DicingBlade.Classes;
 using DicingBlade.Properties;
+using MachineControlsLibrary.CommonDialog;
 using Microsoft.Toolkit.Mvvm.Input;
 using PropertyChanged;
-namespace DicingBlade.ViewModels
+namespace DicingBlade.ViewModels.DialogVM
 {
 
     [AddINotifyPropertyChangedInterface]
-    internal partial class MachineSettingsViewModel
+    internal partial class MachineSettingsVM : CommonDialogResultable<ViewFindersVM>
     {
-      
+
         private double _xCurrentPosition;
         private double _yCurrentPosition;
         private double _zCurrentPosition;
         public ViewFindersVM ScaleGridView { get; set; } = new();
-        internal MachineSettingsViewModel(double x, double y, double z)
+        internal MachineSettingsVM(double x, double y, double z)
         {
             _xCurrentPosition = x;
             _yCurrentPosition = y;
@@ -42,5 +42,7 @@ namespace DicingBlade.ViewModels
         {
             Settings.Default.XDisk = _xCurrentPosition;
         }
+
+        public override void SetResult() => SetResult(ScaleGridView);
     }
 }

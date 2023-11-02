@@ -1,12 +1,11 @@
-﻿using HandyControl.Controls;
-using System.Windows;
+﻿using System.Windows.Controls;
 
-namespace DicingBlade.Views
+namespace DicingBlade.Views.DialogViews
 {
     /// <summary>
     /// Логика взаимодействия для WaferSettingsView.xaml
     /// </summary>
-    public partial class WaferSettingsView : GlowWindow
+    public partial class WaferSettingsView : UserControl
     {
         public WaferSettingsView()
         {

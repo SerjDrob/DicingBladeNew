@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Windows;
 using DicingBlade.ViewModels;
 using HandyControl.Controls;
+using Microsoft.Extensions.Logging;
 
 namespace DicingBlade.Views
 {
@@ -18,6 +18,8 @@ namespace DicingBlade.Views
         }
         protected override void OnClosed(EventArgs e)
         {
+            var context = DataContext as IMainViewModel;
+            context?.LogMessage(LogLevel.Information, "Application closed");
             base.OnClosed(e);
             Environment.Exit(0);
         }

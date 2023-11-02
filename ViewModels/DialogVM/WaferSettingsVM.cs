@@ -1,35 +1,66 @@
-﻿using PropertyChanged;
-using DicingBlade.Classes;
-using System.Windows.Input;
-using System.Windows;
-using DicingBlade.Properties;
+﻿using System;
 using System.IO;
-using Microsoft.Win32;
-using System;
-using Microsoft.Toolkit.Mvvm.Input;
+using System.Windows;
+using System.Windows.Input;
 using DicingBlade.Classes.WaferGeometry;
 using DicingBlade.Utility;
-using System.ComponentModel.Design;
+using MachineControlsLibrary.CommonDialog;
+using Microsoft.Toolkit.Mvvm.Input;
+using Microsoft.Win32;
+using PropertyChanged;
 
-namespace DicingBlade.ViewModels
+namespace DicingBlade.ViewModels.DialogVM
 {
 
     [AddINotifyPropertyChangedInterface]
-    public partial class WaferSettingsVM : IWafer
+    public partial class WaferSettingsVM : CommonDialogResultable<WaferSettingsVM>, IWafer
     {
         private Action<IWafer> _actionWhenOpened;
 
-        public bool IsRound { get; set; }
-        public bool IsSquare { get => !IsRound; }
-        public double Width { get; set; }
-        public double Height { get; set; }
-        public double Thickness { get; set; }
-        public double IndexW { get; set; }
-        public double IndexH { get; set; }
-        public double Diameter { get; set; }
-        public string FileName { get; set; }
-        public bool NewFileCreated { get;private set; }
-        public Wafer Wafer { get; set; }
+        public bool IsRound
+        {
+            get; set;
+        }
+        public bool IsSquare
+        {
+            get => !IsRound;
+        }
+        public double Width
+        {
+            get; set;
+        }
+        public double Height
+        {
+            get; set;
+        }
+        public double Thickness
+        {
+            get; set;
+        }
+        public double IndexW
+        {
+            get; set;
+        }
+        public double IndexH
+        {
+            get; set;
+        }
+        public double Diameter
+        {
+            get; set;
+        }
+        public string FileName
+        {
+            get; set;
+        }
+        public bool NewFileCreated
+        {
+            get; private set;
+        }
+        public Wafer Wafer
+        {
+            get; set;
+        }
         public WaferSettingsVM(string filename)
         {
             if (filename == string.Empty || !File.Exists(filename))
@@ -65,8 +96,11 @@ namespace DicingBlade.ViewModels
                     break;
             };
         }
-        public int CurrentSide { get; set; }
-               
+        public int CurrentSide
+        {
+            get; set;
+        }
+
         [ICommand]
         private void ChangeShape()
         {
@@ -87,7 +121,7 @@ namespace DicingBlade.ViewModels
                 ((IWafer)StatMethods.DeSerializeObjectJson<TempWafer>(FileName)).CopyPropertiesTo(this);
             }
         }
-       
+
         [ICommand]
         private void SaveFileAs()
         {
@@ -106,11 +140,12 @@ namespace DicingBlade.ViewModels
         [ICommand]
         private void SaveFile()
         {
-            if(HandyControl.Controls.MessageBox.Ask($"Сохранить изменения в файле {FileName}?") == MessageBoxResult.OK)
+            if (HandyControl.Controls.MessageBox.Ask($"Сохранить изменения в файле {FileName}?") == MessageBoxResult.OK)
             {
                 this.SerializeObjectJson(FileName);
             }
         }
-       
+
+        public override void SetResult() => SetResult(this);
     }
 }

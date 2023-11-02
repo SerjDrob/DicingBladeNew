@@ -1,22 +1,16 @@
-﻿<hc:GlowWindow
-    x:Class="DicingBlade.Views.MachineSettingsView"
+﻿<UserControl
+    x:Class="DicingBlade.Views.DialogViews.MachineSettingsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:dicingBlade="clr-namespace:DicingBlade"
-    xmlns:local="clr-namespace:DicingBlade.Classes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:DicingBlade.ViewModels"
     xmlns:st="clr-namespace:DicingBlade.Properties"
-    Title="Настройки"
     Width="auto"
     Height="auto"
     d:DataContext="{d:DesignInstance model:WaferSettingsVM,
                                      IsDesignTimeCreatable=False}"
     xmlns:hc="https://handyorg.github.io/handycontrol"
-    ResizeMode="NoResize"
-    SizeToContent="WidthAndHeight"
-    WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
 
     <Grid>
@@ -328,4 +322,4 @@
         </TabControl>
 
     </Grid>
-</hc:GlowWindow>
+</UserControl>

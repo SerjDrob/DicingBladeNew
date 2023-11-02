@@ -1,5 +1,4 @@
-﻿using DicingBlade.Classes;
-using DicingBlade.Classes.Miscellaneous;
+﻿using DicingBlade.Classes.Miscellaneous;
 using DicingBlade.Classes.Processes;
 using DicingBlade.Classes.Technology;
 using DicingBlade.Classes.WaferGeometry;
@@ -11,6 +10,7 @@ using MachineClassLibrary.Machine;
 using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineControlsLibrary.Classes;
+using HandyControl.Tools.Extension;
 using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -21,6 +21,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Growl = HandyControl.Controls.Growl;
 using MsgBox = HandyControl.Controls.MessageBox;
+using HandyControl.Controls;
+using MachineControlsLibrary.CommonDialog;
+using DicingBlade.ViewModels.DialogVM;
 
 
 namespace DicingBlade.ViewModels
@@ -450,28 +453,26 @@ namespace DicingBlade.ViewModels
             }
         }
         [ICommand]
-        private void MachineSettings()
+        private async Task MachineSettings()
         {
-            var settingsVM = new MachineSettingsViewModel(XAxis.Position, YAxis.Position, ZAxis.CmdPosition);
-            settingsVM.ScaleGridView = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json"));
-            new MachineSettingsView
+            var settingsVM = new MachineSettingsVM(XAxis.Position, YAxis.Position, ZAxis.CmdPosition);
+            var viewFinders = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json")); ;
+           
+            var result = await Dialog.Show<CommonDialog>()
+                .SetDialogTitle("Настройки приводов")
+                .SetDataContext(settingsVM, vm => vm.ScaleGridView = viewFinders)
+                .GetCommonResultAsync<ViewFindersVM>();
+
+            if (result.Success)
             {
-                DataContext = settingsVM
-            }.ShowDialog();
-
-
-            var viewfinders = settingsVM.ScaleGridView;
-
-            viewfinders.SerializeObject(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json"));
-
-            viewfinders = viewfinders.DivideDoubles(1000);
-            CamVM.ScaleGridView = viewfinders;
-            CamVM.RealCutWidthView = viewfinders.RealCutWidth;
-            CamVM.CutWidthView = viewfinders.CorrectingCutWidth;
-
-            Settings.Default.Save();
-
-            //Machine.RefreshSettings();
+                var viewfinders = result.CommonResult;
+                viewfinders.SerializeObject(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json"));
+                viewfinders = viewfinders.DivideDoubles(1000);
+                CamVM.ScaleGridView = viewfinders;
+                CamVM.RealCutWidthView = viewfinders.RealCutWidth;
+                CamVM.CutWidthView = viewfinders.CorrectingCutWidth;
+                Settings.Default.Save();
+            }
             try
             {
                 ImplementMachineSettings();
@@ -491,40 +492,41 @@ namespace DicingBlade.ViewModels
         public string WaferFileName { get; set; }
 
         [ICommand]
-        private void TechnologySettings()
+        private async Task TechnologySettings()
         {
-            var technologySettingsView = new TechnologySettingsView
+
+            var result = await Dialog.Show<CommonDialog>()
+                .SetDialogTitle("Технология")
+                .SetDataContext<TechnologySettingsVM>(vm => { })
+                .GetCommonResultAsync<ITechnology>();
+
+            if (result.Success) 
             {
-                DataContext = new TechnologySettingsViewModel()
-            };
+                _technology = result.CommonResult;
+                PassCountTechnology = _technology.PassCount;
+                FeedSpeedTechnology = _technology.FeedSpeed;
 
-            technologySettingsView.ShowDialog();
-
-            // TODO ASYNC
-            _technology = StatMethods.DeSerializeObjectJson<Technology>(Settings.Default.TechnologyLastFile);
-
-            PassCountTechnology = _technology.PassCount;
-            FeedSpeedTechnology = _technology.FeedSpeed;
-
-            _dicingProcess?.RefreshTechnology(_technology);
-            Wafer?.SetPassCount(PropContainer.Technology.PassCount);
+                _dicingProcess?.RefreshTechnology(_technology);
+                Wafer?.SetPassCount(PropContainer.Technology.PassCount);
+            }
         }
 
         [ICommand]
-        private void WaferSettings()
+        private async Task WaferSettings()
         {
-            var waferSettingsView = new WaferSettingsView
-            {
-                DataContext = new WaferSettingsVM(_currentWafer)                
-            };
-            waferSettingsView.ShowDialog();
+            var result = await Dialog.Show<CommonDialog>()
+                .SetDialogTitle("Подложка")
+                .SetDataContext(new WaferSettingsVM(_currentWafer), vm => { })
+                .GetCommonResultAsync<WaferSettingsVM>();
 
-            var newSettingsVM = waferSettingsView.DataContext as WaferSettingsVM;
-            
-            Settings.Default.WaferLastFile = newSettingsVM.FileName;
-            Settings.Default.Save();
-            AdjustWaferTechnology(newSettingsVM);
-            WaferFileName = newSettingsVM.FileName;
+            if (result.Success)
+            {
+                var newSettings = result.CommonResult;
+                Settings.Default.WaferLastFile = newSettings.FileName;
+                Settings.Default.Save();
+                AdjustWaferTechnology(newSettings);
+                WaferFileName = newSettings.FileName;
+            }           
         }
 
         [ICommand]

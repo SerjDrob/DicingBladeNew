@@ -4,11 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:d1p1="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:hc="https://handyorg.github.io/handycontrol" 
-    xmlns:local="clr-namespace:DicingBlade"
-    xmlns:controls="clr-namespace:MachineControlsLibrary.Controls;assembly=MachineControlsLibrary"
     xmlns:vm="clr-namespace:DicingBlade.ViewModels"
     xmlns:views="clr-namespace:DicingBlade.Views"
+    xmlns:dialogs="clr-namespace:DicingBlade.Views.DialogViews"
+    xmlns:dialogvm="clr-namespace:DicingBlade.ViewModels.DialogVM"
     d1p1:Ignorable="d"
     >
     <Application.Resources>
@@ -37,6 +36,17 @@
                 <views:CameraView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type dialogvm:MachineSettingsVM}">
+                <dialogs:MachineSettingsView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type dialogvm:WaferSettingsVM}">
+                <dialogs:WaferSettingsView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type dialogvm:TechnologySettingsVM}">
+                <dialogs:TechnologySettingsView/>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
