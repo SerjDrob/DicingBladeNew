@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Advantech.Motion;
+using DicingBlade.Classes.WaferGrid;
 using DicingBlade.Classes.Miscellaneous;
 using DicingBlade.Classes.Processes;
 using DicingBlade.Classes.Technology;
@@ -18,6 +19,7 @@ using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.Machine.Parts;
 using MachineClassLibrary.SFC;
+using MathNet.Numerics.Integration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Toolkit.Diagnostics;
 using PropertyChanged;
@@ -204,8 +206,83 @@ namespace DicingBlade.ViewModels
             CamVM.ScaleGridView = viewfinders;
             CamVM.RealCutWidthView = viewfinders.RealCutWidth;
             CamVM.CutWidthView = viewfinders.CorrectingCutWidth;
+
+            //----
+
+            CutSet = new CutSet()
+            {
+                Thickness = 0.5,
+                UnderCut = 0.05,
+                CuttingSteps = new List<CuttingStep>
+                {
+                    new()
+                    {
+                        Count = 5,
+                        Index = 5.2,
+                        Length = 48,
+                        Passes = new List<Pass>()
+                        {
+                            new()
+                            {
+                                DepthShare = 30,
+                                FeedSpeed = 1,
+                                RPM = 30000
+                            },
+                            new()
+                            {
+                                PassNumber = 1,
+                                DepthShare = 30,
+                                FeedSpeed = 5,
+                                RPM = 25000
+                            },
+                            new()
+                            {
+                                PassNumber = 2,
+                                DepthShare = 40,
+                                FeedSpeed = 0.5,
+                                RPM = 18000
+                            },
+                        }
+                    },
+                    new()
+                    {
+                        Count = 3,
+                        Index = 2,
+                        Length = 24,
+                        StepNumber = 1,
+                        Passes = new List<Pass>()
+                        {
+                            new()
+                            {
+                                DepthShare = 30,
+                                FeedSpeed = 1,
+                                RPM = 30000
+                            },
+                            new()
+                            {
+                                PassNumber = 1,
+                                DepthShare = 30,
+                                FeedSpeed = 2,
+                                RPM = 20000
+                            }
+                        }
+                    }
+                }
+            };
+
+            //----
+
+
+
             _logger.Log(LogLevel.Information, "App started");
         }
+
+        public CutSet CutSet
+        {
+            get;
+            set;
+        }
+
         public void LogMessage(LogLevel loggerLevel, string message) => _logger.Log(loggerLevel, message);
         private void _flowMeter_GetData(decimal obj)
         {

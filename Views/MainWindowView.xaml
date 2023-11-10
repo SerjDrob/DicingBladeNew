@@ -332,6 +332,9 @@
                     </Border>
                 </DockPanel>
             </ToolBar>
+            <ToolBar>
+                <Button Content="Step Set" Foreground="{StaticResource SuccessBrush}" Command="{Binding AddStepSetCommand}"/>
+            </ToolBar>
         </ToolBarTray>
         <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource DarkDefaultBrush}">
             <Grid.Resources>

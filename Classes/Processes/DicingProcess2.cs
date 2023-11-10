@@ -41,7 +41,7 @@ namespace DicingBlade.Classes.Processes
         private double _inspectX;
         private bool _isWaitingToTeach = false;
         private CheckCutControl _checkCut;
-        private RepeatUntilCancel _repeatUntilCancell;
+        private RepeatUntilCancel _repeatUntilCancel;
         private bool _afterCorrection;
 
         private bool IsCutting { get; set; } = false;
@@ -220,7 +220,7 @@ namespace DicingBlade.Classes.Processes
                     //}
                     return State.ProcessEnd;
                 }, () => !_checkCut.Check)
-                .PermitIf(Trigger.Next, State.Inspection, () => _checkCut.Check && !_repeatUntilCancell.IsCancellationRequested);
+                .PermitIf(Trigger.Next, State.Inspection, () => _checkCut.Check && !_repeatUntilCancel.IsCancellationRequested);
 
             _stateMachine.Configure(State.MovingNextSide)
                 .SubstateOf(State.Processing)
@@ -468,7 +468,7 @@ namespace DicingBlade.Classes.Processes
             _machine.Stop(Ax.X);
             await _machine.MoveAxInPosAsync(Ax.Z, 0);
             _machine.StopSpindle();
-            if (_repeatUntilCancell is not null) await _repeatUntilCancell.CancelAsync();
+            if (_repeatUntilCancel is not null) await _repeatUntilCancel.CancelAsync();
             await _stateMachine.FireAsync(Trigger.Deny);
         }
         public async Task StartAsync()
@@ -489,7 +489,7 @@ namespace DicingBlade.Classes.Processes
         public async Task Deny()
         {
             _isCancelled = true;
-            if (_repeatUntilCancell is not null) await _repeatUntilCancell.CancelAsync();
+            if (_repeatUntilCancel is not null) await _repeatUntilCancel.CancelAsync();
             await _stateMachine.FireAsync(Trigger.Deny);
         }
         public async Task Next()
@@ -501,24 +501,24 @@ namespace DicingBlade.Classes.Processes
             }
             else if (_stateMachine.IsInState(State.TeachSides) & !_wafer.IsLastSide)
             {
-                _repeatUntilCancell = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
-                await _repeatUntilCancell.StartAsync();
+                _repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
+                await _repeatUntilCancel.StartAsync();
             }
             else if (_stateMachine.IsInState(State.TeachSides) & _wafer.IsLastSide)
             {
-                _repeatUntilCancell = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
-                await _repeatUntilCancell.StartAsync();
+                _repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
+                await _repeatUntilCancel.StartAsync();
             }
             else if (_stateMachine.IsInState(State.Processing))
             {
                 _subject.OnNext(new ProcessMessage(MessageType.ToChangeCurrentStateTo, "Коррекция"));
-                await _repeatUntilCancell.CancelAsync();
+                await _repeatUntilCancel.CancelAsync();
                 await _stateMachine.FireAsync(Trigger.Correction);
             }
             else if (_inProcess || _stateMachine.IsInState(State.Correction))
             {
-                _repeatUntilCancell = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
-                await _repeatUntilCancell.StartAsync();
+                _repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
+                await _repeatUntilCancel.StartAsync();
             }
         }
         public void ExcludeObject(IProcObject procObject)

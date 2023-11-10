@@ -546,5 +546,14 @@ namespace DicingBlade.ViewModels
 
             //Thickness = 1;
         }
+
+        [ICommand]
+        private async Task AddStepSet()
+        {
+            var result = await Dialog.Show<CommonDialog>()
+                            .SetDialogTitle("Создать раскрой пластины")
+                            .SetDataContext(new CutSetVM(CutSet), vm => { })
+                            .GetCommonResultAsync<bool>();
+        }
     }
 }

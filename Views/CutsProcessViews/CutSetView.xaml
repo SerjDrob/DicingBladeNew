@@ -1,0 +1,77 @@
+﻿<UserControl x:Class="DicingBlade.Views.CutsProcessViews.CutSetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DicingBlade.Views.CutsProcessViews"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             xmlns:cutset="clr-namespace:DicingBlade.Classes.WaferGrid"
+             xmlns:dialog="clr-namespace:DicingBlade.ViewModels.DialogVM"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance Type=dialog:CutSetVM, IsDesignTimeCreatable=True}"
+             >
+    <StackPanel>
+        <TreeViewItem>
+            <TreeViewItem.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="Task"/>
+                        <ColumnDefinition SharedSizeGroup="Toggle"/>
+                        <ColumnDefinition SharedSizeGroup="Toggle"/>
+                        <ColumnDefinition SharedSizeGroup="Duration"/>
+                        <ColumnDefinition SharedSizeGroup="Notes"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1" Text="Шаг" Foreground="{StaticResource AccentBrush}" Style="{StaticResource TextBlockBoldBaseStyle}"/>
+                    <TextBlock Grid.Column="2" Text="Индекс" Style="{StaticResource TextBlockBoldBaseStyle}"/>
+                    <TextBlock Grid.Column="3" Text="Длина" Style="{StaticResource TextBlockBoldBaseStyle}"/>
+                    <TextBlock Grid.Column="4" Text="Кол-во" Style="{StaticResource TextBlockBoldBaseStyle}"/>
+                </Grid>
+            </TreeViewItem.Header>
+        </TreeViewItem>
+        <ScrollViewer MaxHeight="250" MinHeight="200" Width="500" VerticalScrollBarVisibility="Auto" Style="{StaticResource ScrollViewerNativeBaseStyle}">
+            <ItemsControl Style="{StaticResource BaseStyle}" ItemsSource="{Binding CutSet.CuttingSteps}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Expander Style="{StaticResource BaseStyle}">
+                            <Expander.Header>
+                                <Grid ShowGridLines="True" HorizontalAlignment="{Binding Path=HorizontalAlignment, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContentPresenter}}, Mode=OneWayToSource}" >
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition SharedSizeGroup="Task"/>
+                                        <ColumnDefinition SharedSizeGroup="Toggle"/>
+                                        <ColumnDefinition SharedSizeGroup="Toggle"/>
+                                        <ColumnDefinition SharedSizeGroup="Duration"/>
+                                        <ColumnDefinition SharedSizeGroup="Notes"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="1" Text="{Binding StepNumber}" Foreground="{StaticResource AccentBrush}" Style="{StaticResource TextBlockBaseStyle}"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Index}" Style="{StaticResource TextBlockBaseStyle}"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Length}" Style="{StaticResource TextBlockBaseStyle}"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding Count}" Style="{StaticResource TextBlockBaseStyle}"/>
+                                </Grid>
+                            </Expander.Header>
+                            <DataGrid AutoGenerateColumns="False" Margin="50,0,0,0" ItemsSource="{Binding Passes}" Style="{StaticResource DataGrid.Small  }">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Проход" Foreground="{StaticResource WarningBrush}" Binding="{Binding PassNumber}"/>
+                                    <DataGridTextColumn Header="Подача мм/с" Binding="{Binding FeedSpeed}"/>
+                                    <DataGridTextColumn Header="Частота шпинделя об/мин" Binding="{Binding RPM}"/>
+                                    <DataGridTextColumn Header="Глубина, %" Binding="{Binding DepthShare}"/>
+                                    <DataGridTemplateColumn>
+                                        <DataGridTemplateColumn.Header>
+                                            <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
+                                                    hc:IconElement.Height="10"
+                                                    hc:Poptip.Content="Добавить проход"
+                                                    hc:Poptip.Placement="RightTop"
+                                                    hc:Poptip.Offset="12"
+                                                    Command="{Binding AddMaterialCommand}"
+                                                    Style="{StaticResource ButtonIcon.Small}"/>
+                                        </DataGridTemplateColumn.Header>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Expander>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </StackPanel>
+</UserControl>
