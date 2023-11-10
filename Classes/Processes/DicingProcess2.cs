@@ -409,8 +409,11 @@ namespace DicingBlade.Classes.Processes
             var arr = _machine.TranslateActualCoors(Place.BladeChuckCenter, new (Ax, double)[] { (Ax.X, -x), (Ax.Y, -y) });
             var resY = y + _machine.GetGeometry(Place.CameraChuckCenter, Ax.Y) - _machine.GetFeature(MFeatures.CameraBladeOffset);
             var xy = new double[] { arr.GetVal(Ax.X), /*arr.GetVal(Ax.Y)*/resY };
-            await _machine.MoveGpInPosAsync(Groups.XY, xy, true);
-            await Task.Delay(300);
+            //await _machine.MoveGpInPosAsync(Groups.XY, xy, true);
+            await Task.WhenAll(
+                _machine.MoveAxInPosAsync(Ax.X, arr.GetVal(Ax.X)),
+                _machine.MoveAxInPosAsync(Ax.Y, resY,true));
+            //await Task.Delay(300);
             await _machine.MoveAxInPosAsync(Ax.Y, resY, true);
         }
         private async Task StartLearningAsync()
