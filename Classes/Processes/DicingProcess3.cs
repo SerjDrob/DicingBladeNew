@@ -12,14 +12,17 @@ using MachineClassLibrary.Classes;
 using MachineClassLibrary.Laser.Entities;
 using MachineClassLibrary.Machine;
 using MachineClassLibrary.Machine.Machines;
+using Microsoft.Toolkit.Diagnostics;
 using Stateless;
+using Stateless.Graph;
 using MsgBox = HandyControl.Controls.MessageBox;
 
 namespace DicingBlade.Classes.Processes;
 internal class DicingProcess3 : IProcess
 {
     private readonly DicingBladeMachine _machine;
-    private readonly CutLines _cutLines;
+    private readonly CutLines.CutLinesBuilder _cutLinesBuilder;
+    private CutLines _cutLines;
     private readonly ITechnology _technology;
     private double _inspectX;
     private StateMachine<State, Trigger> _stateMachine;
@@ -33,6 +36,12 @@ internal class DicingProcess3 : IProcess
         private set;
     }
 
+    public bool ProcessEndOrDenied
+    {
+        get => (_stateMachine?.IsInState(State.ProcessEnd) ?? false) || (_stateMachine?.IsInState(State.ProcessInterrupted) ?? false);
+    }
+
+
     private CheckCutControl _checkCut;
     private RepeatUntilCancel _repeatUntilCancel;
     private double _xActual;
@@ -44,11 +53,12 @@ internal class DicingProcess3 : IProcess
     private bool _inProcess;
     private bool _isCutting;
     private double _lastCutY;
+    private bool _isCancelled;
 
-    public DicingProcess3(DicingBladeMachine machine, CutLines cutLines, ITechnology technology)
+    public DicingProcess3(DicingBladeMachine machine, CutLines.CutLinesBuilder cutLinesBuilder, ITechnology technology)
     {
         _machine = machine ?? throw new ProcessException("Не выбрана установка для процесса");
-        _cutLines = cutLines;
+        _cutLinesBuilder = cutLinesBuilder;
         _technology = technology;
     }
     public async Task CreateProcess()
@@ -115,6 +125,18 @@ internal class DicingProcess3 : IProcess
                 await StartLearningAsync();
                 _subject.OnNext(new ProcessMessage(MessageType.Info, $"Укажите линию первого реза и нажмите продолжить"));
             })
+            .OnExitAsync(async () =>
+            {
+                if (!_isCancelled)
+                {
+                    await LearningAsync();
+                    //if (_wafer.IncrementSide())
+                    //{
+                    //    await GoTransferingHeightZAsync();
+                    //    await MovingNextDirAsync();
+                    //}
+                }
+            }, "Moving next direction for learning")
             .Ignore(Trigger.Teach)
             .Permit(Trigger.Next, State.Processing);
 
@@ -260,6 +282,15 @@ internal class DicingProcess3 : IProcess
 
         await _stateMachine.ActivateAsync();
     }
+    private Task LearningAsync()
+    {
+        var y = _machine.TranslateActualCoors(Place.CameraChuckCenter, Ax.Y);
+        _cutLines = _cutLinesBuilder.SetFirstY(y).Build();
+        //_wafer.TeachSideShift(y);
+        //_subject.OnNext(new WaferAligningChanged());
+        //_wafer.TeachSideAngle(_uActual);
+        return Task.CompletedTask;
+    }
     private void _machine_OnAxisMotionStateChanged(object? sender, AxisStateEventArgs e)
     {
         switch (e.Axis)
@@ -322,7 +353,7 @@ internal class DicingProcess3 : IProcess
         await Task.Delay(300);
         _machine.SetAxFeedSpeed(Ax.X, line.FeedSpeed);
         _isCutting = true;
-        var x = line.XEnd;
+        var x = line.XStart + line.Length;
         await _machine.MoveAxInPosAsync(Ax.X, x);
         _isCutting = false;
         _lastCutY = _yActual;
@@ -364,11 +395,40 @@ internal class DicingProcess3 : IProcess
         if (_repeatUntilCancel is not null) await _repeatUntilCancel.CancelAsync();
         await _stateMachine.FireAsync(Trigger.Deny);
     }
-    public Task Deny() => throw new NotImplementedException();
+    public async Task Deny()
+    {
+        _isCancelled = true;
+        if (_repeatUntilCancel is not null) await _repeatUntilCancel.CancelAsync();
+        await _stateMachine.FireAsync(Trigger.Deny);
+    }
     public void ExcludeObject(IProcObject procObject) => throw new NotImplementedException();
     public void IncludeObject(IProcObject procObject) => throw new NotImplementedException();
-    public Task Next() => throw new NotImplementedException();
+    public async Task Next()
+    {
+        Guard.IsNotNull(_stateMachine, nameof(_stateMachine));
+        if (_stateMachine.IsInState(State.ProcessStarted) && !_stateMachine.IsInState(State.TeachSides) && _isWaitingToTeach)
+        {
+            await _stateMachine.FireAsync(Trigger.Teach);
+        }
+        else if (_stateMachine.IsInState(State.TeachSides))
+        {
+            _repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
+            await _repeatUntilCancel.StartAsync();
+        }
+        else if (_stateMachine.IsInState(State.Processing))
+        {
+            _subject.OnNext(new ProcessMessage(MessageType.ToChangeCurrentStateTo, "Коррекция"));
+            await _repeatUntilCancel.CancelAsync();
+            await _stateMachine.FireAsync(Trigger.Correction);
+        }
+        else if (_inProcess || _stateMachine.IsInState(State.Correction))
+        {
+            _repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
+            await _repeatUntilCancel.StartAsync();
+        }
+    }
     public Task StartAsync() => throw new NotImplementedException();
     public Task StartAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
     public IDisposable Subscribe(IObserver<IProcessNotify> observer) => _subject.Subscribe(observer);
+    public override string ToString() => UmlDotGraph.Format(_stateMachine.GetInfo());
 }

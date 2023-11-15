@@ -9,19 +9,58 @@ namespace DicingBlade.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var val = new double();
-            var par = new double();
             try
             {
-                val = System.Convert.ToDouble(value);
-                par = System.Convert.ToDouble(parameter);
+                var val = System.Convert.ToDouble(value);
+                var par = System.Convert.ToDouble(parameter);
+                return val / par;
+            }
+            catch (Exception)
+            {
+                throw;
+            }           
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    class DivideRevConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                var val = System.Convert.ToDouble(value);
+                var par = System.Convert.ToDouble(parameter);
+                if (val == 0) return 0;
+                return par / val;
             }
             catch (Exception)
             {
                 throw;
             }
-            return val / par;
-            
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    class InvertDoubleConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                var val = System.Convert.ToDouble(value);
+                return - val;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

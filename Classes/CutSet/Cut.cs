@@ -96,7 +96,7 @@ internal class CutSet
     }
 }
 
-internal record CutLine(int LineNumber, int StepNumber, double FeedSpeed, int RPM, double Y, double XStart, double XEnd, double Z);
+internal record CutLine(int LineNumber, int StepNumber, double FeedSpeed, int RPM, double Y, double XStart, double Length, double XDelta, double Z);
 
 internal class CutLines : IEnumerable<CutLine>
 {
@@ -228,11 +228,53 @@ internal class CutLines : IEnumerable<CutLine>
         }
     }
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public static CutLinesBuilder GetCutLinesBuilder() => new CutLinesBuilder();
+    public class CutLinesBuilder
+    {
+        private Blade _blade;
+        private CutSet _cutSet;
+        private double _xCenter;
+        private double _zBase;
+        private bool _isYPosDir;
+        private bool _isZPosDir;
+        private double _yFirst;
+
+        public CutLinesBuilder SetMainParams(CutSet cutSet, Blade blade)
+        {
+            _cutSet = cutSet;
+            _blade = blade;
+            return this;
+        }
+
+        public CutLinesBuilder SetGeometry(double xCenter, double zBase, bool isYPosDir = true, bool isZPosDir = true)
+        {
+            _xCenter = xCenter;
+            _zBase = zBase;
+            _isYPosDir = isYPosDir;
+            _isZPosDir = isZPosDir;
+            return this;
+        }
+
+        public CutLinesBuilder SetFirstY(double yFirst)
+        {
+            _yFirst = yFirst;
+            return this;
+        }
+
+        public CutLines Build()
+        {
+            //TODO check all components here
+            return CutLinesFactory.GetCutLines(_cutSet, _yFirst, _xCenter, _zBase, _blade, _isYPosDir, _isZPosDir);
+        }
+    }
+
+
 }
 
 internal class CutLinesFactory
 {
-    public CutLines GetCutLines(CutSet cutSet, double yFirst, double xCenter, double zBase, Blade blade)
+    public static CutLines GetCutLines(CutSet cutSet, double yFirst,  double xCenter, double zBase, Blade blade, bool isYPosDir = true, bool isZPosDir = true)
     {
         var cutLines = new List<CutLine>();
         var currentY = yFirst;
@@ -240,17 +282,19 @@ internal class CutLinesFactory
         var delta = blade.XGap(bodyThickness);
         var lineNumber = 0;
         var stepCount = 0;
+        var ySign = isYPosDir ? 1 : -1;
+        var zSign = isZPosDir ? 1 : -1;
         foreach (var step in cutSet.CuttingSteps)
         {
             for (var i = 0; i < step.Count; i++)
             {
-                if(step.StepNumber!=0) currentY += step.Index;
+                if(!(step.StepNumber==0 & i==0)) currentY += ySign * step.Index;
                 var currentShare = 0;
                 foreach (var pass in step.Passes)
                 {
                     currentShare += pass.DepthShare;
-                    var z = zBase - cutSet.Thickness + bodyThickness * pass.DepthShare / 100;
-                    var line = new CutLine(lineNumber, step.StepNumber, pass.FeedSpeed, pass.RPM, currentY, xCenter - step.Length / 2 + delta, xCenter + step.Length / 2, z);
+                    var z = zBase - zSign * (cutSet.Thickness + bodyThickness * currentShare / 100);
+                    var line = new CutLine(lineNumber, step.StepNumber, pass.FeedSpeed, pass.RPM, currentY, xCenter - step.Length / 2 - delta, step.Length + delta, delta, z);
                     cutLines.Add(line);
                     lineNumber++;
                 }

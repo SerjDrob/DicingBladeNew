@@ -17,5 +17,9 @@ namespace DicingBlade.Classes.Processes
         Task Next();
         Task StartAsync();
         Task StartAsync(CancellationToken cancellationToken);
+        bool ProcessEndOrDenied
+        {
+            get;
+        }
     }
 }

@@ -37,7 +37,7 @@ namespace DicingBlade.ViewModels
         private readonly DicingBladeMachine _machine;
         private ITechnology _technology;
         private IComSensor _flowMeter;
-        private DicingProcess2 _dicingProcess;
+        private IProcess _dicingProcess;
         private bool _isProcessInCorrection;
         private bool _isSingleCutAvaliable;
         private IWafer _currentWafer;
@@ -270,6 +270,14 @@ namespace DicingBlade.ViewModels
                 }
             };
 
+            var cutLines = CutLinesFactory.GetCutLines(CutSet, 0, 0, 0, new Blade() { Diameter = 56, Thickness = 0.1 });
+
+            CutLinesVM = new(cutLines, Settings.Default.XObjective,
+               Settings.Default.YObjective, Settings.Default.XDisk,
+               (Settings.Default.YObjective + Settings.Default.DiskShift));
+
+            _machine.OnAxisMotionStateChanged += CutLinesVM.eventHandler;
+
             //----
 
 
@@ -283,6 +291,17 @@ namespace DicingBlade.ViewModels
             set;
         }
 
+        public CutLinesVM CutLinesVM
+        {
+            get;
+            set;
+        }
+
+        public CutLines CutLinesView
+        {
+            get;
+            set;
+        }
         public void LogMessage(LogLevel loggerLevel, string message) => _logger.Log(loggerLevel, message);
         private void _flowMeter_GetData(decimal obj)
         {
@@ -422,7 +441,7 @@ namespace DicingBlade.ViewModels
             dicingProcess.OfType<ProcessStateChanging>()
                 .Select(state => Observable.FromAsync(async () =>
                 {
-                    ProcessPercentage = _dicingProcess.ProcessPercentage;
+                    ProcessPercentage = ((DicingProcess3)_dicingProcess).ProcessPercentage;
                     var tracingTask = Task.CompletedTask;
                     var tracingTaskCancellationTokenSource = new CancellationTokenSource();
                     switch (state.SourceState)

@@ -24,6 +24,7 @@ using MsgBox = HandyControl.Controls.MessageBox;
 using HandyControl.Controls;
 using MachineControlsLibrary.CommonDialog;
 using DicingBlade.ViewModels.DialogVM;
+using DicingBlade.Classes.WaferGrid;
 
 
 namespace DicingBlade.ViewModels
@@ -127,21 +128,21 @@ namespace DicingBlade.ViewModels
                 }, () => true)
                 .CreateKeyDownCommand(Key.N, () =>
                 {
-                    _dicingProcess.CutOffset += 0.001;
+                    ((DicingProcess3)_dicingProcess).CutOffset += 0.001;//TODO fix it!!!
                     CamVM.CutOffsetView += 0.001;
                     return Task.CompletedTask;
                 }, () => _isProcessInCorrection && _dicingProcess is not null)
                 .CreateKeyDownCommand(Key.M, () =>
                 {
                     CamVM.CutOffsetView -= 0.001;
-                    _dicingProcess.CutOffset -= 0.001;
+                    ((DicingProcess3)_dicingProcess).CutOffset -= 0.001;//TODO fix it
                     return Task.CompletedTask;
                 }, () => _isProcessInCorrection && _dicingProcess is not null)
                 .CreateKeyDownCommand(Key.F, async () =>
                 {
                     if (MsgBox.Ask("Сделать одиночный рез?", "Резка").HasFlag(MessageBoxResult.OK))
                     {
-                        await _dicingProcess.TriggerSingleCutState();
+                        await ((DicingProcess3)_dicingProcess).TriggerSingleCutState();//TODO fix it
                     }
                 }, () => _isSingleCutAvailable && _dicingProcess is not null)
                 .CreateKeyDownCommand(Key.Divide, async () =>
@@ -152,7 +153,11 @@ namespace DicingBlade.ViewModels
                         blade.Diameter = 55.6;
                         blade.Thickness = 0.11;
                         Substrate.ResetWafer();
-                        _dicingProcess = new DicingProcess2(_machine, Substrate, blade, _technology);
+                        var builder = CutLines.GetCutLinesBuilder();
+                        builder.SetMainParams(CutSet, blade)
+                        .SetGeometry(Settings.Default.XDisk, Settings.Default.ZTouch);
+                        //_dicingProcess = new DicingProcess2(_machine, Substrate, blade, _technology);
+                        _dicingProcess = new DicingProcess3(_machine, builder, _technology);
                         GetSubscriptions(_dicingProcess);
                         await _dicingProcess.CreateProcess();
                     }
@@ -177,7 +182,7 @@ namespace DicingBlade.ViewModels
                 .CreateKeyDownCommand(Key.Oem4, async () => await _machine.GoThereAsync(Place.BladeChuckCenter), () => !IsMachineInProcess)
                 .CreateKeyDownCommand(Key.F11, async () =>
                 {
-                    await _dicingProcess.EmergencyScript();
+                    await ((DicingProcess3)_dicingProcess).EmergencyScript();//TODO fix it
                     //_dicingProcess.WaitProcDoneAsync().Wait();
                     _dicingProcess = null;
                     Substrate = null;
@@ -395,7 +400,7 @@ namespace DicingBlade.ViewModels
                 Growl.Info("Совместите горизонтальный визир с центром последнего реза и нажмите *");
 
                 await WaitForConfirmationAsync();
-                Settings.Default.DiskShift = -_dicingProcess.GetLastCutY() + YAxis.Position;
+                //TODO Settings.Default.DiskShift = -((DicingProcess3)_dicingProcess).GetLastCutY() + YAxis.Position;
                 Settings.Default.Save();
 
                 _machine.ConfigureGeometry(new Dictionary<Place, (Ax, double)[]>
@@ -409,7 +414,7 @@ namespace DicingBlade.ViewModels
                         }
                     }
                 });
-                Growl.Info("Новое смещение реза от ТВ установленно");
+                Growl.Info("Новое смещение реза от ТВ установлено");
             }
         }
 
@@ -506,7 +511,7 @@ namespace DicingBlade.ViewModels
                 PassCountTechnology = _technology.PassCount;
                 FeedSpeedTechnology = _technology.FeedSpeed;
 
-                _dicingProcess?.RefreshTechnology(_technology);
+                //TODO ((DicingProcess3)_dicingProcess)?.RefreshTechnology(_technology);
                 Wafer?.SetPassCount(PropContainer.Technology.PassCount);
             }
         }
