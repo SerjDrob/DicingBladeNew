@@ -6,6 +6,7 @@ using System.Windows;
 using DicingBlade.Classes.Miscellaneous;
 using DicingBlade.Classes.Technology;
 using DicingBlade.Classes.WaferGrid;
+using DicingBlade.Properties;
 using DicingBlade.Utility;
 using Humanizer;
 using MachineClassLibrary.Classes;
@@ -24,6 +25,7 @@ internal class DicingProcess3 : IProcess
     private readonly CutLines.CutLinesBuilder _cutLinesBuilder;
     private CutLines _cutLines;
     private readonly ITechnology _technology;
+    private readonly double _materialThickness;
     private double _inspectX;
     private StateMachine<State, Trigger> _stateMachine;
     private bool _isWaitingToTeach;
@@ -55,11 +57,14 @@ internal class DicingProcess3 : IProcess
     private double _lastCutY;
     private bool _isCancelled;
 
-    public DicingProcess3(DicingBladeMachine machine, CutLines.CutLinesBuilder cutLinesBuilder, ITechnology technology)
+    public DicingProcess3(DicingBladeMachine machine, CutLines.CutLinesBuilder cutLinesBuilder, 
+        ITechnology technology, double materialThickness)
     {
         _machine = machine ?? throw new ProcessException("Не выбрана установка для процесса");
         _cutLinesBuilder = cutLinesBuilder;
         _technology = technology;
+        _materialThickness = materialThickness;
+        _subject = new Subject<IProcessNotify>();
     }
     public async Task CreateProcess()
     {
@@ -130,6 +135,8 @@ internal class DicingProcess3 : IProcess
                 if (!_isCancelled)
                 {
                     await LearningAsync();
+                    _subject.OnNext(new NewCutLinesOccurred(_cutLines));
+                    var result = _cutLines.NextLine();
                     //if (_wafer.IncrementSide())
                     //{
                     //    await GoTransferingHeightZAsync();
@@ -254,6 +261,7 @@ internal class DicingProcess3 : IProcess
         _stateMachine.Configure(State.ProcessEnd)
             .OnEntryAsync(async () =>
             {
+                _machine.SetVelocity(Velocity.Service);
                 await GoTransferringHeightZAsync();
                 await _machine.GoThereAsync(Place.Loading);
                 _machine.OnAxisMotionStateChanged -= _machine_OnAxisMotionStateChanged;
@@ -284,7 +292,7 @@ internal class DicingProcess3 : IProcess
     }
     private Task LearningAsync()
     {
-        var y = _machine.TranslateActualCoors(Place.CameraChuckCenter, Ax.Y);
+        var y = _yActual + Settings.Default.DiskShift;//TODO fix it
         _cutLines = _cutLinesBuilder.SetFirstY(y).Build();
         //_wafer.TeachSideShift(y);
         //_subject.OnNext(new WaferAligningChanged());
@@ -344,7 +352,7 @@ internal class DicingProcess3 : IProcess
         _machine.FreezeCameraImage();
         _machine.SwitchOffValve(Valves.Blowing);
     }
-    private async Task GoTransferringHeightZAsync() => await _machine.MoveAxInPosAsync(Ax.Z, _machine.GetFeature(MFeatures.ZBladeTouch) - _cutLines.MaterialThickness - _bladeTransferGapZ);
+    private async Task GoTransferringHeightZAsync() => await _machine.MoveAxInPosAsync(Ax.Z, _machine.GetFeature(MFeatures.ZBladeTouch) - _materialThickness - _bladeTransferGapZ);
     private async Task CuttingXAsync()
     {
         var line = _cutLines.GetCurrentLine();
@@ -363,7 +371,7 @@ internal class DicingProcess3 : IProcess
     {
         _machine.SetVelocity(Velocity.Service);
         var line = _cutLines.GetCurrentLine();
-        await _machine.ChangeSpindleFreqOnFlyAsync((ushort)line.RPM, 300);
+        var result = await _machine.ChangeSpindleFreqOnFlyAsync((ushort)line.RPM, 300);
         var z = line.Z;
         await _machine.MoveAxInPosAsync(Ax.Z, z);
     }

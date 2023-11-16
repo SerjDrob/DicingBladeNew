@@ -225,8 +225,8 @@ namespace DicingBlade.ViewModels
                             new()
                             {
                                 DepthShare = 30,
-                                FeedSpeed = 1,
-                                RPM = 30000
+                                FeedSpeed = 10,
+                                RPM = 28000
                             },
                             new()
                             {
@@ -239,7 +239,7 @@ namespace DicingBlade.ViewModels
                             {
                                 PassNumber = 2,
                                 DepthShare = 40,
-                                FeedSpeed = 0.5,
+                                FeedSpeed = 3,
                                 RPM = 18000
                             },
                         }
@@ -255,7 +255,7 @@ namespace DicingBlade.ViewModels
                             new()
                             {
                                 DepthShare = 30,
-                                FeedSpeed = 1,
+                                FeedSpeed = 5,
                                 RPM = 30000
                             },
                             new()
@@ -272,7 +272,7 @@ namespace DicingBlade.ViewModels
 
             var cutLines = CutLinesFactory.GetCutLines(CutSet, 0, 0, 0, new Blade() { Diameter = 56, Thickness = 0.1 });
 
-            CutLinesVM = new(cutLines, Settings.Default.XObjective,
+            CutLinesVM = new(null, Settings.Default.XObjective,
                Settings.Default.YObjective, Settings.Default.XDisk,
                (Settings.Default.YObjective + Settings.Default.DiskShift));
 
@@ -538,6 +538,13 @@ namespace DicingBlade.ViewModels
                 }))
                 .Concat()
                 .Subscribe()
+                .AddToSubscriptions(_subscriptions);
+
+            dicingProcess.OfType<NewCutLinesOccurred>()
+                .Subscribe(arg =>
+                {
+                    CutLinesVM.SetCutLines(arg.CutLines);
+                })
                 .AddToSubscriptions(_subscriptions);
 #pragma warning restore VSTHRD101 // Avoid unsupported async delegates
 

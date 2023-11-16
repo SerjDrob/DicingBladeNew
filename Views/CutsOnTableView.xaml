@@ -10,7 +10,7 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid ClipToBounds="True" RenderTransformOrigin="0.5 0.5">
         <Grid.Resources>
             <converters:DivideConverter x:Key="Divide"/>
             <converters:DivideRevConverter x:Key="DivideRev"/>
@@ -45,13 +45,13 @@
                 <Canvas.Left>
                     <MultiBinding Converter="{StaticResource Mul}">
                         <Binding Path="XBlade"/>
-                        <Binding ElementName="table" Path="ActualHeight" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
+                        <Binding ElementName="table" Path="ActualWidth" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
                     </MultiBinding>
                 </Canvas.Left>
                 <Canvas.Top>
                     <MultiBinding Converter="{StaticResource Mul}">
                         <Binding Path="YBlade"/>
-                        <Binding ElementName="table" Path="ActualHeight" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
+                        <Binding ElementName="table" Path="ActualWidth" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
                     </MultiBinding>
                 </Canvas.Top>
                 <ContentControl.RenderTransform>
@@ -63,13 +63,13 @@
                 <Canvas.Left>
                     <MultiBinding Converter="{StaticResource Mul}">
                         <Binding Path="XVideo"/>
-                        <Binding ElementName="table" Path="ActualHeight" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
+                        <Binding ElementName="table" Path="ActualWidth" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
                     </MultiBinding>
                 </Canvas.Left>
                 <Canvas.Top>
                     <MultiBinding Converter="{StaticResource Mul}">
                         <Binding Path="YVideo"/>
-                        <Binding ElementName="table" Path="ActualHeight" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
+                        <Binding ElementName="table" Path="ActualWidth" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
                     </MultiBinding>
                 </Canvas.Top>
                 <ContentControl.RenderTransform>
@@ -78,31 +78,31 @@
                 </ContentControl.RenderTransform>
             </ContentControl>
         </Canvas>
-        <Grid VerticalAlignment="Stretch"
+        <Grid HorizontalAlignment="Stretch"
                      Margin="100"
-                     Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ActualHeight}"
+                     Height="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ActualWidth}"
                      RenderTransformOrigin="0.5 0.5">
             <Ellipse x:Name="table"
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"
                      Fill="AliceBlue"
-                     >
-            </Ellipse>
+                     />
+
             <!--<Rectangle Fill="Black" Width="2" VerticalAlignment="Stretch"/>-->
-            <Rectangle Width="48" Height="1" Fill="Green" VerticalAlignment="Center">
+            <!--<Rectangle Width="48" Height="1" Fill="Green" VerticalAlignment="Center">
                 <Rectangle.RenderTransform>
                     <TransformGroup>
                         <TranslateTransform Y="20"/>
-                        <ScaleTransform ScaleY="{Binding ElementName=table, Path=ActualHeight, Converter={StaticResource Divide}, ConverterParameter={StaticResource tableDiameter}}"/>
+                        <ScaleTransform ScaleY="{Binding ElementName=table, Path=ActualWidth, Converter={StaticResource Divide}, ConverterParameter={StaticResource tableDiameter}}"/>
                     </TransformGroup>
                 </Rectangle.RenderTransform>
                 <Rectangle.LayoutTransform>
                     <TransformGroup>
-                        <ScaleTransform ScaleY="{Binding ElementName=table, Path=ActualHeight, Converter={StaticResource DivideRev}, ConverterParameter={StaticResource tableDiameter}}" 
-                            ScaleX="{Binding ElementName=table, Path=ActualHeight, Converter={StaticResource Divide}, ConverterParameter={StaticResource tableDiameter}}"/>
+                        <ScaleTransform ScaleY="{Binding ElementName=table, Path=ActualWidth, Converter={StaticResource DivideRev}, ConverterParameter={StaticResource tableDiameter}}" 
+                            ScaleX="{Binding ElementName=table, Path=ActualWidth, Converter={StaticResource Divide}, ConverterParameter={StaticResource tableDiameter}}"/>
                     </TransformGroup>
                 </Rectangle.LayoutTransform>
-            </Rectangle>
+            </Rectangle>-->
             <ItemsControl ItemsSource="{Binding CutLines}" HorizontalAlignment="Center">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -115,23 +115,23 @@
                             <Rectangle.RenderTransform>
                                 <TransformGroup>
                                     <TranslateTransform Y="{Binding Y}"/>
-                                    <TranslateTransform Y="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.YVideo, Converter={StaticResource Invert}}"/>
+                                    <TranslateTransform Y="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.YVideoPos, Converter={StaticResource Invert}}"/>
                                     <TranslateTransform>
                                         <TranslateTransform.X>
                                             <MultiBinding Converter="{StaticResource Mul}">
                                                 <Binding Path="XDelta" Converter="{StaticResource Invert}"/>
-                                                <Binding ElementName="table" Path="ActualHeight" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
+                                                <Binding ElementName="table" Path="ActualWidth" Converter="{StaticResource Divide}" ConverterParameter="{StaticResource tableDiameter}"/>
                                                 <Binding Source="{StaticResource half}"/>
                                             </MultiBinding>
                                         </TranslateTransform.X>
                                     </TranslateTransform>
-                                    <ScaleTransform ScaleY="{Binding ElementName=table, Path=ActualHeight, Converter={StaticResource Divide}, ConverterParameter={StaticResource tableDiameter}}"/>
+                                    <ScaleTransform ScaleY="{Binding ElementName=table, Path=ActualWidth, Converter={StaticResource Divide}, ConverterParameter={StaticResource tableDiameter}}"/>
                                 </TransformGroup>
                             </Rectangle.RenderTransform>
                             <Rectangle.LayoutTransform>
                                 <TransformGroup>
-                                    <ScaleTransform ScaleY="{Binding ElementName=table, Path=ActualHeight, Converter={StaticResource DivideRev}, ConverterParameter={StaticResource tableDiameter}}" 
-                                                    ScaleX="{Binding ElementName=table, Path=ActualHeight, Converter={StaticResource Divide}, ConverterParameter={StaticResource tableDiameter}}"/>
+                                    <ScaleTransform ScaleY="{Binding ElementName=table, Path=ActualWidth, Converter={StaticResource DivideRev}, ConverterParameter={StaticResource tableDiameter}}" 
+                                                    ScaleX="{Binding ElementName=table, Path=ActualWidth, Converter={StaticResource Divide}, ConverterParameter={StaticResource tableDiameter}}"/>
                                 </TransformGroup>
                             </Rectangle.LayoutTransform>
                         </Rectangle>
@@ -139,6 +139,8 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </Grid>
-        
+        <Grid.RenderTransform>
+            <ScaleTransform ScaleX="-1"/>
+        </Grid.RenderTransform>
     </Grid>
 </UserControl>

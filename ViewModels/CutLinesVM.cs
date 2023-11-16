@@ -3,56 +3,55 @@ using Advantech.Motion;
 using DicingBlade.Classes.WaferGrid;
 using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 using PropertyChanged;
 
 namespace DicingBlade.ViewModels;
 
 [AddINotifyPropertyChangedInterface]
-internal class CutLinesVM
+public partial class CutLinesVM
 {
     public CutLines CutLines
     {
         get;
-        init;
+        private set;
     }
     
-    private double _xVideo;
-    private double _yVideo;
+    public double XVideoPos { get; init; }
+    public double YVideoPos { get; init; }
     private double _currentX;
     private double _currentY;   
     public double XVideo
     {
-        get => _currentX - _xVideo;
-        set => _xVideo = value;
+        get;
+        set;
     }
     public double YVideo
     {
-        get => _currentY - _yVideo;
-        set => _yVideo = value;
+        get;
+        set;
     }
     private double _xBlade;
     private double _yBlade;
     public double XBlade
     {
-        get => _currentX - _xBlade;
-        set => _xBlade = value;
+        get;
+        set;
     }
     
     public double YBlade
     {
-        get => _currentY - _yBlade;
-        set => _yBlade = value;
+        get;
+        set;
     }
     public CutLinesVM(CutLines cutLines, double xVideo, double yVideo, double xBlade, double yBlade)
     {
         CutLines = cutLines;
-        XVideo = xVideo;
-        YVideo = yVideo;
-        XBlade = xBlade;
-        YBlade = yBlade;
+        XVideoPos = xVideo;
+        YVideoPos = yVideo;
+        _xBlade = xBlade;
+        _yBlade = yBlade;
 
-        _currentX = 95;
-        _currentY = 80;
         eventHandler = (o, e) =>
         {
             switch (e.Axis)
@@ -66,9 +65,13 @@ internal class CutLinesVM
                 default:
                     break;
             }
+            XBlade = _currentX - _xBlade;
+            YBlade = _currentY - _yBlade;
+            XVideo = _currentX - XVideoPos;
+            YVideo = _currentY - YVideoPos;
         };
         
     }
-
+    public void SetCutLines(CutLines cutLines) => CutLines = cutLines;
     public EventHandler<AxisStateEventArgs> eventHandler { get; set; } 
 }

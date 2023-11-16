@@ -157,7 +157,7 @@ namespace DicingBlade.ViewModels
                         builder.SetMainParams(CutSet, blade)
                         .SetGeometry(Settings.Default.XDisk, Settings.Default.ZTouch);
                         //_dicingProcess = new DicingProcess2(_machine, Substrate, blade, _technology);
-                        _dicingProcess = new DicingProcess3(_machine, builder, _technology);
+                        _dicingProcess = new DicingProcess3(_machine, builder, _technology,1d);
                         GetSubscriptions(_dicingProcess);
                         await _dicingProcess.CreateProcess();
                     }

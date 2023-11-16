@@ -6,7 +6,7 @@ using System.Windows.Controls.Primitives;
 using DicingBlade.Classes.Technology;
 
 namespace DicingBlade.Classes.WaferGrid;
-internal class Pass
+public class Pass
 {
     public int PassNumber
     {
@@ -36,7 +36,7 @@ internal class Pass
     }
 }
 
-internal class CuttingStep
+public class CuttingStep
 {
     public int StepNumber
     {
@@ -71,7 +71,7 @@ internal class CuttingStep
     }
 }
 
-internal class CutSet
+public class CutSet
 {
     /// <summary>
     /// Summary thickness including wafer's and film's. mm
@@ -96,9 +96,9 @@ internal class CutSet
     }
 }
 
-internal record CutLine(int LineNumber, int StepNumber, double FeedSpeed, int RPM, double Y, double XStart, double Length, double XDelta, double Z);
+public record CutLine(int LineNumber, int StepNumber, double FeedSpeed, int RPM, double Y, double XStart, double Length, double XDelta, double Z);
 
-internal class CutLines : IEnumerable<CutLine>
+public class CutLines : IEnumerable<CutLine>
 {
     private readonly List<CutLine> _cutlines;
     private readonly int _lastStepNum;
@@ -272,7 +272,7 @@ internal class CutLines : IEnumerable<CutLine>
 
 }
 
-internal class CutLinesFactory
+public class CutLinesFactory
 {
     public static CutLines GetCutLines(CutSet cutSet, double yFirst,  double xCenter, double zBase, Blade blade, bool isYPosDir = true, bool isZPosDir = true)
     {
@@ -293,7 +293,7 @@ internal class CutLinesFactory
                 foreach (var pass in step.Passes)
                 {
                     currentShare += pass.DepthShare;
-                    var z = zBase - zSign * (cutSet.Thickness + bodyThickness * currentShare / 100);
+                    var z = zBase - zSign * (cutSet.Thickness - bodyThickness * currentShare / 100);
                     var line = new CutLine(lineNumber, step.StepNumber, pass.FeedSpeed, pass.RPM, currentY, xCenter - step.Length / 2 - delta, step.Length + delta, delta, z);
                     cutLines.Add(line);
                     lineNumber++;
