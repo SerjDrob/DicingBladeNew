@@ -38,10 +38,7 @@ internal class DicingProcess3 : IProcess
         private set;
     }
 
-    public bool ProcessEndOrDenied
-    {
-        get => (_stateMachine?.IsInState(State.ProcessEnd) ?? false) || (_stateMachine?.IsInState(State.ProcessInterrupted) ?? false);
-    }
+    public bool ProcessEndOrDenied => (_stateMachine?.IsInState(State.ProcessEnd) ?? false) || (_stateMachine?.IsInState(State.ProcessInterrupted) ?? false);
 
 
     private CheckCutControl _checkCut;

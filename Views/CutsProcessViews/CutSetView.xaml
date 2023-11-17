@@ -10,6 +10,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              d:DataContext="{d:DesignInstance Type=dialog:CutSetVM, IsDesignTimeCreatable=True}"
+             x:Name="data"
              >
     <StackPanel>
         <TreeViewItem>
@@ -47,6 +48,15 @@
                                     <TextBlock Grid.Column="2" Text="{Binding Index}" Style="{StaticResource TextBlockBaseStyle}"/>
                                     <TextBlock Grid.Column="3" Text="{Binding Length}" Style="{StaticResource TextBlockBaseStyle}"/>
                                     <TextBlock Grid.Column="4" Text="{Binding Count}" Style="{StaticResource TextBlockBaseStyle}"/>
+                                    <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
+                                            hc:IconElement.Height="10"
+                                            hc:Poptip.Content="Добавить проход"
+                                            hc:Poptip.Placement="RightTop"
+                                            hc:Poptip.Offset="12"
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddPassCommand}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource ButtonIcon.Small}"
+                                            />
                                 </Grid>
                             </Expander.Header>
                             <DataGrid AutoGenerateColumns="False" Margin="50,0,0,0" ItemsSource="{Binding Passes}" Style="{StaticResource DataGrid.Small  }">
@@ -55,17 +65,17 @@
                                     <DataGridTextColumn Header="Подача мм/с" Binding="{Binding FeedSpeed}"/>
                                     <DataGridTextColumn Header="Частота шпинделя об/мин" Binding="{Binding RPM}"/>
                                     <DataGridTextColumn Header="Глубина, %" Binding="{Binding DepthShare}"/>
-                                    <DataGridTemplateColumn>
+                                    <!--<DataGridTemplateColumn>
                                         <DataGridTemplateColumn.Header>
                                             <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
                                                     hc:IconElement.Height="10"
                                                     hc:Poptip.Content="Добавить проход"
                                                     hc:Poptip.Placement="RightTop"
                                                     hc:Poptip.Offset="12"
-                                                    Command="{Binding AddMaterialCommand}"
+                                                    Command="{Binding ElementName=data, BindsDirectlyToSource=True, Path=DataContext.AddPassCommand}"
                                                     Style="{StaticResource ButtonIcon.Small}"/>
                                         </DataGridTemplateColumn.Header>
-                                    </DataGridTemplateColumn>
+                                    </DataGridTemplateColumn>-->
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Expander>

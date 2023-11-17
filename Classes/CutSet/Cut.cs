@@ -64,6 +64,15 @@ public class CuttingStep
         get;
         set;
     }
+    public void AddPass(Pass pass)
+    {
+        if (Passes is not null)
+        {
+            var passes = Passes.ToList();
+            passes.Add(pass);
+            Passes = passes;
+        }
+    }
     public IEnumerable<Pass> Passes
     {
         get;
