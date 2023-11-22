@@ -11,8 +11,18 @@
              d:DesignHeight="450" d:DesignWidth="800"
              d:DataContext="{d:DesignInstance Type=dialog:CutSetVM, IsDesignTimeCreatable=True}"
              x:Name="data"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              >
-    <StackPanel>
+            <!--<Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
+        hc:IconElement.Height="10"
+        hc:Poptip.Content="Добавить проход"
+        hc:Poptip.Placement="RightTop"
+        hc:Poptip.Offset="12"
+        Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddPassCommand}"
+        CommandParameter="{Binding}"
+        Style="{StaticResource ButtonIcon.Small}"
+        />-->
+            <StackPanel>
         <TreeViewItem>
             <TreeViewItem.Header>
                 <Grid>
@@ -65,17 +75,35 @@
                                     <DataGridTextColumn Header="Подача мм/с" Binding="{Binding FeedSpeed}"/>
                                     <DataGridTextColumn Header="Частота шпинделя об/мин" Binding="{Binding RPM}"/>
                                     <DataGridTextColumn Header="Глубина, %" Binding="{Binding DepthShare}"/>
-                                    <!--<DataGridTemplateColumn>
+                                    <DataGridTemplateColumn>
                                         <DataGridTemplateColumn.Header>
-                                            <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
+                                            <DataTemplate>
+                                                <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
                                                     hc:IconElement.Height="10"
                                                     hc:Poptip.Content="Добавить проход"
                                                     hc:Poptip.Placement="RightTop"
                                                     hc:Poptip.Offset="12"
-                                                    Command="{Binding ElementName=data, BindsDirectlyToSource=True, Path=DataContext.AddPassCommand}"
-                                                    Style="{StaticResource ButtonIcon.Small}"/>
+                                                    Style="{StaticResource ButtonIcon.Small}"
+                                                    Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddPassCommand}"
+                                                    >
+                                            </Button>
+                                            </DataTemplate>
+                                            
                                         </DataGridTemplateColumn.Header>
-                                    </DataGridTemplateColumn>-->
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
+                                                        hc:IconElement.Height="10"
+                                                        hc:Poptip.Content="Добавить проход"
+                                                        hc:Poptip.Placement="RightTop"
+                                                        hc:Poptip.Offset="12"
+                                                        Style="{StaticResource ButtonIcon.Small}"
+                                                        Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddPassCommand}"
+                                                        >
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Expander>
