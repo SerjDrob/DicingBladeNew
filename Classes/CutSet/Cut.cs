@@ -36,7 +36,7 @@ public class Pass
     }
 }
 
-public class CuttingStep
+public class CuttingStep:ICloneable
 {
     public int StepNumber
     {
@@ -73,6 +73,12 @@ public class CuttingStep
             Passes = passes;
         }
     }
+
+    public object Clone()
+    {
+        return MemberwiseClone();
+    }
+
     public IEnumerable<Pass> Passes
     {
         get;

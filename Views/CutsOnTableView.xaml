@@ -16,6 +16,7 @@
             <converters:DivideRevConverter x:Key="DivideRev"/>
             <converters:MulConvereter x:Key="Mul"/>
             <converters:InvertDoubleConverter x:Key="Invert"/>
+            <converters:MarginConverter x:Key="MarginConverter"/>
             <System:Double x:Key="half">0.5</System:Double>
             <System:Double x:Key="tableDiameter">100</System:Double>
             
@@ -79,9 +80,9 @@
             </ContentControl>
         </Canvas>
         <Grid HorizontalAlignment="Stretch"
-                     Margin="100"
-                     Height="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ActualWidth}"
-                     RenderTransformOrigin="0.5 0.5">
+                     Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid, AncestorLevel=1}, Converter={StaticResource MarginConverter}}"              
+                    Background="Yellow" 
+                    RenderTransformOrigin="0.5 0.5">
             <Ellipse x:Name="table"
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"

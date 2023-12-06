@@ -4,9 +4,88 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:DicingBlade.Views.CutsProcessViews"
+             xmlns:mycontrols="clr-namespace:DicingBlade.UserControls"
              mc:Ignorable="d" 
+             xmlns:converters="clr-namespace:DicingBlade.Converters"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converters:ShareToOffsetConverter x:Key="ShareConverter"/>
+        <converters:ShareToValueConvereter x:Key="TupleConverter"/>
+    </UserControl.Resources>
     <Grid>
-            
+        <Canvas x:Name="mainCanvas">
+            <ItemsControl x:Name="pointers" ItemsSource="{Binding Shares}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Canvas>
+                            <Thumb DragDelta="onDragDelta" Cursor="Hand"  
+                               HorizontalAlignment="Stretch" Canvas.Left="0">
+                                <Canvas.Top>
+                                    <MultiBinding Converter="{StaticResource ShareConverter}">
+                                        <Binding/>
+                                        <Binding ElementName="SubstrateSection" Path="ActualHeight"/>
+                                    </MultiBinding>
+                                </Canvas.Top>
+                                <Thumb.Template>
+                                    <ControlTemplate>
+                                        <Path Stroke="Red" StrokeThickness="1" Fill="Red">
+                                            <Path.Data>
+                                                <GeometryGroup>
+                                                    <PathGeometry Figures="M 0,-10 L 10,0 L 0,10 Z"/>
+                                                    <LineGeometry x:Name="line" StartPoint="0,0" EndPoint="300,0"/>
+                                                </GeometryGroup>
+                                            </Path.Data>
+                                        </Path>
+                                    </ControlTemplate>
+                                </Thumb.Template>
+                            </Thumb>
+                        </Canvas>                        
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <ItemsControl ItemsSource="{Binding LinkLines, UpdateSourceTrigger=PropertyChanged}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Canvas>
+                            <Line Stroke="YellowGreen" StrokeThickness="1"
+                                  X1="{Binding X1}"
+                                  Y1="{Binding Y1}"
+                                  X2="{Binding X2}"
+                                  Y2="{Binding Y2}"
+                                  />
+                        </Canvas>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <ItemsControl x:Name="numerics" Loaded="numerics_Loaded" ItemsSource="{Binding Shares}" Canvas.Top="20" Canvas.Left="400">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <hc:NumericUpDown Value="{Binding Path=Part}" IsEnabled="False" ValueChanged="NumericUpDown_ValueChanged"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Rectangle x:Name="SubstrateSection" Canvas.Left="10" Width="291" Height="200" Stroke="Green" StrokeThickness="2"/>
+            <Path Stroke="YellowGreen" StrokeThickness="1" StrokeDashArray="10 10">
+                <Path.Data>
+                    <LineGeometry x:Name="Lg"/>
+                </Path.Data>
+            </Path>
+        </Canvas>
     </Grid>
 </UserControl>

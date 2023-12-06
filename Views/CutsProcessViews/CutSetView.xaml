@@ -13,16 +13,7 @@
              x:Name="data"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              >
-            <!--<Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
-        hc:IconElement.Height="10"
-        hc:Poptip.Content="Добавить проход"
-        hc:Poptip.Placement="RightTop"
-        hc:Poptip.Offset="12"
-        Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddPassCommand}"
-        CommandParameter="{Binding}"
-        Style="{StaticResource ButtonIcon.Small}"
-        />-->
-            <StackPanel>
+    <StackPanel>
         <TreeViewItem>
             <TreeViewItem.Header>
                 <Grid>
@@ -41,7 +32,7 @@
             </TreeViewItem.Header>
         </TreeViewItem>
         <ScrollViewer MaxHeight="250" MinHeight="200" Width="500" VerticalScrollBarVisibility="Auto" Style="{StaticResource ScrollViewerNativeBaseStyle}">
-            <ItemsControl Style="{StaticResource BaseStyle}" ItemsSource="{Binding CutSet.CuttingSteps}">
+            <ItemsControl Style="{StaticResource BaseStyle}" ItemsSource="{Binding Steps}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Expander Style="{StaticResource BaseStyle}">
@@ -58,58 +49,60 @@
                                     <TextBlock Grid.Column="2" Text="{Binding Index}" Style="{StaticResource TextBlockBaseStyle}"/>
                                     <TextBlock Grid.Column="3" Text="{Binding Length}" Style="{StaticResource TextBlockBaseStyle}"/>
                                     <TextBlock Grid.Column="4" Text="{Binding Count}" Style="{StaticResource TextBlockBaseStyle}"/>
-                                    <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
+                                </Grid>
+                            </Expander.Header>
+                            <Grid HorizontalAlignment="Right">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{StaticResource SuccessBrush}" CornerRadius="5,0,0,5" Width="20">
+                                    <DockPanel LastChildFill="False">
+                                        <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
                                             hc:IconElement.Height="10"
                                             hc:Poptip.Content="Добавить проход"
                                             hc:Poptip.Placement="RightTop"
                                             hc:Poptip.Offset="12"
                                             Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddPassCommand}"
                                             CommandParameter="{Binding}"
+                                            DockPanel.Dock="Bottom"
                                             Style="{StaticResource ButtonIcon.Small}"
                                             />
-                                </Grid>
-                            </Expander.Header>
-                            <DataGrid AutoGenerateColumns="False" Margin="50,0,0,0" ItemsSource="{Binding Passes}" Style="{StaticResource DataGrid.Small  }">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Проход" Foreground="{StaticResource WarningBrush}" Binding="{Binding PassNumber}"/>
-                                    <DataGridTextColumn Header="Подача мм/с" Binding="{Binding FeedSpeed}"/>
-                                    <DataGridTextColumn Header="Частота шпинделя об/мин" Binding="{Binding RPM}"/>
-                                    <DataGridTextColumn Header="Глубина, %" Binding="{Binding DepthShare}"/>
-                                    <DataGridTemplateColumn>
-                                        <DataGridTemplateColumn.Header>
-                                            <DataTemplate>
-                                                <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
-                                                    hc:IconElement.Height="10"
-                                                    hc:Poptip.Content="Добавить проход"
-                                                    hc:Poptip.Placement="RightTop"
-                                                    hc:Poptip.Offset="12"
-                                                    Style="{StaticResource ButtonIcon.Small}"
-                                                    Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddPassCommand}"
-                                                    >
-                                            </Button>
-                                            </DataTemplate>
-                                            
-                                        </DataGridTemplateColumn.Header>
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Button hc:IconElement.Geometry="{StaticResource AddGeometry}"
-                                                        hc:IconElement.Height="10"
-                                                        hc:Poptip.Content="Добавить проход"
-                                                        hc:Poptip.Placement="RightTop"
-                                                        hc:Poptip.Offset="12"
-                                                        Style="{StaticResource ButtonIcon.Small}"
-                                                        Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddPassCommand}"
-                                                        >
-                                                </Button>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
+                                    </DockPanel>
+                                </Border>
+                                <DataGrid Grid.Column="1" AutoGenerateColumns="False" ItemsSource="{Binding Passes}" Style="{StaticResource DataGrid.Small  }">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Проход" Foreground="{StaticResource WarningBrush}" Binding="{Binding PassNumber}"/>
+                                        <DataGridTextColumn Header="Подача мм/с" Binding="{Binding FeedSpeed}"/>
+                                        <DataGridTextColumn Header="Частота шпинделя об/мин" Binding="{Binding RPM}"/>
+                                        <DataGridTextColumn Header="Глубина, %" Binding="{Binding DepthShare}"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Border Background="{StaticResource DangerBrush}" Grid.Column="2" CornerRadius="0,5,5,0" Width="18">
+                                    <DockPanel LastChildFill="False">
+                                        <Button hc:IconElement.Geometry="{StaticResource RemoveGeometry}"
+                                            hc:IconElement.Height="10"
+                                            hc:Poptip.Content="Добавить проход"
+                                            hc:Poptip.Placement="RightTop"
+                                            hc:Poptip.Offset="12"
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.RemovePassCommand}"
+                                            CommandParameter="{Binding}"
+                                            DockPanel.Dock="Bottom"
+                                            Style="{StaticResource ButtonIcon.Small}"
+                                            />
+                                    </DockPanel>
+                                </Border>
+                            </Grid>
                         </Expander>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+        <Border BorderThickness="2" BorderBrush="Blue">
+            <Grid Height="300">
+                <local:PassItemView/>
+            </Grid>
+        </Border>
     </StackPanel>
 </UserControl>
