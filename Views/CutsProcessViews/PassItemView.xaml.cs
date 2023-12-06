@@ -47,23 +47,10 @@ public partial class PassItemView : UserControl
     void onDragDelta(object sender, DragDeltaEventArgs e)
     {
         var thumb = sender as Thumb;
-        var yinit = Canvas.GetTop(thumb);
-        var y = yinit + e.VerticalChange;
+        var y = Canvas.GetTop(thumb) + e.VerticalChange;
         if (y > 0 & y < SubstrateSection.ActualHeight - 1)
         {
             var ptIndex = pointers.FindVisualChildren<Thumb>().FindIndex(th => th.Equals(thumb));
-            if (Shares.Count > 1)
-            {
-                if(ptIndex == 0) 
-                {
-                    var y1 = Canvas.GetTop(pointers.FindVisualChildren<Thumb>().ElementAt(ptIndex));
-                    if (Math.Abs(yinit - y1) <= 2)
-                    {
-                        Canvas.SetTop(thumb, yinit);   
-                    }
-                }
-            }
-
             RecountShares(y, ptIndex);
             SetLinkLine(ptIndex);
             Share.IsChanged = true;
@@ -86,11 +73,14 @@ public partial class PassItemView : UserControl
         var indexSummary = (int)Math.Round(y * 100 / SubstrateSection.ActualHeight);
         if (index == 0)
         {
+            if (Shares.Count > index + 1 & Shares[index + 1].Total - indexSummary <= 5) return;
             Shares[index] = new(indexSummary, indexSummary);
         }
         else if (index > 0)
-        {
+        {            
             var summary = Shares[index - 1].Total;
+            if (indexSummary - summary <= 5) return;
+            if (Shares.Count > index + 1 && Shares[index + 1].Total - indexSummary <= 5) return;
             Shares[index] = new(indexSummary - summary, indexSummary);
         }
         if (Shares.Count > index + 1)
