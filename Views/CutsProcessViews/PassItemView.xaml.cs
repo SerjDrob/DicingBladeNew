@@ -1,6 +1,9 @@
-﻿using DicingBlade.UserControls;
+﻿using DicingBlade.Classes.WaferGrid;
+using DicingBlade.UserControls;
 using DicingBlade.Utility;
 using HandyControl.Controls;
+using MachineControlsLibrary.Classes;
+using MachineControlsLibrary.Controls;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using PropertyChanged;
 using System;
@@ -17,19 +20,51 @@ namespace DicingBlade.Views.CutsProcessViews;
 /// <summary>
 /// Interaction logic for PassItemView.xaml
 /// </summary>
-[AddINotifyPropertyChangedInterface]
+[INotifyPropertyChanged]
 public partial class PassItemView : UserControl
 {
     public PassItemView()
     {
-        DataContext = this;
         InitializeComponent();
-        Shares = new();
-        Shares.Add(new(10, 10));
-        Shares.Add(new(20, 30));
-        Shares.Add(new(30, 60));
-        LinkLines = new(Enumerable.Repeat(new LinkLine(), Shares.Count));
+        mainCanvas.DataContext = this;
+        //Shares = new();
+        //Shares.Add(new(10, 10));
+        //Shares.Add(new(20, 30));
+        //Shares.Add(new(30, 60));
 
+    }
+
+    public ObservableCollection<Pass> Passes
+    {
+        get => (ObservableCollection<Pass>)GetValue(PassesProperty);
+        set => SetValue(PassesProperty, value);
+    }
+
+
+    public static readonly DependencyProperty PassesProperty =
+        DependencyProperty.Register("Passes", typeof(ObservableCollection<Pass>), typeof(PassItemView),
+            new PropertyMetadata(null, new PropertyChangedCallback(PassesChanged)));
+
+    private static void PassesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PassItemView view)
+        {
+            var passes = view.Passes;
+
+            var shares = passes.Select(p => new Share(p.DepthShare, p.DepthShare));
+            var firstShare = shares.First();
+            var seed = new List<Share>();
+            seed.Add(firstShare);
+            var accShares = shares.Skip(1).Aggregate(seed, (acc, cur) =>
+            {
+                var last = acc.Last();
+                var result = new Share(cur.Part, last.Total + cur.Part);
+                acc.Add(result);
+                return acc;
+            });    
+            view.Shares = new(accShares);
+            view.LinkLines = new(Enumerable.Repeat(new LinkLine(), view.Shares.Count));
+        }
     }
 
     private void RefreshNumerics()

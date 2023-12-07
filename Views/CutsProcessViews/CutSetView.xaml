@@ -101,7 +101,7 @@
         </ScrollViewer>
         <Border BorderThickness="2" BorderBrush="Blue">
             <Grid Height="300">
-                <local:PassItemView/>
+                <local:PassItemView Passes="{Binding TestPasses}"/>               
             </Grid>
         </Border>
     </StackPanel>

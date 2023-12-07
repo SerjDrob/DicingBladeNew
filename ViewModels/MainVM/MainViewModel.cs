@@ -25,6 +25,7 @@ using Microsoft.Toolkit.Diagnostics;
 using PropertyChanged;
 using Growl = HandyControl.Controls.Growl;
 using MsgBox = HandyControl.Controls.MessageBox;
+using System.Collections.ObjectModel;
 
 namespace DicingBlade.ViewModels
 {
@@ -209,18 +210,7 @@ namespace DicingBlade.ViewModels
 
             //----
 
-            CutSet = new CutSet()
-            {
-                Thickness = 0.5,
-                UnderCut = 0.05,
-                CuttingSteps = new List<CuttingStep>
-                {
-                    new()
-                    {
-                        Count = 5,
-                        Index = 5.2,
-                        Length = 48,
-                        Passes = new List<Pass>()
+            FirstPasses = new ObservableCollection<Pass>()
                         {
                             new()
                             {
@@ -242,8 +232,24 @@ namespace DicingBlade.ViewModels
                                 FeedSpeed = 3,
                                 RPM = 18000
                             },
-                        }
-                    },
+                        };
+
+            FirstCuttingStep = new()
+            {
+                Count = 5,
+                Index = 5.2,
+                Length = 48,
+                Passes = FirstPasses
+            };
+
+
+            CutSet = new CutSet()
+            {
+                Thickness = 0.5,
+                UnderCut = 0.05,
+                CuttingSteps = new List<CuttingStep>
+                {
+                    FirstCuttingStep,
                     new()
                     {
                         Count = 3,
@@ -286,6 +292,18 @@ namespace DicingBlade.ViewModels
         }
 
         public CutSet CutSet
+        {
+            get;
+            set;
+        }
+
+        public CuttingStep FirstCuttingStep
+        {
+            get;
+            set;
+        }
+
+        public ObservableCollection<Pass> FirstPasses
         {
             get;
             set;
