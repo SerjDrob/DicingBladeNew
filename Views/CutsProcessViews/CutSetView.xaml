@@ -99,10 +99,5 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-        <Border BorderThickness="2" BorderBrush="Blue">
-            <Grid Height="300">
-                <local:PassItemView Passes="{Binding TestPasses}"/>               
-            </Grid>
-        </Border>
     </StackPanel>
 </UserControl>

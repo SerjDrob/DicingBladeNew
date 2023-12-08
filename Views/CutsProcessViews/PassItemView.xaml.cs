@@ -27,45 +27,8 @@ public partial class PassItemView : UserControl
     {
         InitializeComponent();
         mainCanvas.DataContext = this;
-        //Shares = new();
-        //Shares.Add(new(10, 10));
-        //Shares.Add(new(20, 30));
-        //Shares.Add(new(30, 60));
-
     }
-
-    public ObservableCollection<Pass> Passes
-    {
-        get => (ObservableCollection<Pass>)GetValue(PassesProperty);
-        set => SetValue(PassesProperty, value);
-    }
-
-
-    public static readonly DependencyProperty PassesProperty =
-        DependencyProperty.Register("Passes", typeof(ObservableCollection<Pass>), typeof(PassItemView),
-            new PropertyMetadata(null, new PropertyChangedCallback(PassesChanged)));
-
-    private static void PassesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is PassItemView view)
-        {
-            var passes = view.Passes;
-
-            var shares = passes.Select(p => new Share(p.DepthShare, p.DepthShare));
-            var firstShare = shares.First();
-            var seed = new List<Share>();
-            seed.Add(firstShare);
-            var accShares = shares.Skip(1).Aggregate(seed, (acc, cur) =>
-            {
-                var last = acc.Last();
-                var result = new Share(cur.Part, last.Total + cur.Part);
-                acc.Add(result);
-                return acc;
-            });    
-            view.Shares = new(accShares);
-            view.LinkLines = new(Enumerable.Repeat(new LinkLine(), view.Shares.Count));
-        }
-    }
+       
 
     private void RefreshNumerics()
     {
@@ -76,7 +39,33 @@ public partial class PassItemView : UserControl
         }
     }
 
-    public ObservableCollection<Share> Shares { get; set; }
+
+
+    public ObservableCollection<Share> Shares
+    {
+        get
+        {
+            return (ObservableCollection<Share>)GetValue(SharesProperty);
+        }
+        set
+        {
+            SetValue(SharesProperty, value);
+        }
+    }
+
+    // Using a DependencyProperty as the backing store for Shares.  This enables animation, styling, binding, etc...
+    public static readonly DependencyProperty SharesProperty =
+        DependencyProperty.Register("Shares", typeof(ObservableCollection<Share>), typeof(PassItemView), 
+            new PropertyMetadata(new ObservableCollection<Share>(), new PropertyChangedCallback(OnSharesChanged)));
+
+    private static void OnSharesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PassItemView view)
+        {
+            view.LinkLines = new(Enumerable.Repeat(new LinkLine(), view.Shares.Count));
+        }
+    }
+
     public ObservableCollection<LinkLine> LinkLines { get; set; }
 
     void onDragDelta(object sender, DragDeltaEventArgs e)

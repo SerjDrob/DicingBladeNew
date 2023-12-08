@@ -1,8 +1,13 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using DicingBlade.Classes.WaferGrid;
+using HandyControl.Controls;
+using HandyControl.Tools.Extension;
 using MachineControlsLibrary.CommonDialog;
 using Microsoft.Toolkit.Mvvm.Input;
+using Newtonsoft.Json.Linq;
 using PropertyChanged;
 
 namespace DicingBlade.ViewModels.DialogVM;
@@ -31,10 +36,23 @@ internal partial class CutSetVM : CommonDialogResultable<bool>
 
     }
     [ICommand]
-    private void AddPass(CuttingStep step)
+    private async Task AddPass(CuttingStep step)
     {
-        var passes = step.Passes as ObservableCollection<Pass>;
-        if (passes is not null) passes.Add(new Pass() { DepthShare = 10, FeedSpeed = 33, PassNumber = 4, RPM = 45000 });
+        var result = await Dialog.Show<CommonDialog>()
+            .SetDialogTitle("Проходы")
+            .SetDataContext(new CrudPassesVM(step.Passes), vm => { })
+            .GetCommonResultAsync<IEnumerable<Pass>>();
+
+        if (result.Success)
+        {
+            var passes = step.Passes as ObservableCollection<Pass>;
+            if (passes is not null)
+            {
+                passes.Clear();
+                result.CommonResult.ToList()
+                    .ForEach(pass => passes.Add(pass)); 
+            }
+        }
     }
     [ICommand]
     private void RemovePass(CuttingStep step)

@@ -9,6 +9,7 @@
     xmlns:dialogs="clr-namespace:DicingBlade.Views.DialogViews"
     xmlns:dialogvm="clr-namespace:DicingBlade.ViewModels.DialogVM"
     xmlns:cutsetviews="clr-namespace:DicingBlade.Views.CutsProcessViews"
+    xmlns:sys="clr-namespace:System.Collections;assembly=netstandard"
     xmlns:catns="clr-namespace:DicingBlade.Classes.WaferGrid"
     d1p1:Ignorable="d"
     >
@@ -57,6 +58,10 @@
 
             <DataTemplate DataType="{x:Type dialogvm:CutSetVM}">
                 <cutsetviews:CutSetView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type dialogvm:CrudPassesVM}">
+                <dialogs:CrudPassesView/>
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
