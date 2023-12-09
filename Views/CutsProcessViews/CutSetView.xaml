@@ -27,7 +27,7 @@
                     <TextBlock Grid.Column="1" Text="Шаг" Foreground="{StaticResource AccentBrush}" Style="{StaticResource TextBlockBoldBaseStyle}"/>
                     <TextBlock Grid.Column="2" Text="Индекс" Style="{StaticResource TextBlockBoldBaseStyle}"/>
                     <TextBlock Grid.Column="3" Text="Длина" Style="{StaticResource TextBlockBoldBaseStyle}"/>
-                    <TextBlock Grid.Column="4" Text="Кол-во" Style="{StaticResource TextBlockBoldBaseStyle}"/>
+                    <TextBlock Grid.Column="4" Text="Кол-во" Style="{StaticResource TextBlockBoldBaseStyle}"/>                   
                 </Grid>
             </TreeViewItem.Header>
         </TreeViewItem>
@@ -45,10 +45,22 @@
                                         <ColumnDefinition SharedSizeGroup="Duration"/>
                                         <ColumnDefinition SharedSizeGroup="Notes"/>
                                     </Grid.ColumnDefinitions>
+                                    <Grid.Resources>
+                                        <Style TargetType="hc:TextBox" BasedOn="{StaticResource TextBoxPlusBaseStyle}"/> 
+                                    </Grid.Resources>
                                     <TextBlock Grid.Column="1" Text="{Binding StepNumber}" Foreground="{StaticResource AccentBrush}" Style="{StaticResource TextBlockBaseStyle}"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Index}" Style="{StaticResource TextBlockBaseStyle}"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding Length}" Style="{StaticResource TextBlockBaseStyle}"/>
-                                    <TextBlock Grid.Column="4" Text="{Binding Count}" Style="{StaticResource TextBlockBaseStyle}"/>
+                                    <hc:TextBox Grid.Column="2" Text="{Binding Index}"/>
+                                    <hc:TextBox Grid.Column="3" Text="{Binding Length}"/>
+                                    <hc:TextBox Grid.Column="4" Text="{Binding Count}"/>
+                                    <Button Grid.Column="0"
+                                         hc:IconElement.Geometry="{StaticResource AddGeometry}"
+                                         hc:IconElement.Height="10"
+                                         hc:Poptip.Content="Добавить шаг"
+                                         hc:Poptip.Placement="LeftTop"
+                                         hc:Poptip.Offset="12"
+                                         Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddStepCommand}"
+                                         Style="{StaticResource ButtonIcon.Small}"
+                                         />
                                 </Grid>
                             </Expander.Header>
                             <Grid HorizontalAlignment="Right">
@@ -73,10 +85,10 @@
                                 </Border>
                                 <DataGrid Grid.Column="1" AutoGenerateColumns="False" ItemsSource="{Binding Passes}" Style="{StaticResource DataGrid.Small  }">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Проход" Foreground="{StaticResource WarningBrush}" Binding="{Binding PassNumber}"/>
+                                        <DataGridTextColumn Header="Проход" IsReadOnly="True" Foreground="{StaticResource WarningBrush}" Binding="{Binding PassNumber}"/>
                                         <DataGridTextColumn Header="Подача мм/с" Binding="{Binding FeedSpeed}"/>
                                         <DataGridTextColumn Header="Частота шпинделя об/мин" Binding="{Binding RPM}"/>
-                                        <DataGridTextColumn Header="Глубина, %" Binding="{Binding DepthShare}"/>
+                                        <DataGridTextColumn Header="Глубина, %" IsReadOnly="True" Binding="{Binding DepthShare}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <Border Background="{StaticResource DangerBrush}" Grid.Column="2" CornerRadius="0,5,5,0" Width="18">

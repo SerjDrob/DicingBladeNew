@@ -25,6 +25,7 @@ using HandyControl.Controls;
 using MachineControlsLibrary.CommonDialog;
 using DicingBlade.ViewModels.DialogVM;
 using DicingBlade.Classes.WaferGrid;
+using System.Collections.ObjectModel;
 
 
 namespace DicingBlade.ViewModels
@@ -555,10 +556,40 @@ namespace DicingBlade.ViewModels
         [ICommand]
         private async Task AddStepSet()
         {
+            CutSet = new CutSet
+            {
+                CuttingSteps = new List<CuttingStep>
+                {
+                    new CuttingStep
+                    {
+                        Count = 1,
+                        Index = 0,
+                        Length = 60,
+                        StepNumber = 1,
+                        Passes = new ObservableCollection<Pass>
+                        {
+                            new Pass
+                            {
+                                DepthShare = 100,
+                                FeedSpeed = _technology.FeedSpeed,
+                                PassNumber = 0,
+                                RPM = _technology.SpindleFreq
+                            }
+                        }
+                    }
+                }
+            };
+
+
             var result = await Dialog.Show<CommonDialog>()
                             .SetDialogTitle("Создать раскрой пластины")
                             .SetDataContext(new CutSetVM(CutSet), vm => { })
-                            .GetCommonResultAsync<bool>();
+                            .GetCommonResultAsync<CutSet>();
+
+            if (result.Success)
+            {
+                
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ using PropertyChanged;
 
 namespace DicingBlade.ViewModels.DialogVM;
 [AddINotifyPropertyChangedInterface]
-internal partial class CutSetVM : CommonDialogResultable<bool>
+internal partial class CutSetVM : CommonDialogResultable<CutSet>
 {
     public CutSet CutSet
     {
@@ -23,14 +23,7 @@ internal partial class CutSetVM : CommonDialogResultable<bool>
     {
         get; set;
     }
-
-
-    public ObservableCollection<Pass> TestPasses
-    {
-        get;
-        set;
-    }
-
+   
     public CutSetVM()
     {
 
@@ -39,7 +32,7 @@ internal partial class CutSetVM : CommonDialogResultable<bool>
     private async Task AddPass(CuttingStep step)
     {
         var result = await Dialog.Show<CommonDialog>()
-            .SetDialogTitle("Проходы")
+            .SetDialogTitle("Распределение проходов")
             .SetDataContext(new CrudPassesVM(step.Passes), vm => { })
             .GetCommonResultAsync<IEnumerable<Pass>>();
 
@@ -60,20 +53,25 @@ internal partial class CutSetVM : CommonDialogResultable<bool>
         var passes = step.Passes as ObservableCollection<Pass>;
         if (passes is not null && passes.Count > 1) passes.RemoveAt(passes.Count - 1);
     }
+    [ICommand]
+    private void AddStep()
+    {
+        var lastStep = Steps.Last();
+        var addedStep = new CuttingStep
+        {
+            Count = lastStep.Count,
+            Index = lastStep.Index,
+            StepNumber = ++lastStep.StepNumber,
+            Length = lastStep.Length,
+            Passes = new ObservableCollection<Pass>(lastStep.Passes.ToList()),
+        };
+        Steps.Add(addedStep);
+    }
     public CutSetVM(CutSet cutSet)
     {
         CutSet = cutSet;
-        Steps = new ObservableCollection<CuttingStep>(cutSet.CuttingSteps.Select(s => new CuttingStep()
-        {
-            StepNumber = s.StepNumber,
-            Count = s.Count,
-            Index = s.Index,
-            Length = s.Length,
-            Passes = new ObservableCollection<Pass>(s.Passes),
-        }));
-
-        TestPasses = new ObservableCollection<Pass>(Steps[0].Passes);
+        Steps = new ObservableCollection<CuttingStep>(cutSet.CuttingSteps);
     }
 
-    public override void SetResult() => SetResult(true);
+    public override void SetResult() => SetResult(CutSet);
 }

@@ -33,8 +33,6 @@ namespace DicingBlade.ViewModels.DialogVM
                 return acc;
             });
 
-
-
             var list = accShares.Select(sh=>sh.Total).ToList();
 
             if(Shift(ref list, list))
@@ -43,7 +41,7 @@ namespace DicingBlade.ViewModels.DialogVM
                 for(var i = 0; i < list.Count; i++)
                 {
                     accShares[i] = new Share(list[i] - acc, list[i]);
-                    acc += list[i];
+                    acc = list[i];
                 }
                 var lastShare = accShares.Last();
                 accShares.Add(new Share(100 - lastShare.Total, 100));
@@ -56,27 +54,6 @@ namespace DicingBlade.ViewModels.DialogVM
                     RPM = lastPass.RPM,
                 });
             }
-
-
-            //if (100 - lastShare.Part > 5)
-            //{
-            //    accShares.Add(new Share(100 - lastShare.Total, 100));
-            //    var lastPass = _passes.Last();
-            //    _passes.Add(new()
-            //    {
-            //        DepthShare = lastShare.Part,
-            //        FeedSpeed = lastPass.FeedSpeed,
-            //        PassNumber = lastPass.PassNumber + 1,
-            //        RPM = lastPass.RPM,
-            //    });
-            //}
-            //else
-            //{
-            //    if (accShares.IndexOf(lastShare) == 0)
-            //    {
-            //        lastShare.
-            //    }
-            //}
 
             Shares = new(accShares);
         }

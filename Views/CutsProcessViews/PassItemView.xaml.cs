@@ -1,19 +1,12 @@
-﻿using DicingBlade.Classes.WaferGrid;
-using DicingBlade.UserControls;
-using DicingBlade.Utility;
-using HandyControl.Controls;
-using MachineControlsLibrary.Classes;
-using MachineControlsLibrary.Controls;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
-using PropertyChanged;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel.Design.Serialization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using DicingBlade.UserControls;
+using DicingBlade.Utility;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Xceed.Wpf.AvalonDock.Controls;
 
 namespace DicingBlade.Views.CutsProcessViews;
@@ -28,7 +21,7 @@ public partial class PassItemView : UserControl
         InitializeComponent();
         mainCanvas.DataContext = this;
     }
-       
+
 
     private void RefreshNumerics()
     {
@@ -55,7 +48,7 @@ public partial class PassItemView : UserControl
 
     // Using a DependencyProperty as the backing store for Shares.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty SharesProperty =
-        DependencyProperty.Register("Shares", typeof(ObservableCollection<Share>), typeof(PassItemView), 
+        DependencyProperty.Register("Shares", typeof(ObservableCollection<Share>), typeof(PassItemView),
             new PropertyMetadata(new ObservableCollection<Share>(), new PropertyChangedCallback(OnSharesChanged)));
 
     private static void OnSharesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -66,7 +59,10 @@ public partial class PassItemView : UserControl
         }
     }
 
-    public ObservableCollection<LinkLine> LinkLines { get; set; }
+    public ObservableCollection<LinkLine> LinkLines
+    {
+        get; set;
+    }
 
     void onDragDelta(object sender, DragDeltaEventArgs e)
     {
@@ -101,7 +97,7 @@ public partial class PassItemView : UserControl
             Shares[index] = new(indexSummary, indexSummary);
         }
         else if (index > 0)
-        {            
+        {
             var summary = Shares[index - 1].Total;
             if (indexSummary - summary <= 5) return;
             if (Shares.Count > index + 1 && Shares[index + 1].Total - indexSummary <= 5) return;
@@ -128,10 +124,22 @@ public partial class PassItemView : UserControl
             X2 = x2;
             Y2 = y2;
         }
-        public double Y1 { get; set; }
-        public double Y2 { get; set; }
-        public double X1 { get; set; }
-        public double X2 { get; set; }
+        public double Y1
+        {
+            get; set;
+        }
+        public double Y2
+        {
+            get; set;
+        }
+        public double X1
+        {
+            get; set;
+        }
+        public double X2
+        {
+            get; set;
+        }
     }
 
 
@@ -141,29 +149,5 @@ public partial class PassItemView : UserControl
 
     private void NumericUpDown_ValueChanged(object sender, HandyControl.Data.FunctionEventArgs<double> e)
     {
-        //if (Share.IsChanged)
-        //{
-        //    Share.IsChanged = false;
-        //    return;
-        //}
-        //Shares[0] = new(Shares[0].Part, Shares[0].Part);
-        //if (Shares.Count > 1)
-        //    for (var i = 1; i < Shares.Count; i++)
-        //    {
-        //        Shares[i] = new(Shares[i].Part, Shares[i].Part + Shares[i - 1].Total);
-        //    }
     }
-}
-
-
-public partial class Share
-{
-    public Share(int part, int total)
-    {
-        Part = part;
-        Total = total;
-    }
-    public int Part { get; set; }
-    public int Total { get; set; }
-    public static bool IsChanged { get; set; }
 }
