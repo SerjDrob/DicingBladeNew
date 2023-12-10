@@ -49,10 +49,11 @@
                                         <Style TargetType="hc:TextBox" BasedOn="{StaticResource TextBoxPlusBaseStyle}"/> 
                                     </Grid.Resources>
                                     <TextBlock Grid.Column="1" Text="{Binding StepNumber}" Foreground="{StaticResource AccentBrush}" Style="{StaticResource TextBlockBaseStyle}"/>
-                                    <hc:TextBox Grid.Column="2" Text="{Binding Index}"/>
-                                    <hc:TextBox Grid.Column="3" Text="{Binding Length}"/>
-                                    <hc:TextBox Grid.Column="4" Text="{Binding Count}"/>
-                                    <Button Grid.Column="0"
+                                    <hc:TextBox Grid.Column="2" Text="{Binding Index, StringFormat=N1}"/>
+                                    <hc:TextBox Grid.Column="3" Text="{Binding Length, StringFormat=N1}"/>
+                                    <hc:NumericUpDown Grid.Column="4" Minimum="1" Increment="1" Value="{Binding Count}"/>
+                                    <hc:ElementGroup Orientation="Horizontal">
+                                        <Button
                                          hc:IconElement.Geometry="{StaticResource AddGeometry}"
                                          hc:IconElement.Height="10"
                                          hc:Poptip.Content="Добавить шаг"
@@ -61,6 +62,17 @@
                                          Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.AddStepCommand}"
                                          Style="{StaticResource ButtonIcon.Small}"
                                          />
+                                        <Button
+                                         hc:IconElement.Geometry="{StaticResource RemoveGeometry}"
+                                         hc:IconElement.Height="10"
+                                         hc:Poptip.Content="Добавить шаг"
+                                         hc:Poptip.Placement="LeftTop"
+                                         hc:Poptip.Offset="12"
+                                         Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.RemoveStepCommand}"
+                                            CommandParameter="{Binding}"
+                                         Style="{StaticResource ButtonIcon.Small}"
+                                         />
+                                    </hc:ElementGroup>
                                 </Grid>
                             </Expander.Header>
                             <Grid HorizontalAlignment="Right">
@@ -86,7 +98,7 @@
                                 <DataGrid Grid.Column="1" AutoGenerateColumns="False" ItemsSource="{Binding Passes}" Style="{StaticResource DataGrid.Small  }">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Проход" IsReadOnly="True" Foreground="{StaticResource WarningBrush}" Binding="{Binding PassNumber}"/>
-                                        <DataGridTextColumn Header="Подача мм/с" Binding="{Binding FeedSpeed}"/>
+                                        <DataGridTextColumn Header="Подача мм/с" Binding="{Binding FeedSpeed, StringFormat=N1}"/>
                                         <DataGridTextColumn Header="Частота шпинделя об/мин" Binding="{Binding RPM}"/>
                                         <DataGridTextColumn Header="Глубина, %" IsReadOnly="True" Binding="{Binding DepthShare}"/>
                                     </DataGrid.Columns>

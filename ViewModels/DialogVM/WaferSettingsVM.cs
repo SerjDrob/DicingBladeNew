@@ -131,7 +131,7 @@ namespace DicingBlade.ViewModels.DialogVM
             };
 
             var result = dialog.ShowDialog();
-            if (result.HasValue && result.Value)
+            if (result ?? false)
             {
                 FileName = dialog.FileName;
             }

@@ -67,6 +67,11 @@ internal partial class CutSetVM : CommonDialogResultable<CutSet>
         };
         Steps.Add(addedStep);
     }
+    [ICommand]
+    private void RemoveStep(CuttingStep step)
+    {
+        if (Steps.Count > 1) Steps.Remove(step);
+    }
     public CutSetVM(CutSet cutSet)
     {
         CutSet = cutSet;

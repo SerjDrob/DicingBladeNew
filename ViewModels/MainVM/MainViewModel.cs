@@ -242,7 +242,7 @@ namespace DicingBlade.ViewModels
                 Passes = FirstPasses
             };
 
-
+            /*
             CutSet = new CutSet()
             {
                 Thickness = 0.5,
@@ -275,7 +275,30 @@ namespace DicingBlade.ViewModels
                     }
                 }
             };
-
+            */
+            CutSet ??= new CutSet
+            {
+                CuttingSteps = new List<CuttingStep>
+                {
+                    new CuttingStep
+                    {
+                        Count = 1,
+                        Index = _currentWafer.IndexH,
+                        Length = 60,
+                        StepNumber = 1,
+                        Passes = new ObservableCollection<Pass>
+                        {
+                            new Pass
+                            {
+                                DepthShare = 100,
+                                FeedSpeed = _technology.FeedSpeed,
+                                PassNumber = 0,
+                                RPM = _technology.SpindleFreq
+                            }
+                        }
+                    }
+                }
+            };
             var cutLines = CutLinesFactory.GetCutLines(CutSet, 0, 0, 0, new Blade() { Diameter = 56, Thickness = 0.1 });
 
             CutLinesVM = new(null, Settings.Default.XObjective,

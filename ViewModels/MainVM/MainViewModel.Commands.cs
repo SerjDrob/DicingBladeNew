@@ -40,7 +40,7 @@ namespace DicingBlade.ViewModels
         public int ProcessPercentage { get; set; }
         private void InitCommands()
         {
-            TestKeyCommand = new KeyProcessorCommands(parameter => true)
+            TestKeyCommand = new KeyProcessorCommands(parameter => parameter is System.Windows.Window)
                 .CreateAnyKeyDownCommand(moveAsync, () => true)
                 .CreateAnyKeyUpCommand(stopAsync, () => true)
                 .CreateKeyDownCommand(Key.T, Change, () => true)
@@ -556,31 +556,6 @@ namespace DicingBlade.ViewModels
         [ICommand]
         private async Task AddStepSet()
         {
-            CutSet = new CutSet
-            {
-                CuttingSteps = new List<CuttingStep>
-                {
-                    new CuttingStep
-                    {
-                        Count = 1,
-                        Index = 0,
-                        Length = 60,
-                        StepNumber = 1,
-                        Passes = new ObservableCollection<Pass>
-                        {
-                            new Pass
-                            {
-                                DepthShare = 100,
-                                FeedSpeed = _technology.FeedSpeed,
-                                PassNumber = 0,
-                                RPM = _technology.SpindleFreq
-                            }
-                        }
-                    }
-                }
-            };
-
-
             var result = await Dialog.Show<CommonDialog>()
                             .SetDialogTitle("Создать раскрой пластины")
                             .SetDataContext(new CutSetVM(CutSet), vm => { })
@@ -588,7 +563,7 @@ namespace DicingBlade.ViewModels
 
             if (result.Success)
             {
-                
+                CutSet = result.CommonResult;
             }
         }
     }

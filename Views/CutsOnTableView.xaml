@@ -9,14 +9,15 @@
              xmlns:System="clr-namespace:System;assembly=mscorlib"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid ClipToBounds="True" RenderTransformOrigin="0.5 0.5">
+             >
+    <Grid x:Name="mainGrid" ClipToBounds="True" RenderTransformOrigin="0.5 0.5">
         <Grid.Resources>
             <converters:DivideConverter x:Key="Divide"/>
             <converters:DivideRevConverter x:Key="DivideRev"/>
             <converters:MulConvereter x:Key="Mul"/>
             <converters:InvertDoubleConverter x:Key="Invert"/>
             <converters:MarginConverter x:Key="MarginConverter"/>
+            <converters:MarginConverter2 x:Key="MarginConverter2"/>
             <System:Double x:Key="half">0.5</System:Double>
             <System:Double x:Key="tableDiameter">100</System:Double>
             
@@ -79,10 +80,13 @@
                 </ContentControl.RenderTransform>
             </ContentControl>
         </Canvas>
-        <Grid HorizontalAlignment="Stretch"
-                     Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid, AncestorLevel=1}, Converter={StaticResource MarginConverter}}"              
-                    Background="Yellow" 
-                    RenderTransformOrigin="0.5 0.5">
+        <Grid RenderTransformOrigin="0.5 0.5">
+            <Grid.Margin>
+                <MultiBinding Converter="{StaticResource MarginConverter2}">
+                    <Binding ElementName="mainGrid" Path="ActualWidth"/>
+                    <Binding ElementName="mainGrid" Path="ActualHeight"/>
+                </MultiBinding>
+            </Grid.Margin>
             <Ellipse x:Name="table"
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"

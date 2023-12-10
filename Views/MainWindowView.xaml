@@ -18,8 +18,9 @@
     d:DataContext="{d:DesignInstance model:MainViewModel, IsDesignTimeCreatable=True}"
     
     WindowStartupLocation="CenterScreen"
+    ResizeMode="NoResize"
     WindowState="Maximized"
-    mc:Ignorable="d" MinWidth="1280" MinHeight="1024">
+    mc:Ignorable="d">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -333,7 +334,16 @@
                 </DockPanel>
             </ToolBar>
             <ToolBar>
-                <Button Content="Step Set" Foreground="{StaticResource SuccessBrush}" Command="{Binding AddStepSetCommand}"/>
+                <Button
+                    HorizontalAlignment="Stretch"
+                    Command="{Binding AddStepSetCommand}"
+                    MinHeight="80"
+                    >
+                    <StackPanel>
+                        <TextBlock Text="Создать" Style="{StaticResource TextBlockBoldBaseStyle}"/>
+                        <TextBlock Text="раскрой" Style="{StaticResource TextBlockBoldBaseStyle}"/>
+                    </StackPanel>
+                </Button>
             </ToolBar>
         </ToolBarTray>
         <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource DarkDefaultBrush}">
@@ -491,7 +501,7 @@
                                 </StackPanel>
                             </DockPanel>
                         </GroupBox>
-                        <GroupBox Header="СОЖ">
+                        <GroupBox Header="СОЖ" Visibility="Collapsed">
                             <uc:Indicator Width="150" 
                                           Height="30" 
                                           CurrentLevel="{Binding Flow}" 

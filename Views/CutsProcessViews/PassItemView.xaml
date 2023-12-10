@@ -12,9 +12,21 @@
     <UserControl.Resources>
         <converters:ShareToOffsetConverter x:Key="ShareConverter"/>
         <converters:ShareToValueConvereter x:Key="TupleConverter"/>
+        <VisualBrush x:Key="MyVisualBrush" TileMode="Tile" Viewport="0,0,15,15" ViewportUnits="Absolute" Viewbox="0,0,15,15" ViewboxUnits="Absolute">
+            <VisualBrush.Visual>
+                <Grid Background="#FFCCD5D9">
+                    <Path Data="M 0 15 L 15 0" Stroke="Gray" Opacity="0.3"/>
+                    <Path Data="M 0 0 L 15 15" Stroke="Gray" Opacity="0.3"/>
+                </Grid>
+            </VisualBrush.Visual>
+        </VisualBrush>
     </UserControl.Resources>
-    <Grid>
-        <Canvas x:Name="mainCanvas" Height="200" Width="480">
+    <Grid x:Name="mainCanvas" >
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Canvas Height="200" Width="480">
             <ItemsControl x:Name="pointers" ItemsSource="{Binding Shares}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -68,7 +80,11 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <ItemsControl x:Name="numerics" Loaded="numerics_Loaded" ItemsSource="{Binding Shares}" Canvas.Top="20" Canvas.Left="400">
+            <ItemsControl x:Name="numerics" 
+                          Loaded="numerics_Loaded" 
+                          ItemsSource="{Binding Shares}" 
+                          Canvas.Top="20" 
+                          Canvas.Left="400">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel/>
@@ -80,12 +96,25 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <Rectangle x:Name="SubstrateSection" Canvas.Left="10" Width="291" Height="200" Stroke="Green" StrokeThickness="2"/>
+            <Rectangle x:Name="SubstrateSection"
+                       Canvas.Left="10" 
+                       Width="291" 
+                       Height="200" 
+                       Stroke="Gray"
+                       Fill="{StaticResource MyVisualBrush}"
+                       Panel.ZIndex="-1"
+                       StrokeThickness="3"/>
             <Path Stroke="YellowGreen" StrokeThickness="1" StrokeDashArray="10 10">
                 <Path.Data>
                     <LineGeometry x:Name="Lg"/>
                 </Path.Data>
             </Path>
         </Canvas>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1">
+            <TextBlock Style="{StaticResource TextBlockTitleBold}">
+            &#x3A3;
+            </TextBlock>
+            <TextBlock Text="{Binding TotalDepth, StringFormat=' = {0}%'}" VerticalAlignment="Center"/>
+        </StackPanel>
     </Grid>
 </UserControl>

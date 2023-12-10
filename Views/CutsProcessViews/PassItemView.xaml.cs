@@ -32,7 +32,7 @@ public partial class PassItemView : UserControl
         }
     }
 
-
+    public int TotalDepth { get; set; } = 99;
 
     public ObservableCollection<Share> Shares
     {
@@ -68,7 +68,7 @@ public partial class PassItemView : UserControl
     {
         var thumb = sender as Thumb;
         var y = Canvas.GetTop(thumb) + e.VerticalChange;
-        if (y > 0 & y < SubstrateSection.ActualHeight - 1)
+        if (y > 0 & y < SubstrateSection.ActualHeight)
         {
             var ptIndex = pointers.FindVisualChildren<Thumb>().FindIndex(th => th.Equals(thumb));
             RecountShares(y, ptIndex);
@@ -81,11 +81,12 @@ public partial class PassItemView : UserControl
     {
         LinkLines[index] = new()
         {
-            X1 = SubstrateSection.ActualWidth,
+            X1 = SubstrateSection.ActualWidth + 10,
             Y1 = SubstrateSection.ActualHeight * Shares[index].Total / 100,
             X2 = Canvas.GetLeft(numerics),
             Y2 = Canvas.GetTop(numerics) + (2 * index + 1) * numerics.ActualHeight / (2 * Shares.Count)
         };
+        TotalDepth = Shares.Last().Total;
     }
 
     private void RecountShares(double y, int index)
