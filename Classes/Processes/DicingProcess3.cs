@@ -285,6 +285,7 @@ internal class DicingProcess3 : IProcess
             _subject.OnNext(new ProcessStateChanged(tr.Source, tr.Destination, tr.Trigger));
         });
 
+        _repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
         await _stateMachine.ActivateAsync();
     }
     private Task LearningAsync()
@@ -417,7 +418,7 @@ internal class DicingProcess3 : IProcess
         }
         else if (_stateMachine.IsInState(State.TeachSides))
         {
-            _repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
+            //_repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
             await _repeatUntilCancel.StartAsync();
         }
         else if (_stateMachine.IsInState(State.Processing))
@@ -428,7 +429,7 @@ internal class DicingProcess3 : IProcess
         }
         else if (_inProcess || _stateMachine.IsInState(State.Correction))
         {
-            _repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
+            //_repeatUntilCancel = new RepeatUntilCancel(() => _stateMachine.FireAsync(Trigger.Next));
             await _repeatUntilCancel.StartAsync();
         }
     }

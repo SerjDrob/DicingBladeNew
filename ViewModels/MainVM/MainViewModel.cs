@@ -242,40 +242,6 @@ namespace DicingBlade.ViewModels
                 Passes = FirstPasses
             };
 
-            /*
-            CutSet = new CutSet()
-            {
-                Thickness = 0.5,
-                UnderCut = 0.05,
-                CuttingSteps = new List<CuttingStep>
-                {
-                    FirstCuttingStep,
-                    new()
-                    {
-                        Count = 3,
-                        Index = 2,
-                        Length = 24,
-                        StepNumber = 1,
-                        Passes = new List<Pass>()
-                        {
-                            new()
-                            {
-                                DepthShare = 30,
-                                FeedSpeed = 5,
-                                RPM = 30000
-                            },
-                            new()
-                            {
-                                PassNumber = 1,
-                                DepthShare = 30,
-                                FeedSpeed = 2,
-                                RPM = 20000
-                            }
-                        }
-                    }
-                }
-            };
-            */
             CutSet ??= new CutSet
             {
                 CuttingSteps = new List<CuttingStep>

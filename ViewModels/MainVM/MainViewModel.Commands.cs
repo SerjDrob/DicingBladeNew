@@ -40,7 +40,7 @@ namespace DicingBlade.ViewModels
         public int ProcessPercentage { get; set; }
         private void InitCommands()
         {
-            TestKeyCommand = new KeyProcessorCommands(parameter => parameter is System.Windows.Window)
+            TestKeyCommand = new KeyProcessorCommands(parameter => true)
                 .CreateAnyKeyDownCommand(moveAsync, () => true)
                 .CreateAnyKeyUpCommand(stopAsync, () => true)
                 .CreateKeyDownCommand(Key.T, Change, () => true)

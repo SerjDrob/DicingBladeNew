@@ -78,5 +78,9 @@ internal partial class CutSetVM : CommonDialogResultable<CutSet>
         Steps = new ObservableCollection<CuttingStep>(cutSet.CuttingSteps);
     }
 
-    public override void SetResult() => SetResult(CutSet);
+    public override void SetResult() 
+    {
+        CutSet.CuttingSteps = Steps;
+        SetResult(CutSet);
+    }
 }

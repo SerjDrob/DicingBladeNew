@@ -11,6 +11,7 @@ namespace DicingBlade.Classes.Processes
         private CancellationTokenSource _cancellationTokenSource;
         private CancellationTokenSource _cancellationTokenSourceForCancelling;
 
+
         public bool IsCancellationRequested => _cancellationTokenSource?.IsCancellationRequested ?? false;
 
         public RepeatUntilCancel(Func<Task> next)
@@ -20,8 +21,8 @@ namespace DicingBlade.Classes.Processes
         public async Task StartAsync()
         {
             Guard.IsNotNull(_next, nameof(_next));
-            if (!_cancellationTokenSource?.IsCancellationRequested ?? false) return;
-
+            //if (!_cancellationTokenSource?.IsCancellationRequested ?? false) return;
+            if (_cancellationTokenSource is not null) return;
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationTokenSourceForCancelling = new CancellationTokenSource();
 
