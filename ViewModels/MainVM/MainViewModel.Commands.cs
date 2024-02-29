@@ -177,8 +177,12 @@ namespace DicingBlade.ViewModels
                         //AjustWaferTechnology();
                     }
                 }, () => IsMachineInProcess)
-                .CreateKeyDownCommand(Key.OemMinus, async () => { await AlignWaferAsync(); }, () => _isReadyForAligning)
-                .CreateKeyDownCommand(Key.Multiply, () => { UserConfirmation = true; return Task.CompletedTask; }, () => IsMachineInProcess)
+                .CreateKeyDownCommand(Key.OemMinus, async () => { await AlignWaferAsync(); }, () => _isReadyForAligning && IsNot04PP100)
+                .CreateKeyDownCommand(Key.Multiply, () => 
+                {
+                    UserConfirmation = true; 
+                    return Task.CompletedTask; 
+                }, () => !IsMachineInProcess)
                 .CreateKeyDownCommand(Key.Oem6, async() => await _machine.GoThereAsync(Place.CameraChuckCenter), () => !IsMachineInProcess)
                 .CreateKeyDownCommand(Key.Oem4, async () => await _machine.GoThereAsync(Place.BladeChuckCenter), () => !IsMachineInProcess)
                 .CreateKeyDownCommand(Key.F11, async () =>
@@ -195,7 +199,6 @@ namespace DicingBlade.ViewModels
                 .CreateKeyDownCommand(Key.F3, () => { WaferSettings(); return Task.CompletedTask; }, () => true)
                 .CreateKeyDownCommand(Key.F4, () => { TechnologySettings(); return Task.CompletedTask; }, () => true)
                 .CreateKeyDownCommand(Key.F6, ToTeachCutShift, () => true)
-
                 .CreateKeyDownCommand(Key.O, async () =>
                 {
                     var blade = new Blade();
@@ -373,15 +376,14 @@ namespace DicingBlade.ViewModels
         private Task Change()
         {
             (CentralView, RightSideView) = (RightSideView, CentralView);
-            //Cols = new[] { Cols[1], Cols[0] };
-            //Rows = new[] { Rows[1], Rows[0] };
             return Task.CompletedTask;
         }
 
         [ICommand]
         public async Task ToTeachVideoScale()
         {
-            TeachVScaleMarkersVisibility = true; ;
+            TeachVScaleMarkersVisibility = true;
+            CamVM.TeachVScaleMarkersVisibility = true;
             Growl.Info("Подведите ориентир к одному из визиров и нажмите *");
             await WaitForConfirmationAsync();
             var y = YAxis.Position;
@@ -391,6 +393,8 @@ namespace DicingBlade.ViewModels
             Settings.Default.CameraScale = CamVM.CameraScale;
             Settings.Default.Save();
             TeachVScaleMarkersVisibility = false;
+            CamVM.TeachVScaleMarkersVisibility = false;
+
         }
 
         [ICommand]

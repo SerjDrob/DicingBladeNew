@@ -555,8 +555,8 @@
             Grid.Column="1"
             BorderBrush="{StaticResource BorderBrush}"
             BorderThickness="3" />-->
-            <ContentControl Content="{Binding CutLinesVM}" Grid.RowSpan="2" Grid.Column="0"/>
-            <!--<ContentControl Content="{Binding CentralView}" Grid.RowSpan="2" Grid.Column="0"/>-->
+            <!--<ContentControl Content="{Binding CutLinesVM}" Grid.RowSpan="2" Grid.Column="0"/>-->
+            <ContentControl Content="{Binding CentralView}" Grid.RowSpan="2" Grid.Column="0"/>
             <ContentControl Content="{Binding RightSideView}" Grid.RowSpan="1" Grid.Column="1"/>
             <!--<Image
             Name="VideoImg"

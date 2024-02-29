@@ -196,7 +196,7 @@
                 </Rectangle.RenderTransform>
             </Rectangle>
 
-            <Path Stroke="Gold" StrokeThickness="{Binding ScaleGridView.StrokeThickness}" RenderTransformOrigin="0.5 0.5">
+            <Path Stroke="Gold" IsHitTestVisible="False" StrokeThickness="{Binding ScaleGridView.StrokeThickness}" RenderTransformOrigin="0.5 0.5">
                 <Path.Data>
                     <GeometryGroup Children="{Binding ScaleGridView, Converter={StaticResource ScaleGridConverter}}"/>
                 </Path.Data>

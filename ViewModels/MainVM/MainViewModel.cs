@@ -152,7 +152,10 @@ namespace DicingBlade.ViewModels
             IsNot04PP100 = !machineConfiguration.IsO4PP100;
             SubstrateVM.SubstrateClicked += SubstrVM_SubstrateClicked;
             CamVM.ImageClicked += CamVM_ImageClicked;
-            CentralView = SubstrateVM;
+            CutLinesVM = new(null, Settings.Default.XObjective,
+               Settings.Default.YObjective, Settings.Default.XDisk,
+               (Settings.Default.YObjective + Settings.Default.DiskShift));
+            CentralView = CutLinesVM; //SubstrateVM;
             RightSideView = CamVM;
             CamVM.CameraScale = Settings.Default.CameraScale;
 
@@ -265,11 +268,9 @@ namespace DicingBlade.ViewModels
                     }
                 }
             };
-            var cutLines = CutLinesFactory.GetCutLines(CutSet, 0, 0, 0, new Blade() { Diameter = 56, Thickness = 0.1 });
+            //var cutLines = CutLinesFactory.GetCutLines(CutSet, 0, 0, 0, new Blade() { Diameter = 56, Thickness = 0.1 });
 
-            CutLinesVM = new(null, Settings.Default.XObjective,
-               Settings.Default.YObjective, Settings.Default.XDisk,
-               (Settings.Default.YObjective + Settings.Default.DiskShift));
+            
 
             _machine.OnAxisMotionStateChanged += CutLinesVM.eventHandler;
 
@@ -386,7 +387,7 @@ namespace DicingBlade.ViewModels
         }
         private async void CamVM_ImageClicked(object sender, ImageClickedArgs e)
         {
-            var x = XAxis.Position - e.X;
+            var x = XAxis.Position + e.X;
             var y = YAxis.Position + e.Y;
             _machine.SetVelocity(Velocity.Service);
             await Task.WhenAll(
@@ -835,10 +836,7 @@ namespace DicingBlade.ViewModels
         private async Task WaitForConfirmationAsync()
         {
             UserConfirmation = false;
-            await Task.Run(() =>
-            {
-                while (!UserConfirmation) Task.Delay(1).Wait();
-            });
+            while (!UserConfirmation) await Task.Delay(100);
         }
         private void ChangeScreensRegime() => (CentralView, RightSideView) = (RightSideView, CentralView);
     }

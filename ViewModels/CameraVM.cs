@@ -22,16 +22,18 @@ namespace DicingBlade.ViewModels
         public BitmapImage Bi { get; set; } = new();
         public double CutWidthView { get; set; } = 0.05;
         public double RealCutWidthView { get; set; } = 0.13;
+        public double TeachMarkersRatio { get; } = 2;
         public double CutOffsetView { get; set; }
         public ScaleGrid ScaleGridView { get; set; }=new();
+        public bool TeachVScaleMarkersVisibility { get; set; }
         public event EventHandler<ImageClickedArgs> ImageClicked;
 
         [ICommand]
         private async Task ClickOnImage(object o)
         {
             var point = (Point)o;
-            var x =  point.X * CameraScale;
-            var y = point.Y * CameraScale;
+            var x =   point.X * CameraScale;
+            var y = - point.Y * CameraScale;
             ImageClicked?.Invoke(this, new ImageClickedArgs(x, y));
         }
         
