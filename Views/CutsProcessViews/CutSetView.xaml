@@ -3,17 +3,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:DicingBlade.Views.CutsProcessViews"
              xmlns:hc="https://handyorg.github.io/handycontrol"
-             xmlns:cutset="clr-namespace:DicingBlade.Classes.WaferGrid"
              xmlns:dialog="clr-namespace:DicingBlade.ViewModels.DialogVM"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             d:DataContext="{d:DesignInstance Type=dialog:CutSetVM, IsDesignTimeCreatable=True}"
+             d:DataContext="{d:DesignInstance Type=dialog:CutSetVM, IsDesignTimeCreatable=False}"
              x:Name="data"
-             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              >
     <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <hc:ElementGroup Orientation="Horizontal">
+                <Button Content="Загрузить" 
+                    Command="{Binding OpenStepSetCommand}"
+                    Style="{StaticResource ButtonPrimary.Small}"/>
+                <hc:Divider Orientation="Vertical" Width="2" Margin="0" Style="{StaticResource DividerBaseStyle}"/>
+                <Button Content="Сохранить"
+                    Command="{Binding SaveStepSetCommand}"
+                    Style="{StaticResource ButtonPrimary.Small}"/>
+            </hc:ElementGroup>
+            <TextBlock Text="{Binding FileName, FallbackValue=' Раскрой'}" 
+                       Style="{StaticResource TextBlockDefault}"
+                       Margin="5,0"/>            
+        </StackPanel>
         <TreeViewItem>
             <TreeViewItem.Header>
                 <Grid>

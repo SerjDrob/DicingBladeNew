@@ -13,6 +13,7 @@ using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NReco.Logging.File;
 //using MachineClassLibrary.Machine.MotionDevices;
 
 namespace DicingBlade

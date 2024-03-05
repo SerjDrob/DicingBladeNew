@@ -11,7 +11,7 @@
     xmlns:model="clr-namespace:DicingBlade.ViewModels"
     xmlns:uc="clr-namespace:MachineControlsLibrary.Controls;assembly=MachineControlsLibrary"
     xmlns:hc="https://handyorg.github.io/handycontrol" 
-    Title="ЭМ-225"
+    Title="04ПП100-М"
     Icon="/Views/7863776561600002497-48.png"
     ActiveGlowColor="{DynamicResource PrimaryColor}" 
    
@@ -39,7 +39,7 @@
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="4"/>
                 <Setter Property="Padding" Value="5"/>
-                <Setter Property="Background" Value="{DynamicResource DarkMaskBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource RegionBrush}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             </Style>
         </ResourceDictionary>
@@ -82,11 +82,13 @@
         </Grid.ColumnDefinitions>
         <Menu Grid.ColumnSpan="3">
             <MenuItem Header="Приводы" Command="{Binding MachineSettingsCommand}"/>
-            <MenuItem Header="Подложка" Command="{Binding WaferSettingsCommand}"/>
+            <MenuItem Header="Подложка" Command="{Binding WaferSettingsCommand}" Visibility="{Binding IsNot04PP100, Converter={StaticResource Boolean2VisibilityConverter}}"/>
             <MenuItem Header="Технология" Command="{Binding TechnologySettingsCommand}"/>
             <MenuItem Header="Обучение">
                 <MenuItem Command="{Binding ToTeachVideoScaleCommand}" Header="_Масштаб видео" />
-                <MenuItem Command="{Binding ToTeachChipSizeCommand}" Header="_Размер кристалла" />
+                <MenuItem Command="{Binding ToTeachChipSizeCommand}" 
+                          Visibility="{Binding IsNot04PP100, Converter={StaticResource Boolean2VisibilityConverter}}"
+                          Header="_Размер кристалла" />
             </MenuItem>
         </Menu>
         <ToolBarTray Grid.Row="1" Orientation="Vertical">
@@ -104,6 +106,7 @@
                 </Button>
                 <Button hc:IconElement.Geometry="{StaticResource RoundWaferGeometry}"
                         hc:IconElement.Width="15"
+                        Visibility="{Binding IsNot04PP100, Converter={StaticResource Boolean2VisibilityConverter}}"
                         Command="{Binding WaferSettingsCommand}" 
                         HorizontalAlignment="Stretch">
                     <Button.ToolTip>
@@ -130,7 +133,9 @@
                 <hc:SplitButton hc:IconElement.Geometry="{StaticResource AcademicHatGeometry}" HorizontalAlignment="Stretch">
                     <hc:SplitButton.DropDownContent>
                         <StackPanel>
-                            <MenuItem Command="{Binding ToTeachChipSizeCommand}">
+                            <MenuItem Command="{Binding ToTeachChipSizeCommand}"
+                                      Visibility="{Binding IsNot04PP100, Converter={StaticResource Boolean2VisibilityConverter}}"
+                                      >
                                 <MenuItem.Icon>
                                     <Path Data="{StaticResource ChipSizeGeometry}" RenderTransformOrigin="0.5 0.5" Fill="{StaticResource PrimaryTextBrush}" Stretch="Uniform">
                                         <Path.RenderTransform>
@@ -177,7 +182,7 @@
                             <Setter Property="BorderThickness" Value="1"/>
                             <Setter Property="CornerRadius" Value="4"/>
                             <Setter Property="Padding" Value="5"/>
-                            <Setter Property="Background" Value="{DynamicResource DarkMaskBrush}"/>
+                            <Setter Property="Background" Value="{DynamicResource RegionBrush}"/>
                             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
                         </Style>
                         <Style TargetType="uc:AxisState">
@@ -339,11 +344,27 @@
                     Command="{Binding AddStepSetCommand}"
                     MinHeight="80"
                     >
-                    <StackPanel>
-                        <TextBlock Text="Создать" Style="{StaticResource TextBlockBoldBaseStyle}"/>
-                        <TextBlock Text="раскрой" Style="{StaticResource TextBlockBoldBaseStyle}"/>
-                    </StackPanel>
+                    <TextBlock Text="Раскрой" TextAlignment="Center" Style="{StaticResource TextBlockBoldBaseStyle}">
+                            <LineBreak/>
+                            <Run Text="подложки"/>
+                    </TextBlock>
                 </Button>
+                <Border Style="{StaticResource ToolBorder}">
+                    <StackPanel>
+                        <TextBlock Text="Толщина" Style="{StaticResource TextBlockBoldBaseStyle}" Margin="0,0,0,5">
+                        <LineBreak/>
+                        <Run Text="Подложки"/>
+                        </TextBlock>
+                        <hc:NumericUpDown Style="{StaticResource NumericUpDownExtend}"
+                                      HorizontalContentAlignment="Right"
+                                      Minimum="0.05"
+                                      MaxHeight="5"
+                                      Increment="0.05"
+                                      DecimalPlaces="3"
+                                          Value="{Binding WaferThickness}"
+                                  />
+                    </StackPanel>
+                </Border>
             </ToolBar>
         </ToolBarTray>
         <Grid Grid.Row="1" Grid.Column="1" Background="{StaticResource DarkDefaultBrush}">

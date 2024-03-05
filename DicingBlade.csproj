@@ -6,7 +6,7 @@
 	<Nullable>enable</Nullable>
 	<UseWPF>true</UseWPF>
 	<DefineConstants>TRACE;PCIInserted;DEBUGGING</DefineConstants>
-	<ApplicationIcon>3xhumed-Mega-Games-Pack-36-SAW-TheGame-3.ico</ApplicationIcon>
+	<!--<ApplicationIcon>3xhumed-Mega-Games-Pack-36-SAW-TheGame-3.ico</ApplicationIcon>-->
 	<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 	
 	<AssemblyTitle>DicingBlade</AssemblyTitle>
@@ -184,18 +184,15 @@
     <PackageReference Include="FluentValidation" Version="10.0.1" />
     <PackageReference Include="HandyControls.Lang.ru" Version="3.4.4" />
     <PackageReference Include="Humanizer.Core.ru" Version="2.14.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Workspace" Version="16.3.43" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="NModbus4" Version="2.1.0" />
     <PackageReference Include="NReco.Logging.File" Version="1.1.7" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
-    <PackageReference Include="System.Security.AccessControl" Version="5.0.0" />
-    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+    <!--<PackageReference Include="System.Security.AccessControl" Version="5.0.0" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />-->
 	<PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />
 	<PackageReference Include="stateless" Version="5.12.0" />
-	<PackageReference Include="System.Reactive" Version="5.0.0" />
 	<PackageReference Include="HandyControl" Version="3.3.0" />
   </ItemGroup>
   <ItemGroup>

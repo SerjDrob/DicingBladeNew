@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,23 +8,22 @@ using HandyControl.Controls;
 using HandyControl.Tools.Extension;
 using MachineControlsLibrary.CommonDialog;
 using Microsoft.Toolkit.Mvvm.Input;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PropertyChanged;
+using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
+using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
+using DialogResult = System.Windows.Forms.DialogResult;
+using System.IO;
 
 namespace DicingBlade.ViewModels.DialogVM;
 [AddINotifyPropertyChangedInterface]
 internal partial class CutSetVM : CommonDialogResultable<CutSet>
 {
-    public CutSet CutSet
-    {
-        get;
-        set;
-    }
-    public ObservableCollection<CuttingStep> Steps
-    {
-        get; set;
-    }
-   
+    public CutSet CutSet { get; set; }
+    public ObservableCollection<CuttingStep> Steps { get; set; }
+    public string FileName { get; set; }
+
     public CutSetVM()
     {
 
@@ -82,5 +82,51 @@ internal partial class CutSetVM : CommonDialogResultable<CutSet>
     {
         CutSet.CuttingSteps = Steps;
         SetResult(CutSet);
+    }
+
+    [ICommand]
+    private async Task OpenStepSet()
+    {
+        var openFileDialog = new OpenFileDialog();
+        openFileDialog.Filter = "Файлы раскроя (*.csf)|*.csf";
+        openFileDialog.DefaultExt = "*.csf";
+        openFileDialog.Title = "Выберите файл";
+        if (openFileDialog.ShowDialog() == DialogResult.OK)
+        {
+            try
+            {
+                var filePath = openFileDialog.FileName;
+                var json = File.ReadAllText(filePath);
+                var result = JsonConvert.DeserializeObject<CutSet>(json);
+                if (result != null)
+                {
+                    FileName = filePath;
+                    CutSet = result;
+                    Steps = new ObservableCollection<CuttingStep>(CutSet.CuttingSteps);
+                }
+            }
+            catch (Exception)
+            {
+
+                //throw;
+            }
+        }
+    }
+
+    [ICommand]
+    private async Task SaveStepSet()
+    {
+        var serialized = JsonConvert.SerializeObject(CutSet);
+
+        var saveFileDialog = new SaveFileDialog();
+        saveFileDialog.Filter = "Файлы раскроя (*.csf)|*.csf";
+        saveFileDialog.DefaultExt = "*.csf";
+        saveFileDialog.FileName = "";
+        saveFileDialog.AddExtension = true;
+        if (saveFileDialog.ShowDialog() == DialogResult.OK)
+        {
+            File.WriteAllText(saveFileDialog.FileName, serialized);
+            FileName = saveFileDialog.FileName;
+        }
     }
 }

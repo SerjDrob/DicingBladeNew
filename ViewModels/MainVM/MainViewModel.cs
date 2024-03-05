@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Advantech.Motion;
-using DicingBlade.Classes.WaferGrid;
 using DicingBlade.Classes.Miscellaneous;
 using DicingBlade.Classes.Processes;
 using DicingBlade.Classes.Technology;
 using DicingBlade.Classes.WaferGeometry;
+using DicingBlade.Classes.WaferGrid;
 using DicingBlade.Properties;
 using DicingBlade.Utility;
 using MachineClassLibrary.Classes;
@@ -19,13 +20,11 @@ using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.Machine.Parts;
 using MachineClassLibrary.SFC;
-using MathNet.Numerics.Integration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Toolkit.Diagnostics;
 using PropertyChanged;
 using Growl = HandyControl.Controls.Growl;
 using MsgBox = HandyControl.Controls.MessageBox;
-using System.Collections.ObjectModel;
 
 namespace DicingBlade.ViewModels
 {
@@ -40,109 +39,40 @@ namespace DicingBlade.ViewModels
         private IComSensor _flowMeter;
         private IProcess _dicingProcess;
         private bool _isProcessInCorrection;
-        private bool _isSingleCutAvaliable;
+        private bool _isSingleCutAvailable;
         private IWafer _currentWafer;
-        public bool CutWidthMarkerVisibility
-        {
-            get; set;
-        }
-        public double Flow
-        {
-            get; set;
-        }
+        public bool CutWidthMarkerVisibility { get; set; }
+        public double Flow { get; set; }
         public Velocity VelocityRegime { get; set; } = Velocity.Fast;
-        public object CentralView
-        {
-            get; set;
-        }
-        public object RightSideView
-        {
-            get; set;
-        }
+        public object CentralView { get; set; }
+        public object RightSideView { get; set; }
         public CameraVM CamVM { get; set; } = new();
         public AxisStateView XAxis { get; set; } = new AxisStateView(0, 0, false, false, true, false);
         public AxisStateView YAxis { get; set; } = new AxisStateView(0, 0, false, false, true, false);
         public AxisStateView ZAxis { get; set; } = new AxisStateView(0, 0, false, false, true, false);
         public AxisStateView UAxis { get; set; } = new AxisStateView(0, 0, false, false, true, false);
-        public bool ChuckVacuumValveView
-        {
-            get; set;
-        }
-        public bool CoolantValveView
-        {
-            get; set;
-        }
-        public bool BlowingValveView
-        {
-            get; set;
-        }
-        public bool ChuckVacuumSensorView
-        {
-            get; set;
-        }
-        public bool CoolantSensorView
-        {
-            get; set;
-        }
-        public bool AirSensorView
-        {
-            get; set;
-        }
-        public bool SpindleCoolantSensorView
-        {
-            get; set;
-        }
-        public double ZBladeTouchView
-        {
-            get; set;
-        }
-        public int SpindleFreqView
-        {
-            get; set;
-        }
-        public double SpindleCurrentView
-        {
-            get; set;
-        }
-        public bool SpindleOnFreq
-        {
-            get; private set;
-        }
-        public bool SpindleAccelerating
-        {
-            get; private set;
-        }
-        public bool SpindleDecelerating
-        {
-            get; private set;
-        }
-        public bool SpindleStops
-        {
-            get; private set;
-        }
-        public Wafer Wafer
-        {
-            get; set;
-        }
-        public Wafer2D Substrate
-        {
-            get; private set;
-        }
-        public bool TeachVScaleMarkersVisibility
-        {
-            get; private set;
-        }
-        public string ProcessStatus
-        {
-            get; private set;
-        }
-        public bool UserConfirmation
-        {
-            get; private set;
-        }
+        public bool ChuckVacuumValveView { get; set; }
+        public bool CoolantValveView { get; set; }
+        public bool BlowingValveView { get; set; }
+        public bool ChuckVacuumSensorView { get; set; }
+        public bool CoolantSensorView { get; set; }
+        public bool AirSensorView { get; set; }
+        public bool SpindleCoolantSensorView { get; set; }
+        public double ZBladeTouchView { get; set; }
+        public int SpindleFreqView { get; set; }
+        public double SpindleCurrentView { get; set; }
+        public bool SpindleOnFreq { get; private set; }
+        public bool SpindleAccelerating { get; private set; }
+        public bool SpindleDecelerating { get; private set; }
+        public bool SpindleStops { get; private set; }
+        public Wafer Wafer { get; set; }
+        public Wafer2D Substrate { get; private set; }
+        public bool TeachVScaleMarkersVisibility { get; private set; }
+        public string ProcessStatus { get; private set; }
+        public bool UserConfirmation { get; private set; }
         public bool IsNot04PP100 { get; set; } = true;
-        private bool _isSingleCutAvailable;
         public double TeachMarkersRatio { get; } = 2;
+        public double WaferThickness { get; set; }
         public SubstrateVM SubstrateVM { get; set; } = new();
         private readonly List<IDisposable> _subscriptions = new();
         private readonly ILogger _logger;
@@ -155,7 +85,7 @@ namespace DicingBlade.ViewModels
             CutLinesVM = new(null, Settings.Default.XObjective,
                Settings.Default.YObjective, Settings.Default.XDisk,
                (Settings.Default.YObjective + Settings.Default.DiskShift));
-            CentralView = CutLinesVM; //SubstrateVM;
+            CentralView = CutLinesVM;
             RightSideView = CamVM;
             CamVM.CameraScale = Settings.Default.CameraScale;
 
@@ -178,19 +108,9 @@ namespace DicingBlade.ViewModels
                 _machine.OnValveStateChanged += _machine_OnValveStateChanged;
                 var result = _machine.TryConnectSpindle();
                 _machine.OnSpindleStateChanging += _machine_OnSpindleStateChanging;
-            }
-            catch (MotionException ex)
-            {
-                MessageBox.Show(ex.Message, ex.StackTrace);
-            }
-
-            if (File.Exists(Settings.Default.WaferLastFile))
-            {
-                _currentWafer = ExtensionMethods.DeserilizeObject<TempWafer>(Settings.Default.WaferLastFile);
-            }
-            else
-            {
-                _currentWafer = new TempWafer
+                _machine.OnAxisMotionStateChanged += CutLinesVM.eventHandler;
+                _currentWafer = ExtensionMethods.DeserilizeObject<TempWafer>(Settings.Default.WaferLastFile) ??
+                new TempWafer
                 {
                     Width = 60,
                     Height = 48,
@@ -199,55 +119,10 @@ namespace DicingBlade.ViewModels
                     Thickness = 0.5,
                     IsRound = false
                 };
-            }
-            AdjustWaferTechnology(_currentWafer);
-            _flowMeter = new FlowMeter("COM9");
-            _flowMeter.GetData += _flowMeter_GetData;
-            InitCommands();
-
-            var viewfinders = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(APP_SETTINGS_FOLDER, "Viewfinders.json")).DivideDoubles(1000);
-
-            CamVM.ScaleGridView = viewfinders;
-            CamVM.RealCutWidthView = viewfinders.RealCutWidth;
-            CamVM.CutWidthView = viewfinders.CorrectingCutWidth;
-
-            //----
-
-            FirstPasses = new ObservableCollection<Pass>()
-                        {
-                            new()
-                            {
-                                DepthShare = 30,
-                                FeedSpeed = 10,
-                                RPM = 28000
-                            },
-                            new()
-                            {
-                                PassNumber = 1,
-                                DepthShare = 30,
-                                FeedSpeed = 5,
-                                RPM = 25000
-                            },
-                            new()
-                            {
-                                PassNumber = 2,
-                                DepthShare = 40,
-                                FeedSpeed = 3,
-                                RPM = 18000
-                            },
-                        };
-
-            FirstCuttingStep = new()
-            {
-                Count = 5,
-                Index = 5.2,
-                Length = 48,
-                Passes = FirstPasses
-            };
-
-            CutSet ??= new CutSet
-            {
-                CuttingSteps = new List<CuttingStep>
+                WaferThickness = _currentWafer.Thickness;
+                CutSet ??= new CutSet
+                {
+                    CuttingSteps = new List<CuttingStep>
                 {
                     new CuttingStep
                     {
@@ -267,49 +142,33 @@ namespace DicingBlade.ViewModels
                         }
                     }
                 }
-            };
-            //var cutLines = CutLinesFactory.GetCutLines(CutSet, 0, 0, 0, new Blade() { Diameter = 56, Thickness = 0.1 });
-
-            
-
-            _machine.OnAxisMotionStateChanged += CutLinesVM.eventHandler;
-
-            //----
-
+                };
+                AdjustWaferTechnology(_currentWafer);
+            }
+            catch (MotionException ex)
+            {
+                MessageBox.Show(ex.Message, ex.StackTrace);
+            }
 
 
+
+            _flowMeter = new FlowMeter("COM9");
+            _flowMeter.GetData += _flowMeter_GetData;
+            InitCommands();
+
+            var viewfinders = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(APP_SETTINGS_FOLDER, "Viewfinders.json")).DivideDoubles(1000);
+            if (viewfinders is not null)
+            {
+                CamVM.ScaleGridView = viewfinders;
+                CamVM.RealCutWidthView = viewfinders.RealCutWidth;
+                CamVM.CutWidthView = viewfinders.CorrectingCutWidth;
+            }
             _logger.Log(LogLevel.Information, "App started");
         }
 
-        public CutSet CutSet
-        {
-            get;
-            set;
-        }
+        public CutSet CutSet { get; set; }
+        public CutLinesVM CutLinesVM { get; set; }
 
-        public CuttingStep FirstCuttingStep
-        {
-            get;
-            set;
-        }
-
-        public ObservableCollection<Pass> FirstPasses
-        {
-            get;
-            set;
-        }
-
-        public CutLinesVM CutLinesVM
-        {
-            get;
-            set;
-        }
-
-        public CutLines CutLinesView
-        {
-            get;
-            set;
-        }
         public void LogMessage(LogLevel loggerLevel, string message) => _logger.Log(loggerLevel, message);
         private void _flowMeter_GetData(decimal obj)
         {
@@ -385,7 +244,7 @@ namespace DicingBlade.ViewModels
                 //throw;
             }
         }
-        private async void CamVM_ImageClicked(object sender, ImageClickedArgs e)
+        private async void CamVM_ImageClicked(object? sender, ImageClickedArgs e)
         {
             var x = XAxis.Position + e.X;
             var y = YAxis.Position + e.Y;
@@ -394,7 +253,7 @@ namespace DicingBlade.ViewModels
             _machine.MoveAxInPosAsync(Ax.X, x),
             _machine.MoveAxInPosAsync(Ax.Y, y, true));
         }
-        private async void SubstrVM_SubstrateClicked(object sender, SubstrateClickedArgs e)
+        private async void SubstrVM_SubstrateClicked(object? sender, SubstrateClickedArgs e)
         {
             var x = 0d;
             var y = 0d;
@@ -430,14 +289,14 @@ namespace DicingBlade.ViewModels
                             {
                                 ChangeScreensRegime();
                                 _isProcessInCorrection = true;
-                                _isSingleCutAvaliable = true;
+                                _isSingleCutAvailable = true;
                                 _isReadyForAligning = true;
                                 CutWidthMarkerVisibility = true;
                             }
                             break;
                         case State.TeachSides:
                             {
-                                _isSingleCutAvaliable = true;
+                                _isSingleCutAvailable = true;
                                 _isReadyForAligning = true;
                             }
                             break;
@@ -458,7 +317,7 @@ namespace DicingBlade.ViewModels
                             {
                                 ChangeScreensRegime();
                                 _isProcessInCorrection = false;
-                                _isSingleCutAvaliable = false;
+                                _isSingleCutAvailable = false;
                                 _isReadyForAligning = false;
                                 CutWidthMarkerVisibility = false;
                                 CamVM.CutOffsetView = 0;
@@ -467,7 +326,7 @@ namespace DicingBlade.ViewModels
 
                         case State.TeachSides:
                             {
-                                _isSingleCutAvaliable = false;
+                                _isSingleCutAvailable = false;
                                 _isReadyForAligning = false;
                             }
                             break;
@@ -616,7 +475,7 @@ namespace DicingBlade.ViewModels
                     {
                         _logger.LogError(exception, $"Throwed in {nameof(GetSubscriptions)} method.  ");
                     }
-                },() =>_machine.StartCamera(0))
+                }, () => _machine.StartCamera(0))
                 .AddToSubscriptions(_subscriptions);
         }
         public double WaferCurrentSideAngle

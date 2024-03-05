@@ -1,32 +1,34 @@
-﻿using DicingBlade.Classes.Miscellaneous;
-using DicingBlade.Classes.Processes;
-using DicingBlade.Classes.Technology;
-using DicingBlade.Classes.WaferGeometry;
-using DicingBlade.Properties;
-using DicingBlade.Utility;
-using DicingBlade.Views;
-using MachineClassLibrary.Classes;
-using MachineClassLibrary.Machine;
-using MachineClassLibrary.Machine.Machines;
-using MachineClassLibrary.Machine.MotionDevices;
-using MachineControlsLibrary.Classes;
-using HandyControl.Tools.Extension;
-using Microsoft.Toolkit.Mvvm.Input;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using DicingBlade.Classes.Miscellaneous;
+using DicingBlade.Classes.Processes;
+using DicingBlade.Classes.Technology;
+using DicingBlade.Classes.WaferGeometry;
+using DicingBlade.Classes.WaferGrid;
+using DicingBlade.Properties;
+using DicingBlade.Utility;
+using DicingBlade.ViewModels.DialogVM;
+using HandyControl.Controls;
+using HandyControl.Tools.Extension;
+using MachineClassLibrary.Classes;
+using MachineClassLibrary.Machine;
+using MachineClassLibrary.Machine.Machines;
+using MachineClassLibrary.Machine.MotionDevices;
+using MachineControlsLibrary.Classes;
+using MachineControlsLibrary.CommonDialog;
+using Microsoft.Toolkit.Mvvm.Input;
+using Newtonsoft.Json;
 using Growl = HandyControl.Controls.Growl;
 using MsgBox = HandyControl.Controls.MessageBox;
-using HandyControl.Controls;
-using MachineControlsLibrary.CommonDialog;
-using DicingBlade.ViewModels.DialogVM;
-using DicingBlade.Classes.WaferGrid;
-using System.Collections.ObjectModel;
-
+using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
+using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
+using DialogResult = System.Windows.Forms.DialogResult;
 
 namespace DicingBlade.ViewModels
 {
@@ -34,10 +36,19 @@ namespace DicingBlade.ViewModels
     {
         private bool _homeDone;
 
-        public ICommand? TestKeyCommand { get; protected set; }
-        public bool IsMachineInProcess { get => !(_dicingProcess is null || _dicingProcess.ProcessEndOrDenied); }
+        public ICommand? TestKeyCommand
+        {
+            get; protected set;
+        }
+        public bool IsMachineInProcess
+        {
+            get => !(_dicingProcess is null || _dicingProcess.ProcessEndOrDenied);
+        }
         private bool _isReadyForAligning;
-        public int ProcessPercentage { get; set; }
+        public int ProcessPercentage
+        {
+            get; set;
+        }
         private void InitCommands()
         {
             TestKeyCommand = new KeyProcessorCommands(parameter => true)
@@ -158,7 +169,8 @@ namespace DicingBlade.ViewModels
                         builder.SetMainParams(CutSet, blade)
                         .SetGeometry(Settings.Default.XDisk, Settings.Default.ZTouch);
                         //_dicingProcess = new DicingProcess2(_machine, Substrate, blade, _technology);
-                        _dicingProcess = new DicingProcess3(_machine, builder, _technology,1d);
+
+                        _dicingProcess = new DicingProcess3(_machine, builder, _technology, WaferThickness);
                         GetSubscriptions(_dicingProcess);
                         await _dicingProcess.CreateProcess();
                     }
@@ -178,12 +190,12 @@ namespace DicingBlade.ViewModels
                     }
                 }, () => IsMachineInProcess)
                 .CreateKeyDownCommand(Key.OemMinus, async () => { await AlignWaferAsync(); }, () => _isReadyForAligning && IsNot04PP100)
-                .CreateKeyDownCommand(Key.Multiply, () => 
+                .CreateKeyDownCommand(Key.Multiply, () =>
                 {
-                    UserConfirmation = true; 
-                    return Task.CompletedTask; 
+                    UserConfirmation = true;
+                    return Task.CompletedTask;
                 }, () => !IsMachineInProcess)
-                .CreateKeyDownCommand(Key.Oem6, async() => await _machine.GoThereAsync(Place.CameraChuckCenter), () => !IsMachineInProcess)
+                .CreateKeyDownCommand(Key.Oem6, async () => await _machine.GoThereAsync(Place.CameraChuckCenter), () => !IsMachineInProcess)
                 .CreateKeyDownCommand(Key.Oem4, async () => await _machine.GoThereAsync(Place.BladeChuckCenter), () => !IsMachineInProcess)
                 .CreateKeyDownCommand(Key.F11, async () =>
                 {
@@ -458,7 +470,7 @@ namespace DicingBlade.ViewModels
                     SubstrateVM.WaferView = Wafer.GetWaferView();
 
 
-                  //  AjustWaferTechnology(Substrate.CurrentSide);
+                    //  AjustWaferTechnology(Substrate.CurrentSide);
                 }
             }
         }
@@ -467,7 +479,7 @@ namespace DicingBlade.ViewModels
         {
             var settingsVM = new MachineSettingsVM(XAxis.Position, YAxis.Position, ZAxis.CmdPosition);
             var viewFinders = ExtensionMethods.DeserilizeObject<ViewFindersVM>(ProjectPath.GetFilePathInFolder(ProjectFolders.APP_SETTINGS, "Viewfinders.json")); ;
-           
+
             var result = await Dialog.Show<CommonDialog>()
                 .SetDialogTitle("Настройки приводов")
                 .SetDataContext(settingsVM, vm => vm.ScaleGridView = viewFinders)
@@ -499,7 +511,10 @@ namespace DicingBlade.ViewModels
 
         public int PassCountTechnology { get; set; } = 1;
         public double FeedSpeedTechnology { get; set; } = 1.5;
-        public string WaferFileName { get; set; }
+        public string WaferFileName
+        {
+            get; set;
+        }
 
         [ICommand]
         private async Task TechnologySettings()
@@ -507,10 +522,13 @@ namespace DicingBlade.ViewModels
 
             var result = await Dialog.Show<CommonDialog>()
                 .SetDialogTitle("Технология")
-                .SetDataContext<TechnologySettingsVM>(vm => { })
+                .SetDataContext<TechnologySettingsVM>(vm => 
+                {
+                    vm.IsNot04PP100 = IsNot04PP100;
+                })
                 .GetCommonResultAsync<ITechnology>();
 
-            if (result.Success) 
+            if (result.Success)
             {
                 _technology = result.CommonResult;
                 PassCountTechnology = _technology.PassCount;
@@ -536,7 +554,7 @@ namespace DicingBlade.ViewModels
                 Settings.Default.Save();
                 AdjustWaferTechnology(newSettings);
                 WaferFileName = newSettings.FileName;
-            }           
+            }
         }
 
         [ICommand]

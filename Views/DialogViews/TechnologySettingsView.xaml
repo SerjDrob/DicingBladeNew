@@ -89,7 +89,8 @@
                 <hc:TextBox
             hc:TitleElement.Title="Количество проходов"
             hc:TitleElement.TitlePlacement="Left"
-            hc:TitleElement.TitleWidth="215"            
+            hc:TitleElement.TitleWidth="215"       
+                    Visibility="{Binding IsNot04PP100, Converter={StaticResource Boolean2VisibilityConverter}}"
             Width="300"
             Text="{Binding PassCount, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
@@ -142,6 +143,7 @@
         </GroupBox>
         <DockPanel
             Margin="3"
+            Visibility="{Binding IsNot04PP100, Converter={StaticResource Boolean2VisibilityConverter}}"
             >
             <Label Content="Файл технологии:" DockPanel.Dock="Left" />
             <Label
@@ -152,7 +154,9 @@
                 FontWeight="Light"
                 DockPanel.Dock="Left" />
         </DockPanel>
-        <DockPanel>
+        <DockPanel
+            Visibility="{Binding IsNot04PP100, Converter={StaticResource Boolean2VisibilityConverter}}"
+            >
             <Button
                 Margin="3"
                 Command="{Binding SaveFileAsCommand}"

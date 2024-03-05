@@ -1,9 +1,7 @@
 ﻿using System;
-using Advantech.Motion;
 using DicingBlade.Classes.WaferGrid;
 using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
 using PropertyChanged;
 
 namespace DicingBlade.ViewModels;
@@ -11,16 +9,16 @@ namespace DicingBlade.ViewModels;
 [AddINotifyPropertyChangedInterface]
 public partial class CutLinesVM
 {
-    public CutLines CutLines
+    public CutLines? CutLines
     {
         get;
         private set;
     }
-    
+
     public double XVideoPos { get; init; }
     public double YVideoPos { get; init; }
     private double _currentX;
-    private double _currentY;   
+    private double _currentY;
     public double XVideo
     {
         get;
@@ -38,13 +36,13 @@ public partial class CutLinesVM
         get;
         set;
     }
-    
+
     public double YBlade
     {
         get;
         set;
     }
-    public CutLinesVM(CutLines cutLines, double xVideo, double yVideo, double xBlade, double yBlade)
+    public CutLinesVM(CutLines? cutLines, double xVideo, double yVideo, double xBlade, double yBlade)
     {
         CutLines = cutLines;
         XVideoPos = xVideo;
@@ -70,8 +68,8 @@ public partial class CutLinesVM
             XVideo = _currentX - XVideoPos;
             YVideo = _currentY - YVideoPos;
         };
-        
+
     }
     public void SetCutLines(CutLines cutLines) => CutLines = cutLines;
-    public EventHandler<AxisStateEventArgs> eventHandler { get; set; } 
+    public EventHandler<AxisStateEventArgs> eventHandler { get; set; }
 }

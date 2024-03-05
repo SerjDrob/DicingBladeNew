@@ -40,7 +40,7 @@ namespace DicingBlade.ViewModels
         public ObservableCollection<TraceLine> ControlPointsView { get; set; } = new();
         public ObservableCollection<TraceLine> TracesCollectionView { get; set; } = new();
 
-        public event EventHandler<SubstrateClickedArgs> SubstrateClicked;
+        public event EventHandler<SubstrateClickedArgs>? SubstrateClicked;
 
         [ICommand]
         private async Task ClickOnWafer(object o)

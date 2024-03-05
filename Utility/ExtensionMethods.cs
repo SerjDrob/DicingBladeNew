@@ -22,6 +22,7 @@ namespace DicingBlade.Utility
         }
         internal static T? DeserilizeObject<T>(string filePath)
         {
+            if (!File.Exists(filePath)) return default(T);
             var obj = JsonConvert.DeserializeObject(File.ReadAllText(filePath), typeof(T));
             return (T?)obj;
         }
